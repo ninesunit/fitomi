@@ -1,0 +1,13 @@
+{
+  "name": "Fitomi — Gym Tracker",
+  "short_name": "Fitomi",
+  "description": "A gamified gym tracker. Level up your hunter, one set at a time.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04060d",
+  "theme_color": "#04060d",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

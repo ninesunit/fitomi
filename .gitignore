@@ -1,0 +1,35 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# build
+dist
+dist-ssr
+*.local
+.vite
+
+# env / secrets — NEVER commit credentials
+.env
+.env.local
+.env.*.local
+*serviceAccount*.json
+*firebase-adminsdk*.json
+service-account*.json
+sa.json
+
+# firebase
+.firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebaserc.local
+
+# editor / os
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
+*.swp
+npm-debug.log*
+yarn-error.log*
