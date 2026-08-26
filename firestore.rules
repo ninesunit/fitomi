@@ -7,6 +7,14 @@ rules_version = '2';
 // write their own subtree and nothing else. There is no server-side code in
 // this app (Spark plan, no Cloud Functions), so these rules are the entire
 // authorisation layer and are written to fail closed.
+//
+// IMPORTANT — no recursive `match /{document=**}` wildcard appears below, and
+// none may be added. Firestore evaluates every matching rule and grants access
+// if ANY of them allows it, so a permissive catch-all silently overrides every
+// stricter rule beneath it: the workout integrity constraints here were dead
+// code until that wildcard was removed. Collections are therefore enumerated
+// explicitly. A new collection is denied until it is added here, which is the
+// safe direction to fail in.
 // ---------------------------------------------------------------------------
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -20,35 +28,42 @@ service cloud.firestore {
       return request.resource.data.size() < 400;
     }
 
+    // The profile document: progression, stats, streak, shadows, records,
+    // the active raid and the quest board.
     match /users/{uid} {
       allow read: if isOwner(uid);
-      allow create: if isOwner(uid) && sizeOk();
-      allow update: if isOwner(uid) && sizeOk();
       allow delete: if isOwner(uid);
-
-      // Finished workout sessions. Immutable once written except by the owner,
-      // and never writable with someone else's uid stamped on them.
-      match /workouts/{workoutId} {
-        allow read: if isOwner(uid);
-        allow create: if isOwner(uid)
-                      && request.resource.data.uid == uid
-                      && request.resource.data.finishedAt is number;
-        allow update, delete: if isOwner(uid);
-      }
-
-      // Saved routines and Notomi-synced programmes.
-      match /routines/{routineId} {
-        allow read, write: if isOwner(uid);
-      }
-
-      // Anything else under the user's subtree stays owner-only rather than
-      // silently defaulting open as new features are added.
-      match /{document=**} {
-        allow read, write: if isOwner(uid);
-      }
+      // A profile may only ever be stamped with its owner's uid.
+      allow create, update: if isOwner(uid)
+                            && sizeOk()
+                            && (!('uid' in request.resource.data) || request.resource.data.uid == uid);
     }
 
-    // Everything outside /users is denied.
+    // Finished sessions. Must carry the owner's uid and a real timestamp, so a
+    // session can never be back-dated into someone else's history or written
+    // without the field the history query orders by.
+    match /users/{uid}/workouts/{workoutId} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid)
+                    && sizeOk()
+                    && request.resource.data.uid == uid
+                    && request.resource.data.finishedAt is number;
+      allow update: if isOwner(uid)
+                    && sizeOk()
+                    && request.resource.data.uid == uid;
+      allow delete: if isOwner(uid);
+    }
+
+    // Saved routines, including programmes imported from Notomi.
+    match /users/{uid}/routines/{routineId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+                            && sizeOk()
+                            && request.resource.data.uid == uid;
+      allow delete: if isOwner(uid);
+    }
+
+    // Everything else is denied.
     match /{document=**} {
       allow read, write: if false;
     }

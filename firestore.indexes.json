@@ -1,13 +1,5 @@
 {
-  "indexes": [
-    {
-      "collectionGroup": "workouts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "uid", "order": "ASCENDING" },
-        { "fieldPath": "finishedAt", "order": "DESCENDING" }
-      ]
-    }
-  ],
+  "//": "No composite indexes are required. Workouts live in a per-user subcollection and are queried by orderBy('finishedAt','desc') alone, which Firestore's automatic single-field indexes already serve.",
+  "indexes": [],
   "fieldOverrides": []
 }

@@ -11,7 +11,6 @@ import {
   setDoc,
   startAfter,
   updateDoc,
-  where,
   writeBatch,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -88,10 +87,18 @@ export async function commitWorkout(uid, workout, profile) {
   return { id: sessionRef.id, profile: trimmed };
 }
 
-/** Paginated workout history. `cursor` is the last document snapshot seen. */
+/**
+ * Paginated workout history. `cursor` is the last document snapshot seen.
+ *
+ * There is deliberately no `where('uid','==',uid)` here: the collection is
+ * already /users/{uid}/workouts, so the filter would be redundant — and adding
+ * an equality filter alongside an orderBy on a different field is exactly what
+ * forces a composite index. Without it this runs on Firestore's automatic
+ * single-field index, so there is no index to build or deploy.
+ */
 export async function fetchWorkouts(uid, { pageSize = 20, cursor = null } = {}) {
-  const clauses = [where('uid', '==', uid), orderBy('finishedAt', 'desc'), fsLimit(pageSize)];
-  if (cursor) clauses.splice(2, 0, startAfter(cursor));
+  const clauses = [orderBy('finishedAt', 'desc'), fsLimit(pageSize)];
+  if (cursor) clauses.splice(1, 0, startAfter(cursor));
 
   const snap = await getDocs(query(workoutsRef(uid), ...clauses));
   return {
