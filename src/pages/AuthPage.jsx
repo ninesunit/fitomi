@@ -13,13 +13,16 @@ const MODES = {
 };
 
 export default function AuthPage() {
-  const { signIn, signUp, signInWithGoogle, resetPassword, reportAuthError } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resetPassword, reportAuthError, redirectError } = useAuth();
   const { toast } = useSystem();
 
   const [mode, setMode] = useState('signin');
   const [form, setForm] = useState({ email: '', password: '', displayName: '' });
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
+  const [localError, setLocalError] = useState(null);
+  // A failed redirect sign-in has no local error to show, so fall back to it.
+  const error = localError || (redirectError ? authMessage(redirectError) : null);
+  const setError = setLocalError;
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 

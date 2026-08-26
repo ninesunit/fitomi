@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import {
   browserLocalPersistence,
+  browserPopupRedirectResolver,
   getAuth,
   initializeAuth,
   indexedDBLocalPersistence,
@@ -34,10 +35,18 @@ export const app = initializeApp(firebaseConfig);
 
 // initializeAuth with an explicit persistence chain avoids the extra network
 // round-trip getAuth() makes on some browsers, and keeps sessions across reloads.
+//
+// popupRedirectResolver is NOT optional here, despite the type saying it is.
+// getAuth() installs browserPopupRedirectResolver for you; initializeAuth()
+// does not, and without it every signInWithPopup/signInWithRedirect call fails
+// with a bare `auth/argument-error` from an internal assertion on
+// `auth._popupRedirectResolver`. Removing this line silently breaks Google
+// sign-in while leaving email/password working, so it is easy to ship broken.
 let authInstance;
 try {
   authInstance = initializeAuth(app, {
     persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+    popupRedirectResolver: browserPopupRedirectResolver,
   });
 } catch {
   // Already initialised (hot reload) — reuse it.

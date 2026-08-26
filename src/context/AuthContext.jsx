@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
+  getRedirectResult,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -40,6 +41,17 @@ export function AuthProvider({ children }) {
   // True when the Firebase project has no Auth configuration at all — a
   // deployment problem, not a user problem, so it gets its own screen.
   const [unconfigured, setUnconfigured] = useState(false);
+  const [redirectError, setRedirectError] = useState(null);
+
+  // When the popup is blocked we fall back to a full-page redirect. Reading the
+  // result on mount is what surfaces a failure from that leg — otherwise a
+  // rejected redirect just lands back on the sign-in screen with no explanation.
+  useEffect(() => {
+    getRedirectResult(auth).catch((error) => {
+      if (error?.code === 'auth/configuration-not-found') setUnconfigured(true);
+      setRedirectError(error);
+    });
+  }, []);
 
   useEffect(
     () =>
@@ -62,6 +74,7 @@ export function AuthProvider({ children }) {
       user,
       loading,
       unconfigured,
+      redirectError,
       reportAuthError: (error) => {
         if (error?.code === 'auth/configuration-not-found') setUnconfigured(true);
       },
@@ -110,7 +123,7 @@ export function AuthProvider({ children }) {
 
       signOut: () => signOut(auth),
     }),
-    [user, loading, unconfigured],
+    [user, loading, unconfigured, redirectError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
