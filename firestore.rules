@@ -1,0 +1,56 @@
+rules_version = '2';
+
+// ---------------------------------------------------------------------------
+// Fitomi security rules.
+//
+// Every document lives under /users/{uid}. A signed-in hunter can read and
+// write their own subtree and nothing else. There is no server-side code in
+// this app (Spark plan, no Cloud Functions), so these rules are the entire
+// authorisation layer and are written to fail closed.
+// ---------------------------------------------------------------------------
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Guard against a client writing a document large enough to be abusive.
+    function sizeOk() {
+      return request.resource.data.size() < 400;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid) && sizeOk();
+      allow update: if isOwner(uid) && sizeOk();
+      allow delete: if isOwner(uid);
+
+      // Finished workout sessions. Immutable once written except by the owner,
+      // and never writable with someone else's uid stamped on them.
+      match /workouts/{workoutId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+                      && request.resource.data.uid == uid
+                      && request.resource.data.finishedAt is number;
+        allow update, delete: if isOwner(uid);
+      }
+
+      // Saved routines and Notomi-synced programmes.
+      match /routines/{routineId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // Anything else under the user's subtree stays owner-only rather than
+      // silently defaulting open as new features are added.
+      match /{document=**} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // Everything outside /users is denied.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

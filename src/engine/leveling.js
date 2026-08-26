@@ -252,24 +252,46 @@ export function statDistribution(muscleVolume = {}) {
 }
 
 /**
- * Distribute `points` whole stat points across a distribution using the
- * largest-remainder method, so the total always lands exactly on `points`.
+ * Distribute `points` whole stat points across a distribution, carrying the
+ * fractional leftovers forward.
+ *
+ * The carry is essential, not a nicety. Plain largest-remainder rounding
+ * applied repeatedly to 3-point batches permanently starves the smallest
+ * share: a stat sitting at 9% of the distribution scores 0.27 of a point every
+ * level, always loses the remainder tie-break, and stays on zero forever. With
+ * the carry persisted on the profile, those 0.27s accumulate and eventually
+ * pay out, so every stat lands at its true long-run share.
+ *
+ * @returns {{ award: Stats, carry: Stats }}
  */
-export function allocatePoints(points, distribution) {
-  const out = EMPTY_STATS();
-  if (points <= 0) return out;
+export function allocatePointsWithCarry(points, distribution, carry = EMPTY_STATS()) {
+  const award = EMPTY_STATS();
+  const nextCarry = EMPTY_STATS();
+  if (points <= 0) return { award, carry: { ...EMPTY_STATS(), ...carry } };
 
-  const raw = STAT_IDS.map((id) => ({ id, exact: (distribution[id] || 0) * points }));
   let assigned = 0;
-  for (const r of raw) {
-    out[r.id] = Math.floor(r.exact);
-    assigned += out[r.id];
+  for (const id of STAT_IDS) {
+    const exact = (distribution[id] || 0) * points + (carry[id] || 0);
+    award[id] = Math.max(0, Math.floor(exact));
+    nextCarry[id] = exact - award[id];
+    assigned += award[id];
   }
 
-  const remainder = points - assigned;
-  raw.sort((a, b) => (b.exact - Math.floor(b.exact)) - (a.exact - Math.floor(a.exact)));
-  for (let i = 0; i < remainder; i += 1) out[raw[i % raw.length].id] += 1;
-  return out;
+  // Hand the remaining whole points to the largest carried fractions.
+  const remaining = points - assigned;
+  const order = [...STAT_IDS].sort((a, b) => nextCarry[b] - nextCarry[a]);
+  for (let i = 0; i < remaining; i += 1) {
+    const id = order[i % order.length];
+    award[id] += 1;
+    nextCarry[id] -= 1;
+  }
+
+  return { award, carry: nextCarry };
+}
+
+/** Convenience wrapper for callers that do not track a carry (previews, UI). */
+export function allocatePoints(points, distribution) {
+  return allocatePointsWithCarry(points, distribution).award;
 }
 
 /**
@@ -279,8 +301,8 @@ export function allocatePoints(points, distribution) {
  */
 export function applyDisciplineBias(distribution, { streak = 0, prCount = 0, loggedRpe = 0 }) {
   const out = { ...distribution };
-  const intBoost = Math.min(0.22, streak * 0.006 + prCount * 0.03);
-  const perBoost = Math.min(0.14, loggedRpe * 0.012);
+  const intBoost = Math.min(0.16, streak * 0.004 + prCount * 0.02);
+  const perBoost = Math.min(0.1, loggedRpe * 0.006);
   const scale = 1 - intBoost - perBoost;
 
   for (const id of STAT_IDS) out[id] = (out[id] || 0) * scale;

@@ -11,12 +11,23 @@ import { DAY_MS } from '../lib/date';
 // so "sore" means sore relative to you, not to some population average.
 // ---------------------------------------------------------------------------
 
+/**
+ * Fatigue is a *sequential magnitude*, so this is a single-hue ramp with
+ * monotonically increasing lightness — not a green-to-red rainbow.
+ *
+ * That matters for real reasons: a green/yellow/orange/red scale collapses
+ * almost entirely under deuteranopia, and its middle two steps measure only
+ * ~11 ΔE apart even with normal colour vision, which is not enough to read two
+ * adjacent muscles apart on the body map. A single amber hue carrying the
+ * magnitude in lightness survives every colour-vision type, and every readout
+ * also shows the state's name, so the colour is never the only encoding.
+ */
 export const SORENESS_STATES = {
-  fresh: { id: 'fresh', label: 'Fresh', color: '#4ade80', min: 0 },
-  primed: { id: 'primed', label: 'Primed', color: '#26bdff', min: 0.18 },
-  fatigued: { id: 'fatigued', label: 'Fatigued', color: '#fbbf24', min: 0.45 },
-  sore: { id: 'sore', label: 'Sore', color: '#fb923c', min: 0.7 },
-  smoked: { id: 'smoked', label: 'Smoked', color: '#ef4444', min: 0.9 },
+  fresh: { id: 'fresh', label: 'Fresh', color: '#475569', min: 0 },
+  primed: { id: 'primed', label: 'Primed', color: '#a16207', min: 0.18 },
+  fatigued: { id: 'fatigued', label: 'Fatigued', color: '#ca8a04', min: 0.45 },
+  sore: { id: 'sore', label: 'Sore', color: '#eab308', min: 0.7 },
+  smoked: { id: 'smoked', label: 'Smoked', color: '#fbbf24', min: 0.9 },
 };
 
 export function sorenessState(value) {

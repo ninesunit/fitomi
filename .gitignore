@@ -33,3 +33,4 @@ ui-debug.log
 *.swp
 npm-debug.log*
 yarn-error.log*
+preview/

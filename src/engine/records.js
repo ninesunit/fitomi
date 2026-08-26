@@ -42,13 +42,25 @@ export function summarizeExercise(sets, exercise, profile) {
 }
 
 /**
+ * Relative significance of each PR type when several fall in the same session.
+ * A session where you add weight to the bar breaks the weight, 1RM and volume
+ * records simultaneously — that is one achievement, not three.
+ */
+const PR_PRIORITY = { e1rm: 4, weight: 3, reps: 2, volume: 1 };
+
+/**
  * Compare a session's exercises against stored bests and return the PRs broken.
  *
  * `records` is the user's stored map: { [exerciseId]: { weight, e1rm, volume, reps, ... } }
  * All comparisons happen in kilograms so a unit switch never fabricates a PR.
+ *
+ * Every broken record is written back to the store, but only the single most
+ * significant one per exercise is *returned* as a PR — otherwise adding 2.5 kg
+ * to the bar would pay four XP bonuses and hit the raid boss four times.
  */
 export function detectPRs({ entries, records = {}, profile, lookup }) {
   const prs = [];
+  const broken = [];
   const nextRecords = { ...records };
 
   for (const entry of entries || []) {
@@ -68,7 +80,7 @@ export function detectPRs({ entries, records = {}, profile, lookup }) {
       // A 0.5% guard stops floating-point noise and unit round-trips from
       // registering a "record" that is really the same lift.
       if (now > prev * 1.005 && now > 0) {
-        prs.push({
+        broken.push({
           exerciseId: entry.exerciseId,
           name: exercise.name,
           type,
@@ -90,7 +102,7 @@ export function detectPRs({ entries, records = {}, profile, lookup }) {
     const prevReps = Number(previous.reps) || 0;
     const prevRepWeight = Number(previous.repWeight) || 0;
     if (summary.reps > prevReps && summary.weight >= prevRepWeight * 0.98) {
-      prs.push({
+      broken.push({
         exerciseId: entry.exerciseId,
         name: exercise.name,
         type: 'reps',
@@ -109,9 +121,17 @@ export function detectPRs({ entries, records = {}, profile, lookup }) {
     updated.lastPerformed = Date.now();
     updated.sessions = (Number(previous.sessions) || 0) + 1;
     nextRecords[entry.exerciseId] = updated;
+
+    // Keep the headline record for this exercise, and attach the others so the
+    // UI can still show "also: volume, reps" on the PR card.
+    const mine = broken.filter((b) => b.exerciseId === entry.exerciseId);
+    if (mine.length) {
+      mine.sort((a, b) => PR_PRIORITY[b.type] - PR_PRIORITY[a.type]);
+      prs.push({ ...mine[0], alsoBroke: mine.slice(1).map((b) => b.type) });
+    }
   }
 
-  return { prs, nextRecords };
+  return { prs, nextRecords, allBroken: broken };
 }
 
 /** Strength standards: bodyweight multiples for the big lifts, used on the profile. */

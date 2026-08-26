@@ -17,13 +17,27 @@ export default defineConfig({
     chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
+        // Only the big, independently-cacheable libraries are split out.
+        // There is deliberately no `vendor` catch-all: a bucket holding React's
+        // own transitive helpers makes vendor and react mutually dependent, and
+        // Rollup then emits a circular-chunk warning. Anything not named here
+        // stays in the entry chunk, where Rollup can order it correctly.
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined;
-          if (id.includes('firebase') || id.includes('@firebase')) return 'firebase';
-          if (id.includes('framer-motion') || id.includes('motion-')) return 'motion';
-          if (id.includes('react-router')) return 'router';
-          if (id.includes('react-dom') || id.includes('/react/')) return 'react';
-          return 'vendor';
+          if (id.includes('/firebase/') || id.includes('/@firebase/')) return 'firebase';
+          if (id.includes('/framer-motion/') || id.includes('/motion-dom/') || id.includes('/motion-utils/')) {
+            return 'motion';
+          }
+          if (id.includes('/react-router')) return 'router';
+          if (
+            id.includes('/react/') ||
+            id.includes('/react-dom/') ||
+            id.includes('/scheduler/') ||
+            id.includes('/use-sync-external-store/')
+          ) {
+            return 'react';
+          }
+          return undefined;
         },
       },
     },
