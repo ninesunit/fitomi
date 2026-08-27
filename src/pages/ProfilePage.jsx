@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Award, Check, Ghost, Palette, Save, Sparkles, TrendingUp, User } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
@@ -16,6 +16,42 @@ import { SHADOWS, REQUIREMENT_LABELS, DEFAULT_THEME } from '../engine/shadows';
 import { KEY_LIFTS, getExercise } from '../data/exercises';
 import { STANDARD_TIERS, strengthLevel, bodyweightKgOf } from '../engine/records';
 import { clsx } from '../lib/clsx';
+import { play } from '../lib/sound';
+
+const TABS = [
+  { id: 'status', label: 'Status', icon: Sparkles },
+  { id: 'shadows', label: 'Shadows', icon: Ghost },
+  { id: 'settings', label: 'Settings', icon: User },
+];
+
+/** Three destinations, always visible, thumb-sized. */
+function TabBar({ value, onChange }) {
+  return (
+    <div className="flex gap-1.5" role="tablist">
+      {TABS.map((t) => {
+        const on = value === t.id;
+        return (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={on}
+            onClick={() => { play('tap'); onChange(t.id); }}
+            className={clsx(
+              'relative flex min-h-[46px] flex-1 items-center justify-center gap-2 border text-[13px] font-semibold transition-colors',
+              on
+                ? 'border-[rgb(var(--sys))] bg-[rgb(var(--sys)/0.16)] text-[rgb(var(--sys-ink))]'
+                : 'border-[rgb(var(--sys)/0.25)] text-[rgb(var(--sys-dim))]',
+            )}
+            style={{ clipPath: 'polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)' }}
+          >
+            <t.icon size={15} />
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   const { profile, xp, rank, nextRank, rankProgress, streak, setTheme, updateProfile } = useGame();
@@ -31,6 +67,10 @@ export default function ProfilePage() {
     unit: profile.unit,
   });
   const [saving, setSaving] = useState(false);
+  // The profile carries four unrelated jobs — identity, attributes, the shadow
+  // army and settings. Stacked they ran to eight screens of scroll; as tabs
+  // each one fits.
+  const [tab, setTab] = useState('status');
 
   const unit = profile.unit || 'kg';
   const totalStats = STATS.reduce((sum, s) => sum + (profile.stats[s.id] || 0), 0);
@@ -133,41 +173,30 @@ export default function ProfilePage() {
         </div>
       </MotionPanel>
 
+      <TabBar value={tab} onChange={setTab} />
+
+      <AnimatePresence mode="wait">
+      <motion.div
+        key={tab}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.2 }}
+        className="space-y-4"
+      >
+
+      {tab === 'status' && (
       <div className="grid gap-4 lg:grid-cols-2">
         {/* ---- attributes ---- */}
         <MotionPanel delay={0.05} className="p-5">
           <PanelHeader label="Attributes" title={`${totalStats} points allocated`} icon={Sparkles} />
           <StatRadar stats={profile.stats} className="mt-2" />
 
-          <div className="mt-4 space-y-2">
-            {STATS.map((stat) => {
-              const value = profile.stats[stat.id] || 0;
-              const share = totalStats > 0 ? value / totalStats : 0;
-              return (
-                <div key={stat.id}>
-                  <div className="mb-1 flex items-baseline justify-between gap-2">
-                    <span className="text-xs font-medium text-[rgb(var(--sys-ink))]">{stat.name}</span>
-                    <span className="tnum font-mono text-[11px] text-[rgb(var(--sys-dim))]">
-                      {value} ({Math.round(share * 100)}%)
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full overflow-hidden  bg-[rgb(var(--sys-deep-2)/0.9)]">
-                    <motion.div
- className="h-full "
-                      style={{ backgroundColor: 'rgb(var(--sys))' }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${share * 100}%` }}
-                      transition={{ duration: 0.6 }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="mt-3 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
-            Points allocate themselves from what you actually train — heavy compounds feed Strength
-            and Vitality, conditioning feeds Agility, consistent logging feeds Intelligence.
+          {/* The radar already prints every value and its shape; a second
+              stacked list of the same five numbers was pure duplication. */}
+          <p className="mt-2 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
+            Points allocate from what you actually train — compounds feed Strength and Vitality,
+            conditioning feeds Agility, consistent logging feeds Intelligence.
           </p>
         </MotionPanel>
 
@@ -217,7 +246,10 @@ export default function ProfilePage() {
           </div>
         </MotionPanel>
       </div>
+      )}
 
+      {tab === 'shadows' && (
+      <>
       {/* ---- shadow army ---- */}
       <MotionPanel delay={0.15} className="p-5">
         <PanelHeader
@@ -256,7 +288,11 @@ export default function ProfilePage() {
           })}
         </div>
       </MotionPanel>
+      </>
+      )}
 
+      {tab === 'settings' && (
+      <>
       {/* ---- editable profile ---- */}
       <MotionPanel delay={0.2} className="p-5">
         <PanelHeader label="Hunter data" title="Edit profile" icon={User} />
@@ -346,6 +382,10 @@ export default function ProfilePage() {
           <Cell label="Time trained" value={`${Math.round(profile.totals.durationSec / 3600)} h`} />
         </div>
       </MotionPanel>
+      </>
+      )}
+      </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

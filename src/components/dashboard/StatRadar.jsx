@@ -98,8 +98,11 @@ export function StatRadar({ stats, size = 240, className, showValues = true }) {
               cy={p.y}
               r="14"
               fill="transparent"
+              // Hover is a desktop affordance; on a phone the same hit area has
+              // to respond to a tap, and tapping the active axis clears it.
               onMouseEnter={() => setHovered(p.id)}
               onMouseLeave={() => setHovered(null)}
+              onClick={() => setHovered((cur) => (cur === p.id ? null : p.id))}
               style={{ cursor: 'pointer' }}
             />
             <circle
@@ -142,7 +145,7 @@ export function StatRadar({ stats, size = 240, className, showValues = true }) {
             {STATS.find((s) => s.id === hovered).blurb}
           </span>
         ) : (
-          <span>Scale: 0–{scale}. Hover an axis for detail.</span>
+          <span>Scale: 0–{scale}. Tap an axis for detail.</span>
         )}
       </div>
     </div>

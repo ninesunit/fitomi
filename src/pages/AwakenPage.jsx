@@ -16,6 +16,7 @@ import {
 import { inferBodyType } from '../engine/physique';
 import { GearPicker } from '../components/onboarding/GearPicker';
 import { BodyTypePicker } from '../components/onboarding/BodyTypePicker';
+import { HunterAvatar } from '../components/avatar/HunterAvatar';
 import { play } from '../lib/sound';
 
 // ---------------------------------------------------------------------------
@@ -387,19 +388,42 @@ function Intro({ onAccept, onDecline, onSignIn }) {
       exit={{ opacity: 0, scale: 0.98 }}
       className="flex flex-1 flex-col items-center justify-center"
     >
+      {/* The awakening, shown rather than described: a dormant figure that
+          takes on its aura as the System finishes speaking. */}
       <motion.div
-        initial={{ opacity: 0, y: 16, scale: 0.6 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.15, type: 'spring', stiffness: 340, damping: 20 }}
-        className="mb-4 flex h-14 w-14 items-center justify-center"
-        style={{
-          border: '1px solid rgb(var(--sys) / 0.9)',
-          background: 'rgb(var(--sys) / 0.12)',
-          boxShadow: '0 0 30px -6px rgb(var(--sys)), inset 0 0 24px -12px rgb(var(--sys))',
-          clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)',
-        }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.15, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        className="relative mb-1"
       >
-        <span className="sys-title sys-glow text-3xl leading-none">!</span>
+        <motion.div
+          animate={{ opacity: ready ? 1 : 0.45 }}
+          transition={{ duration: 1.4, ease: 'easeOut' }}
+        >
+          <HunterAvatar
+            className="h-[190px] w-[114px]"
+            stats={{}}
+            bodyType="average"
+            color={ready ? '#7adeff' : '#3f5875'}
+            aura={ready}
+            motes={ready}
+          />
+        </motion.div>
+
+        <motion.span
+          initial={{ opacity: 0, y: 10, scale: 0.6 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.5, type: 'spring', stiffness: 340, damping: 20 }}
+          className="absolute -right-1 top-1 flex h-11 w-11 items-center justify-center"
+          style={{
+            border: '1px solid rgb(var(--sys) / 0.9)',
+            background: 'rgb(var(--sys) / 0.12)',
+            boxShadow: '0 0 30px -6px rgb(var(--sys)), inset 0 0 24px -12px rgb(var(--sys))',
+            clipPath: 'polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px)',
+          }}
+        >
+          <span className="sys-title sys-glow text-2xl leading-none">!</span>
+        </motion.span>
       </motion.div>
 
       <SystemWindow delay={0.35} scan className="w-full" bodyClassName="px-5 py-6">
