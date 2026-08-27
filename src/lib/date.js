@@ -73,6 +73,24 @@ export function formatClock(seconds) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+/**
+ * A duration written out in words rather than as a clock.
+ *
+ * A quest target of 600 seconds rendered as "10:00" reads as ten *hours* at a
+ * glance, which is exactly the wrong impression for a ten-minute mobility
+ * drill. Anywhere a value is a target rather than a running timer, spell it.
+ */
+export function formatSpokenDuration(seconds) {
+  const s = Math.max(0, Math.round(seconds || 0));
+  if (s < 60) return `${s} sec`;
+  const mins = Math.floor(s / 60);
+  const rem = s % 60;
+  if (mins < 60) return rem ? `${mins} min ${rem} sec` : `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return remMins ? `${hours} hr ${remMins} min` : `${hours} hr`;
+}
+
 export function relativeTime(timestamp) {
   if (!timestamp) return '—';
   const diff = Date.now() - Number(timestamp);

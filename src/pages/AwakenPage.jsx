@@ -155,10 +155,11 @@ const STEPS = [
           <span className="sys-label mb-1.5 block">Time per session</span>
           <OptionList
             options={[
-              { id: '30', label: '30 minutes', detail: 'Short and dense.' },
-              { id: '45', label: '45 minutes', detail: 'The usual sweet spot.' },
-              { id: '60', label: '60 minutes', detail: 'Room for accessories.' },
-              { id: '90', label: '90 minutes or more', detail: 'Full sessions with long rests.' },
+              { id: '30', label: '30 minutes', detail: 'Short and dense — 4 movements.' },
+              { id: '45', label: '45 minutes', detail: 'The usual sweet spot — 5 movements.' },
+              { id: '60', label: '1 hour', detail: 'Room for accessories — 5 movements.' },
+              { id: '90', label: '1 hour 30 minutes', detail: 'Long rests on the main lifts — 6 movements.' },
+              { id: '120', label: '2 hours or more', detail: 'Full sessions, nothing rushed — 7 movements.' },
             ]}
             value={String(a.duration)}
             onChange={(v) => set({ duration: Number(v) })}
@@ -199,9 +200,23 @@ const PHASES = { INTRO: 'intro', QUESTIONS: 'questions', ANALYSING: 'analysing',
 
 export default function AwakenPage() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState(PHASES.INTRO);
-  const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(() => loadAnswers() || EMPTY_ANSWERS);
+
+  // Resume rather than restart. Someone who finished the assessment and came
+  // back — or who reloaded partway through — should land on their result or
+  // their last question, not be sent round the questionnaire again.
+  const [phase, setPhase] = useState(() => {
+    const saved = loadAnswers();
+    if (saved?.completedAt) return PHASES.RESULT;
+    if (saved?.name) return PHASES.QUESTIONS;
+    return PHASES.INTRO;
+  });
+  const [step, setStep] = useState(() => {
+    const saved = loadAnswers();
+    if (!saved || saved.completedAt) return 0;
+    const firstUnanswered = STEPS.findIndex((s) => !s.valid(saved) && !s.optional);
+    return firstUnanswered === -1 ? 0 : firstUnanswered;
+  });
   const [declined, setDeclined] = useState(false);
 
   const set = useCallback((patch) => setAnswers((a) => ({ ...a, ...patch })), []);

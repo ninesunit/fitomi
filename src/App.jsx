@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useSyncExternalStore } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SystemProvider } from './context/SystemContext';
@@ -13,7 +13,7 @@ import { SetupRequired } from './components/SetupRequired';
 import AuthPage from './pages/AuthPage';
 import AwakenPage from './pages/AwakenPage';
 import Dashboard from './pages/Dashboard';
-import { hasCompletedAwakening } from './lib/onboarding';
+import { getAwakeningSnapshot, subscribeAwakening } from './lib/onboarding';
 
 // Everything past the dashboard is code-split. The first paint after sign-in
 // should download the shell and the dashboard, nothing else — the exercise
@@ -104,7 +104,11 @@ function Gate() {
 
   // A visitor meets the System before they meet a sign-up form: the assessment
   // runs first, and /auth only becomes reachable once it is finished.
-  const awakened = hasCompletedAwakening();
+  //
+  // Subscribed rather than read inline: this lives in localStorage, and a plain
+  // read would be captured on first render and never update, so finishing the
+  // assessment would bounce off /auth back to the start of the questionnaire.
+  const awakened = useSyncExternalStore(subscribeAwakening, getAwakeningSnapshot, () => false);
 
   return (
     <Routes>

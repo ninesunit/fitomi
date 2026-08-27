@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Dumbbell, Flame, Info, Moon, Swords, Waves, Wind, Zap } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
-import { formatClock } from '../../lib/date';
+import { formatSpokenDuration } from '../../lib/date';
 
 const ICONS = { Waves, Zap, Moon, Wind, Dumbbell, Flame };
 
@@ -20,7 +20,7 @@ export function QuestCard({ quest, completed, onComplete, onUndo, compact = fals
   const target = quest.target || {};
   const targetLabel =
     target.unit === 'seconds'
-      ? formatClock(target.value)
+      ? formatSpokenDuration(target.value)
       : `${Number(target.value).toLocaleString()}${target.unit ? ` ${target.unit}` : ''}`;
 
   return (

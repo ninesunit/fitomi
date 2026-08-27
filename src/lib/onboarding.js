@@ -45,6 +45,7 @@ export function saveAnswers(answers) {
   } catch {
     /* private mode — the flow still completes, it just will not survive a reload */
   }
+  notify();
 }
 
 export function clearAnswers() {
@@ -53,12 +54,44 @@ export function clearAnswers() {
   } catch {
     /* nothing to do */
   }
+  notify();
 }
 
 /** True once the questionnaire has been finished and the assessment shown. */
 export function hasCompletedAwakening() {
   return Boolean(loadAnswers()?.completedAt);
 }
+
+// ---------------------------------------------------------------------------
+// Reactive access to the awakening flag.
+//
+// The router gate needs to know whether the assessment is finished, but that
+// lives in localStorage, which React cannot observe. Reading it inline during
+// render captures the value once and never updates: finishing the assessment
+// would navigate to /auth, the gate would still hold the stale `false`, and it
+// would bounce straight back to the start of the questionnaire.
+//
+// useSyncExternalStore is the supported way to subscribe to state outside
+// React, so the flag flips the moment the answers are written.
+// ---------------------------------------------------------------------------
+
+const listeners = new Set();
+
+function notify() {
+  for (const listener of listeners) listener();
+}
+
+export function subscribeAwakening(callback) {
+  listeners.add(callback);
+  // Also track writes from another tab.
+  window.addEventListener('storage', callback);
+  return () => {
+    listeners.delete(callback);
+    window.removeEventListener('storage', callback);
+  };
+}
+
+export const getAwakeningSnapshot = () => hasCompletedAwakening();
 
 /**
  * Fold the questionnaire and its assessment into the fields a fresh profile

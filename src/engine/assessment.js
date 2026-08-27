@@ -357,7 +357,9 @@ export function buildProgram(answers, seed = 'awaken') {
       !avoidPatterns.has(e.pattern),
   );
 
-  const perDay = Number(answers.duration) >= 75 ? 6 : Number(answers.duration) >= 45 ? 5 : 4;
+  // Movements per session, scaled to the time actually available.
+  const minutes = Number(answers.duration) || 60;
+  const perDay = minutes >= 120 ? 7 : minutes >= 90 ? 6 : minutes >= 45 ? 5 : 4;
 
   const days = split.template.map((template, dayIndex) => {
     const categories = new Set(template.categories);
