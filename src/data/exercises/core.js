@@ -1,6 +1,16 @@
 import { x, bw, timed } from './schema';
 
 export default [
+  x('superman', 'Superman', 'bodyweight', 'core', ['lowerBack'], ['glutes', 'shoulders'], 'isolation', 'c', 'beginner',
+    'Lie face down with the arms extended overhead.|Lift the chest, arms and legs off the floor at the same time.|Hold briefly, then lower under control.',
+    'Lift from the upper back and glutes, not by cranking the neck.',
+    'Straining the neck upward.',
+    { anim: 'plank', force: 'pull', ...bw(0.3) }),
+  x('glute-bridge-march', 'Glute Bridge March', 'bodyweight', 'core', ['glutes', 'abs'], ['hamstrings'], 'isolation', 'c', 'beginner',
+    'Hold a glute bridge with the hips fully extended.|Lift one knee toward the chest without letting the hips drop or rotate.|Alternate slowly.',
+    'The hips staying perfectly level is the whole exercise.',
+    'Letting one hip sag as the leg lifts.',
+    { anim: 'plank', force: 'static', ...bw(0.35) }),
   x('plank', 'Plank', 'bodyweight', 'core', ['abs'], ['obliques', 'shoulders', 'glutes'], 'isolation', 'b', 'beginner',
     'Set the elbows under the shoulders and the body in one straight line from heels to head.|Tuck the pelvis under and squeeze the glutes hard.|Brace the abs as if bracing for a punch and breathe shallowly.|Hold, and stop the moment the hips drop.',
     'A hard 30-second plank beats a sloppy three-minute one.|Actively pull the elbows toward the toes.',

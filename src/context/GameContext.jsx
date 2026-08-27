@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useSystem } from './SystemContext';
-import { commitWorkout, loadProfile, saveProfile } from '../lib/firestore';
+import { commitWorkout, loadProfile, saveProfile, saveRoutines } from '../lib/firestore';
+import { clearAnswers, loadAnswers, seedProfileFromAssessment } from '../lib/onboarding';
+import { assess, programToRoutines } from '../engine/assessment';
 import { createProfile, hydrateProfile } from '../lib/profile';
 import { getExercise } from '../data/exercises';
 import { progressWorkout, grantXp } from '../engine/progression';
@@ -13,7 +15,7 @@ import { generateQuests, generateWeeklyQuests } from '../engine/quests';
 import { bossForWeek, createRaid, applyDamage, QUEST_DAMAGE } from '../engine/raid';
 import { dayKey, weekKey } from '../lib/date';
 
-const GameContext = createContext(null);
+export const GameContext = createContext(null);
 
 const LOCAL_KEY = 'fitomi:profile:';
 
@@ -57,8 +59,29 @@ export function GameProvider({ children }) {
     }
 
     loadProfile(user)
-      .then((loaded) => {
+      .then(async (loaded) => {
         if (cancelled) return;
+
+        // First sign-in after the awakening: fold the assessment into the
+        // fresh profile and persist the programme it generated. Guarded on
+        // `awakening` so it can only ever run once per account.
+        const answers = loadAnswers();
+        if (!loaded.awakening && answers?.completedAt) {
+          const assessment = assess(answers);
+          const seeded = seedProfileFromAssessment(loaded, answers, assessment);
+          setProfile(seeded);
+          try {
+            await saveProfile(user.uid, seeded);
+            await saveRoutines(user.uid, programToRoutines(assessment.program, user.uid));
+            clearAnswers();
+          } catch {
+            // Keep the local copy; it will be rewritten on the next save.
+          }
+          setError(null);
+          setOffline(false);
+          return;
+        }
+
         setProfile(loaded);
         setError(null);
         setOffline(false);

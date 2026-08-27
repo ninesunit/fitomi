@@ -1,13 +1,35 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5" />
-    <meta name="theme-color" content="#04060d" />
-    <meta name="description" content="Fitomi — a gamified gym tracker where every set levels up your hunter. Log workouts, clear daily quests, raid weekly bosses and rise from E-Rank to S-Rank." />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="apple-touch-icon" href="/logo.svg" />
+    <!-- viewport-fit=cover is what exposes the safe-area insets on notched
+         iPhones; maximum-scale + user-scalable=no stops the double-tap zoom
+         that makes a set-logging UI unusable mid-workout. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#040d1c" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="Fitomi — a gamified gym tracker run by the System. Take the assessment, get a programme built for your equipment and schedule, and level up every set."
+    />
+
+    <!-- iOS home screen -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Fitomi" />
+    <meta name="format-detection" content="telephone=no" />
+    <!-- iOS ignores SVG for the home-screen icon; it needs a PNG. -->
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png" />
+
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

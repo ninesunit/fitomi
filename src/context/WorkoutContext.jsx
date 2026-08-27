@@ -6,7 +6,7 @@ import { estimate1RM } from '../engine/oneRepMax';
 import { setVolumeKg } from '../engine/leveling';
 import { summarizeExercise } from '../engine/records';
 
-const WorkoutContext = createContext(null);
+export const WorkoutContext = createContext(null);
 
 const ACTIVE_KEY = 'fitomi:active-workout';
 

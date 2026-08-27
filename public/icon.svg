@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a8ecff"/>
+      <stop offset="50%" stop-color="#7adeff"/>
+      <stop offset="100%" stop-color="#4b9dff"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="#040d1c"/>
+  <rect width="512" height="512" fill="url(#g)" opacity="0.05"/>
+  <g opacity="0.16" stroke="#7adeff" stroke-width="1">
+    <path d="M0 128h512M0 256h512M0 384h512M128 0v512M256 0v512M384 0v512"/>
+  </g>
+  <!-- the System window frame, chamfered -->
+  <path d="M96 64h352v288l-64 64H64V128L96 64Z" fill="none" stroke="url(#g)" stroke-width="8" opacity="0.35"/>
+  <g filter="url(#glow)">
+    <!-- F, drawn as the System would render a glyph -->
+    <path d="M176 152h176v44H228v52h104v44H228v104h-52V152Z" fill="url(#g)"/>
+  </g>
+  <!-- corner brackets -->
+  <g stroke="url(#g)" stroke-width="7" fill="none" opacity="0.9">
+    <path d="M64 176V128l32-32h48"/>
+    <path d="M448 176v-48h-48"/>
+    <path d="M64 336v80h80"/>
+    <path d="M448 336v16l-64 64h-16"/>
+  </g>
+</svg>

@@ -94,16 +94,14 @@ export default function AuthPage() {
             />
             <path d="M22 21h20l-2.6 6H27.2l-1 4.6h11l-2.5 6h-9.8L23 46h-6.4L22 21Z" fill="url(#auth-g)" />
           </svg>
-          <h1 className="font-display text-3xl font-bold tracking-[0.24em] text-slate-100">FITOMI</h1>
-          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.22em] text-system-400">
-            Arise. Every set counts.
-          </p>
+          <h1 className="sys-title text-3xl">FITOMI</h1>
+          <p className="sys-label mt-2">Arise. Every set counts.</p>
         </div>
 
-        <div className="panel panel-accent clip-notch p-6">
+        <div className="sys-window sys-brackets p-6">
           <div className="mb-5 flex items-center gap-2">
             <ShieldCheck size={16} className="accent-text" />
-            <h2 className="font-display text-lg font-semibold tracking-wide text-slate-100">{config.title}</h2>
+            <h2 className="sys-title text-base">{config.title}</h2>
           </div>
 
           <form onSubmit={submit} className="space-y-3.5">
@@ -148,7 +146,8 @@ export default function AuthPage() {
               <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-lg border border-blood-500/40 bg-blood-500/10 px-3 py-2 text-sm text-blood-300"
+                className="px-3 py-2 text-sm"
+                style={{ border: '1px solid rgb(var(--sys-danger)/0.5)', background: 'rgb(var(--sys-danger)/0.1)', color: 'rgb(var(--sys-danger))' }}
               >
                 {error}
               </motion.div>
@@ -193,8 +192,8 @@ export default function AuthPage() {
           </div>
         </div>
 
-        <p className="mt-5 text-center text-xs leading-relaxed text-slate-600">
-          Your training data is stored privately under your account and is never shared.
+        <p className="mt-5 text-center text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
+          Your assessment is saved to your account. Training data is private and never shared.
         </p>
       </motion.div>
     </div>

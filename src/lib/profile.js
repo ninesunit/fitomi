@@ -84,6 +84,12 @@ export function createProfile({ uid, email, displayName, photoURL } = {}) {
 
     // --- Notomi companion app link ---
     notomi: { connected: false, lastSync: null, handle: null, routines: [] },
+
+    // --- the awakening assessment, applied once on first sign-in ---
+    awakening: null,
+    age: null,
+    gender: null,
+    job: null,
   };
 }
 

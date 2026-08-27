@@ -2,15 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===========================================================================
+   THE SYSTEM
+   ---------------------------------------------------------------------------
+   A faithful recreation of the interface the Player sees: translucent deep-blue
+   windows with a hard cyan rule, a second rule set inside it, L-shaped corner
+   brackets, a centred wide-tracked header, and text that glows.
+
+   Nothing here is rounded. The System does not have rounded corners — it has
+   chamfers. Every surface in the app is built from .sys-window so the whole
+   product reads as one interface rather than a website with a theme on top.
+   =========================================================================== */
+
 @layer base {
   :root {
-    /* Theme tokens are swapped by the Shadow Extraction system — unlocking a
-       shadow rewrites --accent / --accent-2 and the whole UI re-skins. */
-    --accent: 38 189 255;
-    --accent-2: 139 92 246;
-    --surface: 10 15 30;
-    --surface-2: 14 21 38;
-    --hairline: 43 56 85;
+    /* The System's own light. Shadow themes rewrite these two and the entire
+       interface re-skins, because every border, glow and rule derives from
+       them rather than hard-coding a colour. */
+    --sys: 122 222 255;        /* the cyan rule + glow */
+    --sys-2: 96 165 250;       /* secondary, for gradients */
+    --sys-deep: 6 20 42;       /* window fill, top */
+    --sys-deep-2: 3 11 26;     /* window fill, bottom */
+    --sys-ink: 223 243 255;    /* primary text */
+    --sys-dim: 138 176 204;    /* secondary text */
+    --sys-danger: 255 77 94;   /* penalty / warning */
+    --sys-good: 99 245 165;    /* cleared / success */
+    --sys-gold: 255 215 110;   /* rare rewards */
+
+    --chamfer: 10px;
   }
 
   * {
@@ -18,59 +37,40 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    /* iOS: stop the whole document rubber-banding behind the app chrome. */
+    height: 100%;
+    overscroll-behavior: none;
   }
 
   body {
-    @apply bg-void-950 text-slate-200 font-sans antialiased;
-    background-image: radial-gradient(
-        900px circle at 15% -5%,
-        rgb(var(--accent) / 0.1),
-        transparent 55%
-      ),
-      radial-gradient(760px circle at 92% 4%, rgb(var(--accent-2) / 0.11), transparent 52%);
+    @apply font-sans antialiased;
+    min-height: 100%;
+    color: rgb(var(--sys-ink));
+    background-color: #01060f;
+    background-image:
+      radial-gradient(1100px circle at 50% -10%, rgb(var(--sys) / 0.13), transparent 60%),
+      radial-gradient(700px circle at 12% 105%, rgb(var(--sys-2) / 0.1), transparent 55%);
     background-attachment: fixed;
     overscroll-behavior-y: none;
+    /* Never let a horizontal overflow create a scroll axis on a phone. */
+    overflow-x: hidden;
   }
 
-  /* Numeric readouts across the app should never reflow while counting up. */
-  .tnum {
-    font-variant-numeric: tabular-nums;
-  }
+  /* Numeric readouts never reflow while counting up. */
+  .tnum { font-variant-numeric: tabular-nums; }
 
-  ::-webkit-scrollbar {
-    width: 9px;
-    height: 9px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgb(var(--accent) / 0.28);
-    border-radius: 999px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgb(var(--accent) / 0.5);
-  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgb(var(--sys) / 0.3); }
 
   input[type='number']::-webkit-outer-spin-button,
-  input[type='number']::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  input[type='number'] {
-    -moz-appearance: textfield;
-  }
+  input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type='number'] { -moz-appearance: textfield; }
 
-  :focus-visible {
-    outline: 2px solid rgb(var(--accent) / 0.75);
-    outline-offset: 2px;
-  }
+  :focus-visible { outline: 2px solid rgb(var(--sys) / 0.85); outline-offset: 2px; }
 
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
       animation-duration: 0.001ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.001ms !important;
@@ -79,78 +79,359 @@
 }
 
 @layer components {
-  /* The signature "System window": a translucent panel with a cyan hairline,
-     clipped corners and a faint interior glow. */
+  /* ---------------------------------------------------------------------
+     THE WINDOW — the one surface everything else is built from.
+     --------------------------------------------------------------------- */
+  .sys-window {
+    position: relative;
+    background:
+      linear-gradient(170deg, rgb(var(--sys-deep) / 0.9) 0%, rgb(var(--sys-deep-2) / 0.95) 100%);
+    border: 1px solid rgb(var(--sys) / 0.55);
+    box-shadow:
+      0 0 0 1px rgb(var(--sys) / 0.08),
+      0 0 26px -6px rgb(var(--sys) / 0.4),
+      inset 0 0 46px -18px rgb(var(--sys) / 0.5);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    /* The System's signature: a cut corner, never a radius. */
+    clip-path: polygon(
+      var(--chamfer) 0, 100% 0, 100% calc(100% - var(--chamfer)),
+      calc(100% - var(--chamfer)) 100%, 0 100%, 0 var(--chamfer)
+    );
+  }
+
+  /* The inner rule, inset from the frame. Drawn as a pseudo-element so it
+     follows the chamfer without a second wrapper element. */
+  .sys-window::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgb(var(--sys) / 0.18);
+    pointer-events: none;
+    clip-path: polygon(
+      calc(var(--chamfer) - 3px) 0, 100% 0, 100% calc(100% - var(--chamfer) + 3px),
+      calc(100% - var(--chamfer) + 3px) 100%, 0 100%, 0 calc(var(--chamfer) - 3px)
+    );
+  }
+
+  /* A quieter window for nested content — no outer glow, thinner rule. */
+  .sys-panel {
+    position: relative;
+    background: rgb(var(--sys-deep-2) / 0.55);
+    border: 1px solid rgb(var(--sys) / 0.2);
+  }
+
+  .sys-panel-accent { border-color: rgb(var(--sys) / 0.45); }
+
+  /* ---------------------------------------------------------------------
+     CORNER BRACKETS — the L-marks at the window's corners.
+     --------------------------------------------------------------------- */
+  .sys-brackets::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    pointer-events: none;
+    background:
+      linear-gradient(rgb(var(--sys)), rgb(var(--sys))) left top / 1px 14px no-repeat,
+      linear-gradient(rgb(var(--sys)), rgb(var(--sys))) left top / 14px 1px no-repeat,
+      linear-gradient(rgb(var(--sys)), rgb(var(--sys))) right top / 1px 14px no-repeat,
+      linear-gradient(rgb(var(--sys)), rgb(var(--sys))) right top / 14px 1px no-repeat,
+      linear-gradient(rgb(var(--sys)), rgb(var(--sys))) left bottom / 1px 14px no-repeat,
+      linear-gradient(rgb(var(--sys)), rgb(var(--sys))) left bottom / 14px 1px no-repeat,
+      linear-gradient(rgb(var(--sys)), rgb(var(--sys))) right bottom / 1px 14px no-repeat,
+      linear-gradient(rgb(var(--sys)), rgb(var(--sys))) right bottom / 14px 1px no-repeat;
+    opacity: 0.75;
+  }
+
+  /* ---------------------------------------------------------------------
+     TYPOGRAPHY
+     --------------------------------------------------------------------- */
+  .sys-title {
+    font-family: 'Rajdhani', 'Oswald', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--sys-ink));
+    text-shadow: 0 0 12px rgb(var(--sys) / 0.75), 0 0 34px rgb(var(--sys) / 0.35);
+  }
+
+  .sys-label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgb(var(--sys-dim));
+  }
+
+  .sys-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    color: rgb(var(--sys-ink));
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sys-glow { text-shadow: 0 0 10px rgb(var(--sys) / 0.85), 0 0 28px rgb(var(--sys) / 0.4); }
+  .sys-accent { color: rgb(var(--sys)); }
+  .sys-muted { color: rgb(var(--sys-dim)); }
+
+  /* A horizontal rule the way the System draws one: bright in the middle,
+     fading to nothing at both ends. */
+  .sys-rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(var(--sys) / 0.6), transparent);
+  }
+
+  /* ---------------------------------------------------------------------
+     CONTROLS
+     --------------------------------------------------------------------- */
+  .sys-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.25rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--sys-ink));
+    background: rgb(var(--sys) / 0.09);
+    border: 1px solid rgb(var(--sys) / 0.5);
+    transition: background 140ms, border-color 140ms, box-shadow 140ms, transform 80ms;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    /* Comfortable thumb target on a phone. */
+    min-height: 44px;
+  }
+  .sys-btn:hover { background: rgb(var(--sys) / 0.18); border-color: rgb(var(--sys) / 0.85); }
+  .sys-btn:active { transform: scale(0.975); }
+  .sys-btn:disabled { opacity: 0.35; pointer-events: none; }
+
+  .sys-btn-primary {
+    background: linear-gradient(160deg, rgb(var(--sys) / 0.3), rgb(var(--sys-2) / 0.22));
+    border-color: rgb(var(--sys) / 0.95);
+    box-shadow: 0 0 22px -6px rgb(var(--sys) / 0.9), inset 0 0 22px -12px rgb(var(--sys));
+    text-shadow: 0 0 10px rgb(var(--sys) / 0.8);
+  }
+  .sys-btn-primary:hover { background: linear-gradient(160deg, rgb(var(--sys) / 0.42), rgb(var(--sys-2) / 0.3)); }
+
+  .sys-btn-danger {
+    color: rgb(var(--sys-danger));
+    background: rgb(var(--sys-danger) / 0.1);
+    border-color: rgb(var(--sys-danger) / 0.6);
+  }
+  .sys-btn-danger:hover { background: rgb(var(--sys-danger) / 0.2); }
+
+  .sys-btn-ghost { background: transparent; border-color: rgb(var(--sys) / 0.25); }
+
+  .sys-input {
+    width: 100%;
+    padding: 0.7rem 0.85rem;
+    /* 16px minimum, or iOS Safari zooms the viewport on focus. */
+    font-size: 16px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: rgb(var(--sys-ink));
+    background: rgb(var(--sys-deep-2) / 0.8);
+    border: 1px solid rgb(var(--sys) / 0.3);
+    transition: border-color 140ms, box-shadow 140ms;
+  }
+  .sys-input::placeholder { color: rgb(var(--sys-dim) / 0.5); }
+  .sys-input:focus {
+    outline: none;
+    border-color: rgb(var(--sys) / 0.9);
+    box-shadow: 0 0 18px -6px rgb(var(--sys) / 0.8);
+  }
+
+  /* A selectable option row in the questionnaire. */
+  .sys-option {
+    position: relative;
+    width: 100%;
+    text-align: left;
+    padding: 0.85rem 1rem;
+    background: rgb(var(--sys-deep-2) / 0.5);
+    border: 1px solid rgb(var(--sys) / 0.2);
+    transition: all 140ms;
+    min-height: 48px;
+  }
+  .sys-option:hover { border-color: rgb(var(--sys) / 0.5); background: rgb(var(--sys) / 0.07); }
+  .sys-option[data-selected='true'] {
+    border-color: rgb(var(--sys) / 0.95);
+    background: rgb(var(--sys) / 0.16);
+    box-shadow: 0 0 20px -8px rgb(var(--sys) / 0.9), inset 0 0 30px -18px rgb(var(--sys));
+  }
+
+  /* ---------------------------------------------------------------------
+     METERS — HP/MP/FATIGUE style bars with a hard edge.
+     --------------------------------------------------------------------- */
+  .sys-meter {
+    position: relative;
+    height: 10px;
+    background: rgb(var(--sys-deep-2) / 0.9);
+    border: 1px solid rgb(var(--sys) / 0.3);
+    overflow: hidden;
+  }
+  .sys-meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgb(var(--sys) / 0.85), rgb(var(--sys)));
+    box-shadow: 0 0 14px -2px rgb(var(--sys));
+  }
+
+  /* ---------------------------------------------------------------------
+     MOTION
+     --------------------------------------------------------------------- */
+  .sys-scan {
+    position: absolute;
+    inset-inline: 0;
+    height: 40%;
+    background: linear-gradient(180deg, transparent, rgb(var(--sys) / 0.09), transparent);
+    animation: sys-scan 5s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes sys-scan {
+    0% { transform: translateY(-120%); }
+    100% { transform: translateY(320%); }
+  }
+
+  @keyframes sys-open {
+    0% { opacity: 0; transform: scaleY(0.02) scaleX(0.7); filter: brightness(2.4); }
+    45% { opacity: 1; transform: scaleY(0.06) scaleX(1); filter: brightness(1.8); }
+    100% { opacity: 1; transform: scaleY(1) scaleX(1); filter: brightness(1); }
+  }
+  /* The window unfolds from a horizontal line — the way System windows open. */
+  .sys-open { animation: sys-open 340ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+  @keyframes sys-flicker {
+    0%, 100% { opacity: 1; }
+    92% { opacity: 1; }
+    94% { opacity: 0.55; }
+    96% { opacity: 1; }
+  }
+  .sys-flicker { animation: sys-flicker 6s linear infinite; }
+
+  @keyframes sys-pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  .sys-pulse { animation: sys-pulse 2.2s ease-in-out infinite; }
+
+  /* ---------------------------------------------------------------------
+     LAYOUT HELPERS — iOS safe areas.
+     --------------------------------------------------------------------- */
+  .pad-top-safe { padding-top: env(safe-area-inset-top, 0px); }
+  .pad-bottom-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .mt-safe { margin-top: env(safe-area-inset-top, 0px); }
+  .mb-safe { margin-bottom: env(safe-area-inset-bottom, 0px); }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ===========================================================================
+   COMPATIBILITY LAYER
+   ---------------------------------------------------------------------------
+   The pre-redesign screens were written against an earlier set of class names.
+   Rather than leave them unstyled or rewrite every file at once, those names
+   now resolve to the System's own surfaces. Nothing in the System is rounded,
+   so the radius is forced off here too — otherwise Tailwind's rounded-*
+   utilities scattered through the older JSX would fight the chamfers.
+   =========================================================================== */
+@layer components {
   .panel {
-    @apply relative rounded-xl border border-white/[0.07] bg-void-900/70 backdrop-blur-xl;
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 12px 34px -20px rgba(0, 0, 0, 0.95);
+    position: relative;
+    background: linear-gradient(170deg, rgb(var(--sys-deep) / 0.9) 0%, rgb(var(--sys-deep-2) / 0.95) 100%);
+    border: 1px solid rgb(var(--sys) / 0.4);
+    box-shadow: 0 0 22px -8px rgb(var(--sys) / 0.35), inset 0 0 40px -20px rgb(var(--sys) / 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 0 !important;
   }
-
-  .panel-accent {
-    border-color: rgb(var(--accent) / 0.28);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
-      0 0 26px -10px rgb(var(--accent) / 0.55);
-  }
-
+  .panel-accent { border-color: rgb(var(--sys) / 0.7); }
   .clip-notch {
-    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   }
 
   .hud-label {
-    @apply font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgb(var(--sys-dim));
   }
 
   .stat-chip {
-    @apply inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 font-mono text-[11px] text-slate-300;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid rgb(var(--sys) / 0.25);
+    background: rgb(var(--sys) / 0.06);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: rgb(var(--sys-ink));
+    border-radius: 0 !important;
   }
 
   .btn {
-    @apply inline-flex select-none items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold
-           transition-all duration-150 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.65rem 1.1rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--sys-ink));
+    background: rgb(var(--sys) / 0.08);
+    border: 1px solid rgb(var(--sys) / 0.45);
+    transition: all 140ms;
+    border-radius: 0 !important;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
   }
+  .btn:hover { background: rgb(var(--sys) / 0.16); border-color: rgb(var(--sys) / 0.8); }
+  .btn:active { transform: scale(0.975); }
+  .btn:disabled { opacity: 0.35; pointer-events: none; }
 
   .btn-primary {
-    color: #04060d;
-    background-image: linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent-2)));
-    box-shadow: 0 6px 22px -10px rgb(var(--accent) / 0.9);
+    background: linear-gradient(160deg, rgb(var(--sys) / 0.3), rgb(var(--sys-2) / 0.22));
+    border-color: rgb(var(--sys) / 0.95);
+    box-shadow: 0 0 22px -6px rgb(var(--sys) / 0.85);
+    color: rgb(var(--sys-ink));
+    text-shadow: 0 0 10px rgb(var(--sys) / 0.7);
   }
-  .btn-primary:hover {
-    filter: brightness(1.09);
-  }
-
-  .btn-ghost {
-    @apply border border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.07];
-  }
-
+  .btn-ghost { background: transparent; border-color: rgb(var(--sys) / 0.25); }
   .btn-danger {
-    @apply border border-blood-500/40 bg-blood-500/10 text-blood-400 hover:bg-blood-500/20;
+    color: rgb(var(--sys-danger));
+    background: rgb(var(--sys-danger) / 0.1);
+    border-color: rgb(var(--sys-danger) / 0.55);
   }
 
   .field {
-    @apply w-full rounded-lg border border-white/10 bg-void-950/70 px-3 py-2.5 text-sm text-slate-100
-           placeholder:text-slate-600 transition focus:border-transparent;
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    font-size: 16px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: rgb(var(--sys-ink));
+    background: rgb(var(--sys-deep-2) / 0.8);
+    border: 1px solid rgb(var(--sys) / 0.3);
+    border-radius: 0 !important;
   }
+  .field::placeholder { color: rgb(var(--sys-dim) / 0.5); }
+  .field:focus { outline: none; border-color: rgb(var(--sys) / 0.9); box-shadow: 0 0 16px -6px rgb(var(--sys)); }
 
   .grid-bg {
-    @apply bg-grid-fade bg-grid;
+    background-image:
+      linear-gradient(rgb(var(--sys) / 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--sys) / 0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 
-  /* Text that should read as a System transmission. */
-  .glow-text {
-    text-shadow: 0 0 16px rgb(var(--accent) / 0.65);
-  }
-
-  .accent-text {
-    color: rgb(var(--accent));
-  }
-  .accent-bg {
-    background-color: rgb(var(--accent));
-  }
-  .accent-border {
-    border-color: rgb(var(--accent) / 0.4);
-  }
-
-  .safe-bottom {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
-  }
+  .glow-text { text-shadow: 0 0 12px rgb(var(--sys) / 0.7); }
+  .accent-text { color: rgb(var(--sys)); }
+  .accent-bg { background-color: rgb(var(--sys)); }
+  .accent-border { border-color: rgb(var(--sys) / 0.5); }
+  .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem); }
 }

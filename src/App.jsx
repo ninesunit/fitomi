@@ -7,10 +7,13 @@ import { WorkoutProvider } from './context/WorkoutContext';
 import { AppShell } from './components/AppShell';
 import { SystemModal } from './components/SystemModal';
 import { Toasts } from './components/ui/Toasts';
+import { InstallPrompt } from './components/InstallPrompt';
 import { BootScreen } from './components/BootScreen';
 import { SetupRequired } from './components/SetupRequired';
 import AuthPage from './pages/AuthPage';
+import AwakenPage from './pages/AwakenPage';
 import Dashboard from './pages/Dashboard';
+import { hasCompletedAwakening } from './lib/onboarding';
 
 // Everything past the dashboard is code-split. The first paint after sign-in
 // should download the shell and the dashboard, nothing else — the exercise
@@ -64,7 +67,7 @@ function Protected() {
   const { profile, loading: profileLoading } = useGame();
 
   if (authLoading) return <BootScreen message="Establishing link" />;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/awaken" replace />;
   if (profileLoading && !profile) return <BootScreen message="Loading hunter data" />;
 
   return (
@@ -99,10 +102,24 @@ function Gate() {
   if (loading) return <BootScreen message="Establishing link" />;
   if (unconfigured) return <SetupRequired />;
 
+  // A visitor meets the System before they meet a sign-up form: the assessment
+  // runs first, and /auth only becomes reachable once it is finished.
+  const awakened = hasCompletedAwakening();
+
   return (
     <Routes>
-      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
-      <Route path="/*" element={<Protected />} />
+      <Route
+        path="/awaken"
+        element={user ? <Navigate to="/" replace /> : <AwakenPage />}
+      />
+      <Route
+        path="/auth"
+        element={user ? <Navigate to="/" replace /> : awakened ? <AuthPage /> : <Navigate to="/awaken" replace />}
+      />
+      <Route
+        path="/*"
+        element={user ? <Protected /> : <Navigate to={awakened ? '/auth' : '/awaken'} replace />}
+      />
     </Routes>
   );
 }
@@ -115,6 +132,7 @@ export default function App() {
           <ScrollToTop />
           <Gate />
           <Toasts />
+          <InstallPrompt />
         </GameProvider>
       </SystemProvider>
     </AuthProvider>
