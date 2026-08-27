@@ -48,7 +48,7 @@ export default function Dashboard() {
     <div className="space-y-3">
       {/* ---------------- STATUS: the hunter, seen ---------------- */}
       <SystemWindow title="Status" subtitle={rank?.name} scan delay={0.02} bodyClassName="p-3">
-        <Link to="/profile" className="flex items-stretch gap-3.5">
+        <Link to="/profile" className="tap flex items-stretch gap-3.5">
           <HunterPortrait profile={profile} rank={rank} size={112} />
 
           <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
@@ -163,7 +163,7 @@ export default function Dashboard() {
       </SystemWindow>
 
       {/* ---------------- RAID ---------------- */}
-      <Link to="/raid" className="block">
+      <Link to="/raid" className="tap block">
         <SystemWindow title="Weekly Gate" subtitle={raid?.week} delay={0.14} style={{ '--sys': hexToRgb(boss.color) }}>
           <div className="mb-2 flex items-center gap-2">
             <BossFigure
@@ -257,7 +257,7 @@ export default function Dashboard() {
 
       {/* ---------------- LAST SESSION ---------------- */}
       {recent && (
-        <Link to="/history" className="block">
+        <Link to="/history" className="tap block">
           <SystemWindow title="Last Session" subtitle={relativeTime(recent.finishedAt)} delay={0.22}>
             <div className="mb-3 flex items-center gap-2">
               <div className="sys-value min-w-0 flex-1 truncate text-base">{recent.name}</div>

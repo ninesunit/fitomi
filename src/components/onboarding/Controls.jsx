@@ -34,7 +34,7 @@ export function OptionList({ options, value, onChange, multi = false, columns = 
             type="button"
             data-selected={on}
             onClick={() => toggle(option.id)}
-            className="sys-option flex items-center gap-3"
+            className="tap sys-option flex items-center gap-3"
           >
             <span
               className={clsx(

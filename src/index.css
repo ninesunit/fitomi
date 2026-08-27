@@ -106,6 +106,20 @@
     overflow-x: hidden;
   }
 
+  /* Press feedback. A native list row acknowledges the finger before the
+     navigation happens; without it every tap feels like it might not have
+     registered. Kept subtle — this fires on every card in the app. */
+  .tap {
+    transition: transform 120ms ease, filter 120ms ease;
+  }
+  .tap:active {
+    transform: scale(0.985);
+    filter: brightness(1.1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tap:active { transform: none; }
+  }
+
   /* Numeric readouts never reflow while counting up. */
   .tnum { font-variant-numeric: tabular-nums; }
 

@@ -143,7 +143,7 @@ export default function LibraryPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min((i % PAGE) * 0.012, 0.3), duration: 0.25 }}
                 onClick={() => navigate(`/library/${exercise.id}`)}
-                className="panel flex items-center gap-3 p-3 text-left transition hover:bg-[rgb(var(--sys)/0.05)]"
+                className="tap panel flex items-center gap-3 p-3 text-left hover:bg-[rgb(var(--sys)/0.05)]"
               >
                 <div className="h-14 w-14 shrink-0 border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
                   <ExerciseAnimation exercise={exercise} speed={3.2} />
@@ -232,7 +232,7 @@ function CategoryGrid({ onPick }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.04, duration: 0.3 }}
           onClick={() => onPick(tile.id)}
-          className="panel relative overflow-hidden p-0 text-left transition active:scale-[0.98]"
+          className="tap panel relative overflow-hidden p-0 text-left"
           style={{ borderColor: `${tile.accent}44` }}
         >
           <div

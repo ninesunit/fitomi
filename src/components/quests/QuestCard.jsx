@@ -27,7 +27,7 @@ export function QuestCard({ quest, completed, onComplete, onUndo, compact = fals
   return (
     <motion.div
       layout
-      className={clsx('relative p-3 transition-colors')}
+      className={clsx('relative p-3 transition-colors', compact && 'tap')}
       style={{
         border: completed ? '1px solid rgb(var(--sys-good)/0.45)' : '1px solid rgb(var(--sys)/0.22)',
         background: completed ? 'rgb(var(--sys-good)/0.08)' : 'rgb(var(--sys-deep-2)/0.5)',
