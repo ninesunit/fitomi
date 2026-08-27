@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { Check, Wind } from 'lucide-react';
-import { HEAD, FRONT, BACK } from '../../data/bodyRegions';
+import { HEAD, FRONT, BACK, regionAt } from '../../data/bodyRegions';
 import { play } from '../../lib/sound';
 import { clsx } from '../../lib/clsx';
 
@@ -100,15 +100,46 @@ export function BodyFocusPicker({ value = [], onChange }) {
               stroke={selected.has(focus) ? 'rgb(var(--sys))' : 'rgb(var(--sys) / 0.3)'}
               strokeWidth={selected.has(focus) ? 1.1 : 0.6}
               strokeLinejoin="round"
-              className="cursor-pointer transition-all"
-              role="checkbox"
-              aria-checked={selected.has(focus)}
-              aria-label={FOCUS_LABEL[focus] || region.id}
-              onClick={() => toggle(focus)}
+              className="transition-all"
+              pointerEvents="none"
             />
           );
         })}
+
+        {/* Taps resolve to the nearest region — several of these are a few
+            pixels wide on a phone and cannot be hit directly. */}
+        <rect
+          x="0"
+          y="0"
+          width="100"
+          height="192"
+          fill="transparent"
+          className="cursor-pointer"
+          onPointerDown={(event) => {
+            const svg = event.currentTarget.ownerSVGElement;
+            const box = svg.getBoundingClientRect();
+            const vb = svg.viewBox.baseVal;
+            const x = ((event.clientX - box.left) / box.width) * vb.width + vb.x;
+            const y = ((event.clientY - box.top) / box.height) * vb.height + vb.y;
+            toggle(REGION_TO_FOCUS[regionAt(regions, x, y)?.id]);
+          }}
+        />
       </svg>
+
+      {/* The regions carry no pointer events, so the choices are exposed to
+          assistive tech and keyboards as real checkboxes here instead. */}
+      <div className="sr-only">
+        {[...new Set(Object.values(REGION_TO_FOCUS))].map((focus) => (
+          <label key={focus}>
+            <input
+              type="checkbox"
+              checked={selected.has(focus)}
+              onChange={() => toggle(focus)}
+            />
+            {FOCUS_LABEL[focus]}
+          </label>
+        ))}
+      </div>
 
       {/* Conditioning has no place on the body, so it stays a control — and
           doubles as the confirmation of everything currently chosen. */}

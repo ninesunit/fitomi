@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Calculator, CheckCircle2, ClipboardList, Info, Play, Plus, Timer, Trash2, X } from 'lucide-react';
+import { ArrowLeftRight, Calculator, CheckCircle2, ClipboardList, Info, Play, Plus, Timer, Trash2, X } from 'lucide-react';
 import { useWorkout } from '../context/WorkoutContext';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
+import { useSystem } from '../context/SystemContext';
 import { SystemWindow, SystemPanel } from '../components/system/SystemWindow';
 import { SystemButton } from '../components/system/SystemButton';
 import { SystemAlert } from '../components/system/SystemAlert';
@@ -17,18 +18,22 @@ import { getExercise } from '../data/exercises';
 import { fetchRoutines } from '../lib/firestore';
 import { fromKg } from '../engine/constants';
 import { formatDuration, relativeTime } from '../lib/date';
+import { play } from '../lib/sound';
 
 export default function WorkoutPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useGame();
+  const { toast } = useSystem();
   const {
     session, active, elapsed, stats, start, discard, finish,
-    addExercises, removeExercise, addSet, removeSet, updateSet, completeSet,
+    addExercises, replaceExercise, removeExercise, addSet, removeSet, updateSet, completeSet,
     startRest, setName, setNotes, lastPerformance,
   } = useWorkout();
 
   const [pickerOpen, setPickerOpen] = useState(false);
+  // The exercise id currently being swapped out, or null.
+  const [swapping, setSwapping] = useState(null);
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [plateOpen, setPlateOpen] = useState(false);
@@ -36,6 +41,21 @@ export default function WorkoutPage() {
   const [routines, setRoutines] = useState([]);
 
   const unit = profile?.unit || 'kg';
+
+  /**
+   * Swapping discards logged sets, because five reps at 80 kg of bench press
+   * are not five reps at 80 kg of overhead press. Say so rather than letting
+   * the hunter discover it after the fact.
+   */
+  const doSwap = (nextId) => {
+    const entry = session?.entries.find((e) => e.exerciseId === swapping);
+    const logged = entry?.sets.filter((set) => set.completed).length || 0;
+    replaceExercise(swapping, nextId);
+    setSwapping(null);
+    if (logged) {
+      toast(`${logged} logged set${logged === 1 ? '' : 's'} cleared with the swap.`, { tone: 'warn' });
+    }
+  };
 
   // The programme the assessment generated, so a session can start from it.
   useEffect(() => {
@@ -196,11 +216,22 @@ export default function WorkoutPage() {
                   className="flex items-center gap-3 p-3"
                   style={{ borderBottom: '1px solid rgb(var(--sys)/0.18)' }}
                 >
-                  <div className="h-14 w-14 shrink-0" style={{ border: '1px solid rgb(var(--sys)/0.2)' }}>
+                  {/* Tapping the movement swaps it — the rack you planned for
+                      being occupied is the single most common mid-session
+                      change, and it used to mean delete-then-search-again. */}
+                  <button
+                    onClick={() => { play('tap'); setSwapping(entry.exerciseId); }}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left active:scale-[0.99]"
+                    aria-label={`Change ${exercise.name}`}
+                  >
+                  <span className="h-14 w-14 shrink-0" style={{ border: '1px solid rgb(var(--sys)/0.2)' }}>
                     <ExerciseAnimation exercise={exercise} speed={3} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="sys-value truncate text-sm leading-tight">{exercise.name}</h3>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <h3 className="sys-value flex items-center gap-1.5 text-sm leading-tight">
+                      <span className="truncate">{exercise.name}</span>
+                      <ArrowLeftRight size={12} className="shrink-0 text-[rgb(var(--sys-dim))]" />
+                    </h3>
                     <p className="sys-label mt-0.5 truncate normal-case tracking-normal">
                       {exercise.primary.join(' · ')}
                     </p>
@@ -216,7 +247,8 @@ export default function WorkoutPage() {
                         </span>
                       )}
                     </div>
-                  </div>
+                  </span>
+                  </button>
                   <button
                     onClick={() => removeExercise(entry.exerciseId)}
                     aria-label="Remove exercise"
@@ -311,6 +343,15 @@ export default function WorkoutPage() {
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onAdd={addExercises}
+        existing={session.entries.map((e) => e.exerciseId)}
+      />
+
+      <ExercisePicker
+        open={swapping !== null}
+        onClose={() => setSwapping(null)}
+        mode="swap"
+        replacing={swapping}
+        onAdd={(ids) => doSwap(ids[0])}
         existing={session.entries.map((e) => e.exerciseId)}
       />
 

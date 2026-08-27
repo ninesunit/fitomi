@@ -1,14 +1,22 @@
 import { useDeferredValue, useMemo, useState } from 'react';
-import { Check, Search, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeftRight, Check, Search, SlidersHorizontal } from 'lucide-react';
 import { Sheet } from '../ui/Sheet';
 import { Button } from '../ui/Button';
 import { Segmented } from '../ui/Field';
-import { CATEGORIES, filterExercises } from '../../data/exercises';
+import { ExerciseAnimation } from '../ExerciseAnimation';
+import { CATEGORIES, filterExercises, getExercise } from '../../data/exercises';
 import { EQUIPMENT_LIST } from '../../engine/constants';
 import { clsx } from '../../lib/clsx';
+import { play } from '../../lib/sound';
 
 /** Search + filter over the whole library, multi-select, add in one action. */
-export function ExercisePicker({ open, onClose, onAdd, existing = [] }) {
+/**
+ * @param mode  'add'  — multi-select, confirmed with a footer button.
+ *              'swap' — single pick that commits on tap. Replacing one
+ *                       movement is a one-shot choice, so making the hunter
+ *                       select and then confirm is a step for nothing.
+ */
+export function ExercisePicker({ open, onClose, onAdd, existing = [], mode = 'add', replacing }) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [equipment, setEquipment] = useState('all');
@@ -22,8 +30,19 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [] }) {
     [deferredQuery, category, equipment],
   );
 
-  const toggle = (id) =>
-    setSelected((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id]));
+  const swapping = mode === 'swap';
+  const current = replacing ? getExercise(replacing) : null;
+
+  const toggle = (id) => {
+    if (swapping) {
+      play('confirm');
+      onAdd([id]);
+      setQuery('');
+      onClose();
+      return;
+    }
+    setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  };
 
   const commit = () => {
     if (selected.length) onAdd(selected);
@@ -36,18 +55,24 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [] }) {
     <Sheet
       open={open}
       onClose={onClose}
-      title="Add exercises"
-      subtitle={`${results.length} of ${filterExercises({}).length} movements`}
+      title={swapping ? 'Swap exercise' : 'Add exercises'}
+      subtitle={
+        swapping && current
+          ? `Replacing ${current.name}`
+          : `${results.length} of ${filterExercises({}).length} movements`
+      }
       size="lg"
       footer={
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-[rgb(var(--sys-dim))]">
-            {selected.length ? `${selected.length} selected` : 'Select one or more'}
-          </span>
-          <Button variant="primary" className="ml-auto" onClick={commit} disabled={!selected.length}>
-            Add {selected.length || ''}
-          </Button>
-        </div>
+        swapping ? null : (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-[rgb(var(--sys-dim))]">
+              {selected.length ? `${selected.length} selected` : 'Select one or more'}
+            </span>
+            <Button variant="primary" className="ml-auto" onClick={commit} disabled={!selected.length}>
+              Add {selected.length || ''}
+            </Button>
+          </div>
+        )
       }
     >
       <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-3 bg-[rgb(var(--sys-deep)/0.8)] px-5 pb-3 pt-4 backdrop-blur">
@@ -102,41 +127,60 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [] }) {
 
       <div className="space-y-1.5">
         {results.map((exercise) => {
-          const already = existing.includes(exercise.id);
+          // In swap mode the movement being replaced is the one row that must
+          // stay tappable — it is the "keep it" option.
+          const isCurrent = swapping && exercise.id === replacing;
+          const already = !isCurrent && existing.includes(exercise.id);
           const picked = selected.includes(exercise.id);
           return (
             <button
               key={exercise.id}
-              onClick={() => !already && toggle(exercise.id)}
+              onClick={() => (isCurrent ? onClose() : !already && toggle(exercise.id))}
               disabled={already}
- className={clsx(
-                'flex w-full items-center gap-3  border px-3 py-2.5 text-left transition',
+              className={clsx(
+                'flex w-full items-center gap-3 border px-2.5 py-2 text-left transition active:scale-[0.99]',
                 already && 'cursor-not-allowed border-[rgb(var(--sys)/0.18)] opacity-40',
-                picked && 'border-transparent',
-                !already && !picked && 'border-[rgb(var(--sys)/0.18)] hover:bg-[rgb(var(--sys)/0.05)]',
+                (picked || isCurrent) && 'border-transparent',
+                !already && !picked && !isCurrent && 'border-[rgb(var(--sys)/0.18)] hover:bg-[rgb(var(--sys)/0.05)]',
               )}
-              style={picked ? { backgroundColor: 'rgb(var(--sys) / 0.14)', borderColor: 'rgb(var(--sys) / 0.5)' } : undefined}
+              style={
+                picked || isCurrent
+                  ? { backgroundColor: 'rgb(var(--sys) / 0.14)', borderColor: 'rgb(var(--sys) / 0.5)' }
+                  : undefined
+              }
             >
+              {/* A movement is far easier to recognise drawn than described. */}
               <span
- className={clsx(
-                  'flex h-6 w-6 shrink-0 items-center justify-center  border',
-                  picked ? 'border-transparent text-void-950' : 'border-[rgb(var(--sys)/0.25)]',
-                )}
-                style={picked ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
+                className="h-11 w-11 shrink-0"
+                style={{ border: '1px solid rgb(var(--sys)/0.2)', background: 'rgb(var(--sys-deep-2)/0.6)' }}
               >
-                {(picked || already) && <Check size={13} strokeWidth={3} />}
+                <ExerciseAnimation exercise={exercise} speed={3.4} />
               </span>
 
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-[rgb(var(--sys-ink))]">{exercise.name}</span>
+                <span className="block truncate text-sm font-medium text-[rgb(var(--sys-ink))]">
+                  {exercise.name}
+                </span>
                 <span className="block truncate font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                   {exercise.equipment} · {exercise.primary.join(', ')}
                 </span>
               </span>
 
-              <span className="shrink-0  border border-[rgb(var(--sys)/0.25)] px-1.5 py-0.5 font-mono text-[10px] uppercase text-[rgb(var(--sys-dim))]">
-                {exercise.tier}
-              </span>
+              {swapping ? (
+                <span className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-[rgb(var(--sys-dim))]">
+                  {isCurrent ? 'current' : <ArrowLeftRight size={15} className="sys-accent" />}
+                </span>
+              ) : (
+                <span
+                  className={clsx(
+                    'flex h-6 w-6 shrink-0 items-center justify-center border',
+                    picked ? 'border-transparent text-void-950' : 'border-[rgb(var(--sys)/0.25)]',
+                  )}
+                  style={picked ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
+                >
+                  {(picked || already) && <Check size={13} strokeWidth={3} />}
+                </span>
+              )}
             </button>
           );
         })}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Copy, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown, ChevronUp, Copy, Plus, Trash2 } from 'lucide-react';
 import { Sheet } from '../ui/Sheet';
 import { SystemButton } from '../system/SystemButton';
 import { SystemPanel } from '../system/SystemWindow';
@@ -35,7 +35,8 @@ const blankBlock = (exerciseId) => {
 
 export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDuplicate, saving }) {
   const [draft, setDraft] = useState(routine);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  // null = closed, -1 = adding to the end, >= 0 = swapping that block.
+  const [picking, setPicking] = useState(null);
 
   useEffect(() => setDraft(routine), [routine]);
 
@@ -70,6 +71,31 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
 
   const addExercises = (ids) =>
     setDraft((d) => ({ ...d, blocks: [...d.blocks, ...ids.map(blankBlock)] }));
+
+  /**
+   * Swap one movement for another, keeping the sets, reps and rest already
+   * dialled in — the hunter chose those numbers for a slot in the session, not
+   * for that specific lift. Reps and seconds do switch places when the new
+   * movement is timed and the old one was not, since a 8-second plank and an
+   * 8-rep squat are not the same instruction.
+   */
+  const swapExercise = (index, id) => {
+    setDraft((d) => ({
+      ...d,
+      blocks: d.blocks.map((b, i) => {
+        if (i !== index) return b;
+        const next = blankBlock(id);
+        const timed = next.seconds != null;
+        return {
+          ...next,
+          sets: b.sets ?? next.sets,
+          restSeconds: b.restSeconds ?? next.restSeconds,
+          reps: timed ? null : b.reps ?? next.reps,
+          seconds: timed ? b.seconds ?? next.seconds : null,
+        };
+      }),
+    }));
+  };
 
   return (
     <>
@@ -131,18 +157,27 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
                   >
                     <SystemPanel className="p-2.5">
                       <div className="flex items-center gap-2.5">
-                        <div className="h-11 w-11 shrink-0" style={{ border: '1px solid rgb(var(--sys)/0.2)' }}>
-                          <ExerciseAnimation exercise={exercise} speed={3.4} />
-                        </div>
+                        {/* Tapping the movement swaps it. The whole row is the
+                            target, with the icon there to advertise it. */}
+                        <button
+                          onClick={() => { play('tap'); setPicking(index); }}
+                          className="flex min-w-0 flex-1 items-center gap-2.5 text-left active:scale-[0.99]"
+                          aria-label={`Change ${exercise?.name || block.name}`}
+                        >
+                          <span className="h-11 w-11 shrink-0" style={{ border: '1px solid rgb(var(--sys)/0.2)' }}>
+                            <ExerciseAnimation exercise={exercise} speed={3.4} />
+                          </span>
 
-                        <div className="min-w-0 flex-1">
-                          <div className="sys-value truncate text-sm leading-tight">
-                            {exercise?.name || block.name}
-                          </div>
-                          <div className="sys-label mt-0.5 truncate normal-case tracking-normal">
-                            {exercise?.primary.join(' · ')}
-                          </div>
-                        </div>
+                          <span className="min-w-0 flex-1">
+                            <span className="sys-value flex items-center gap-1.5 text-sm leading-tight">
+                              <span className="truncate">{exercise?.name || block.name}</span>
+                              <ArrowLeftRight size={12} className="shrink-0 text-[rgb(var(--sys-dim))]" />
+                            </span>
+                            <span className="sys-label mt-0.5 block truncate normal-case tracking-normal">
+                              {exercise?.primary.join(' · ')}
+                            </span>
+                          </span>
+                        </button>
 
                         <div className="flex shrink-0 flex-col">
                           <button
@@ -211,16 +246,18 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
             )}
           </div>
 
-          <SystemButton icon={Plus} className="w-full" onClick={() => setPickerOpen(true)}>
+          <SystemButton icon={Plus} className="w-full" onClick={() => setPicking(-1)}>
             Add Exercise
           </SystemButton>
         </div>
       </Sheet>
 
       <ExercisePicker
-        open={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        onAdd={addExercises}
+        open={picking !== null}
+        onClose={() => setPicking(null)}
+        mode={picking >= 0 ? 'swap' : 'add'}
+        replacing={picking >= 0 ? draft.blocks[picking]?.exerciseId : undefined}
+        onAdd={(ids) => (picking >= 0 ? swapExercise(picking, ids[0]) : addExercises(ids))}
         existing={draft.blocks.map((b) => b.exerciseId)}
       />
     </>

@@ -194,6 +194,50 @@ export function WorkoutProvider({ children }) {
 
   const addExercises = useCallback((ids) => ids.forEach((id) => addExercise(id)), [addExercise]);
 
+  /**
+   * Swap a movement mid-session, in place.
+   *
+   * Completed sets are kept only if nothing has been logged against them yet:
+   * five reps at 80 kg of bench press are not five reps at 80 kg of overhead
+   * press, and silently carrying them over would falsify the record. Untouched
+   * placeholder rows are re-seeded from the new movement's own history, which
+   * is what the hunter wants when the rack they planned for is occupied.
+   */
+  const replaceExercise = useCallback(
+    (exerciseId, nextId) => {
+      const next = getExercise(nextId);
+      if (!next || exerciseId === nextId) return;
+
+      setSession((current) => {
+        if (!current) return current;
+        const index = current.entries.findIndex((e) => e.exerciseId === exerciseId);
+        if (index === -1) return current;
+        // Swapping onto a movement already in the session would collapse two
+        // entries into one and lose sets, so refuse it.
+        if (current.entries.some((e) => e.exerciseId === nextId)) return current;
+
+        const entry = current.entries[index];
+        const previous = lastPerformance(profile, nextId);
+        const unit = profile?.unit || 'kg';
+
+        const seeded = previous?.sets?.length
+          ? previous.sets.slice(0, 5).map((s, i) =>
+              emptySet(i, {
+                reps: s.reps || '',
+                weight: s.weightKg ? Number(fromKg(s.weightKg, unit).toFixed(1)) : '',
+                duration: s.duration || '',
+              }),
+            )
+          : Array.from({ length: Math.max(1, entry.sets.length) }, (_, i) => emptySet(i));
+
+        const entries = [...current.entries];
+        entries[index] = { exerciseId: nextId, sets: seeded, notes: '' };
+        return { ...current, entries };
+      });
+    },
+    [profile],
+  );
+
   const removeExercise = useCallback((exerciseId) => {
     setSession((current) =>
       current ? { ...current, entries: current.entries.filter((e) => e.exerciseId !== exerciseId) } : current,
@@ -376,6 +420,7 @@ export function WorkoutProvider({ children }) {
       finish,
       addExercise,
       addExercises,
+      replaceExercise,
       removeExercise,
       reorderExercise,
       addSet,
@@ -393,7 +438,7 @@ export function WorkoutProvider({ children }) {
     }),
     [
       session, elapsed, stats, rest, restRemaining, start, discard, finish,
-      addExercise, addExercises, removeExercise, reorderExercise, addSet, removeSet,
+      addExercise, addExercises, replaceExercise, removeExercise, reorderExercise, addSet, removeSet,
       updateSet, completeSet, startRest, adjustRest, skipRest, setName, setNotes, setEntryNotes, profile,
     ],
   );

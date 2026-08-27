@@ -1,7 +1,9 @@
 import { useId, useState } from 'react';
 import { MUSCLES } from '../../engine/constants';
-import { HEAD, FRONT, BACK } from '../../data/bodyRegions';
+import { clsx } from '../../lib/clsx';
+import { HEAD, FRONT, BACK, regionAt } from '../../data/bodyRegions';
 import { SORENESS_STATES } from '../../engine/soreness';
+import { play } from '../../lib/sound';
 
 // ---------------------------------------------------------------------------
 // Front/back body map shaded by inferred fatigue.
@@ -10,6 +12,22 @@ import { SORENESS_STATES } from '../../engine/soreness';
 // selected muscle always shows its state *name* alongside — colour is never the
 // only encoding of how cooked something is.
 // ---------------------------------------------------------------------------
+
+/** Ordered legend — the ramp reads as a scale, and each step is named. */
+export function SorenessLegend({ className }) {
+  return (
+    <div className={clsx('flex flex-wrap items-center gap-x-3 gap-y-1.5', className)}>
+      {Object.values(SORENESS_STATES).map((state) => (
+        <span key={state.id} className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-[3px]" style={{ backgroundColor: state.color }} />
+          <span className="font-mono text-[10px] uppercase tracking-wider text-[rgb(var(--sys-dim))]">
+            {state.label}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export function MuscleMap({ soreness, className, onSelect }) {
   const uid = useId().replace(/:/g, '');
@@ -27,18 +45,39 @@ export function MuscleMap({ soreness, className, onSelect }) {
     return `${state.color}${Math.round(78 + entry.value * 160).toString(16).padStart(2, '0')}`;
   };
 
+  /**
+   * Turn a pointer event into a region. `hovering` is the desktop path, where
+   * moving off everything should clear rather than toggle.
+   */
+  const pick = (event, hovering = false) => {
+    const svg = event.currentTarget.ownerSVGElement;
+    const box = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    const x = ((event.clientX - box.left) / box.width) * vb.width + vb.x;
+    const y = ((event.clientY - box.top) / box.height) * vb.height + vb.y;
+    const region = regionAt(regions, x, y);
+
+    if (hovering) {
+      setActive(region?.id ?? null);
+      return;
+    }
+    if (!region) return setActive(null);
+    play('tap');
+    setActive((cur) => (cur === region.id ? null : region.id));
+    onSelect?.(region.id);
+  };
+
   const activeEntry = active ? soreness?.[active] : null;
 
   return (
     <div className={className}>
-      <div className="mb-2 flex items-center justify-between">
-        <span className="hud-label">Fatigue map</span>
-        <div className="inline-flex  border border-[rgb(var(--sys)/0.25)] bg-[rgb(var(--sys-deep-2)/0.6)] p-0.5">
+      <div className="mb-2 flex items-center justify-center">
+        <div className="inline-flex w-full border border-[rgb(var(--sys)/0.25)] bg-[rgb(var(--sys-deep-2)/0.6)] p-0.5">
           {['front', 'back'].map((side) => (
             <button
               key={side}
               onClick={() => setView(side)}
- className={`rounded-md px-2.5 py-1 text-[11px] font-semibold capitalize transition ${
+ className={`flex-1 px-2.5 py-1.5 text-[12px] font-semibold capitalize transition ${
                 view === side ? 'text-void-950' : 'text-[rgb(var(--sys-dim))] hover:text-[rgb(var(--sys-ink))]'
               }`}
               style={view === side ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
@@ -49,7 +88,7 @@ export function MuscleMap({ soreness, className, onSelect }) {
         </div>
       </div>
 
-      <svg viewBox="0 0 100 186" className="mx-auto h-60 w-auto" role="img" aria-label={`${view} fatigue map`}>
+      <svg viewBox="0 0 100 186" className="mx-auto h-auto w-full max-w-[190px]" role="img" aria-label={`${view} fatigue map`}>
         <defs>
           <filter id={`${uid}-heat`} x="-25%" y="-25%" width="150%" height="150%">
             <feGaussianBlur stdDeviation="2.4" />
@@ -85,18 +124,36 @@ export function MuscleMap({ soreness, className, onSelect }) {
             stroke={active === region.id ? 'rgb(var(--sys))' : 'rgb(var(--sys) / 0.28)'}
             strokeWidth={active === region.id ? 1.3 : 0.6}
             strokeLinejoin="round"
-            className="cursor-pointer transition-all"
-            // Hover is desktop-only; on a phone the same region has to answer
-            // to a tap, or the "tap a muscle" hint below describes nothing.
-            onMouseEnter={() => setActive(region.id)}
-            onMouseLeave={() => setActive(null)}
-            onClick={() => {
-              setActive((cur) => (cur === region.id ? null : region.id));
-              onSelect?.(region.id);
-            }}
+            className="transition-all"
+            pointerEvents="none"
           />
         ))}
+
+        {/* One surface takes every tap and resolves it to the nearest region,
+            because several of these shapes are two or three pixels wide on a
+            phone and cannot be hit directly. */}
+        <rect
+          x="0"
+          y="0"
+          width="100"
+          height="186"
+          fill="transparent"
+          className="cursor-pointer"
+          onPointerDown={pick}
+          onPointerMove={(e) => { if (e.pointerType === 'mouse' && e.buttons === 0) pick(e, true); }}
+          onPointerLeave={(e) => { if (e.pointerType === 'mouse') setActive(null); }}
+        />
       </svg>
+
+      {/* The shapes take no pointer events, so the same choices are exposed
+          to keyboards and assistive tech as real buttons here. */}
+      <div className="sr-only">
+        {regions.map((region) => (
+          <button key={region.id} onClick={() => { setActive(region.id); onSelect?.(region.id); }}>
+            {MUSCLES[region.id]?.name || region.id}
+          </button>
+        ))}
+      </div>
 
       <div className="mt-1 min-h-[34px] text-center">
         {activeEntry ? (
@@ -112,15 +169,6 @@ export function MuscleMap({ soreness, className, onSelect }) {
         )}
       </div>
 
-      {/* Ordered legend — the ramp reads as a scale, and each step is named. */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
-        {Object.values(SORENESS_STATES).map((state) => (
-          <span key={state.id} className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-[3px]" style={{ backgroundColor: state.color }} />
-            <span className="font-mono text-[10px] uppercase tracking-wider text-[rgb(var(--sys-dim))]">{state.label}</span>
-          </span>
-        ))}
-      </div>
     </div>
   );
 }

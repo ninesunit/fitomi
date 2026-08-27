@@ -6,7 +6,7 @@ import { QuestCard } from '../components/quests/QuestCard';
 import { Meter } from '../components/ui/Bars';
 import { MUSCLES } from '../engine/constants';
 import { soreMuscles, neglectedMuscles } from '../engine/soreness';
-import { MuscleMap } from '../components/dashboard/MuscleMap';
+import { MuscleMap, SorenessLegend } from '../components/dashboard/MuscleMap';
 
 export default function QuestsPage() {
   const { quests, completeQuest, uncompleteQuest, soreness, readiness, streak, profile } = useGame();
@@ -50,8 +50,10 @@ export default function QuestsPage() {
 
         {/* The board is derived from where fatigue actually sits, so show the
             body it was read from rather than two lists of muscle names. */}
-        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
-          <MuscleMap soreness={soreness} className="mx-auto w-full max-w-[220px] shrink-0" />
+        {/* Side by side even on a phone: the figure is narrow, so stacking it
+            wasted the width the readout needs. */}
+        <div className="mt-4 flex items-start gap-4">
+          <MuscleMap soreness={soreness} className="w-[150px] shrink-0" />
 
           <div className="min-w-0 flex-1 space-y-4">
             <div>
@@ -100,6 +102,8 @@ export default function QuestsPage() {
             )}
           </div>
         </div>
+
+        <SorenessLegend className="mt-4 justify-center" />
       </MotionPanel>
 
       {/* ---- daily quests ---- */}
