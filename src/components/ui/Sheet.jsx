@@ -33,32 +33,31 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, size =
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
         >
-          <div className="absolute inset-0 bg-void-950/80 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-[#01060f]/88 backdrop-blur-sm" onClick={onClose} />
           <motion.div
             initial={{ y: 40, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 30, opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
             className={clsx(
-              'panel panel-accent relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl',
+              'sys-window relative flex max-h-[92dvh] w-full flex-col overflow-hidden',
               widths[size],
               className,
             )}
           >
             {(title || onClose) && (
-              <header className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
+              <header
+                className="flex items-start justify-between gap-4 px-5 py-4"
+                style={{ borderBottom: '1px solid rgb(var(--sys)/0.25)' }}
+              >
                 <div className="min-w-0">
-                  {subtitle && <div className="hud-label mb-1">{subtitle}</div>}
-                  {title && (
-                    <h2 className="truncate font-display text-lg font-semibold tracking-wide text-slate-100">
-                      {title}
-                    </h2>
-                  )}
+                  {subtitle && <div className="sys-label mb-1">{subtitle}</div>}
+                  {title && <h2 className="sys-title truncate text-sm">{title}</h2>}
                 </div>
                 <button
                   onClick={onClose}
                   aria-label="Close"
-                  className="-mr-1 rounded-lg p-1.5 text-slate-400 transition hover:bg-white/10 hover:text-slate-100"
+                  className="-mr-1 p-2 text-[rgb(var(--sys-dim))]"
                 >
                   <X size={18} />
                 </button>
@@ -67,7 +66,14 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, size =
 
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
 
-            {footer && <footer className="border-t border-white/10 px-5 py-3.5 safe-bottom">{footer}</footer>}
+            {footer && (
+              <footer
+                className="px-5 py-3.5 safe-bottom"
+                style={{ borderTop: '1px solid rgb(var(--sys)/0.25)' }}
+              >
+                {footer}
+              </footer>
+            )}
           </motion.div>
         </motion.div>
       )}

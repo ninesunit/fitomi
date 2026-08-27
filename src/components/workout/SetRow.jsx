@@ -5,17 +5,19 @@ import { RPE_DESCRIPTIONS, estimate1RM } from '../../engine/oneRepMax';
 import { fromKg, toKg } from '../../engine/constants';
 
 const SET_TYPES = {
-  warmup: { label: 'W', color: '#fbbf24', title: 'Warm-up set (quarter XP)' },
-  working: { label: null, color: '#94a3b8', title: 'Working set' },
-  drop: { label: 'D', color: '#a78bfa', title: 'Drop set' },
-  failure: { label: 'F', color: '#ef4444', title: 'Taken to failure' },
+  warmup: { label: 'W', color: 'rgb(var(--sys-gold))', title: 'Warm-up set (quarter XP)' },
+  working: { label: null, color: 'rgb(var(--sys-dim))', title: 'Working set' },
+  drop: { label: 'D', color: 'rgb(var(--sys-2))', title: 'Drop set' },
+  failure: { label: 'F', color: 'rgb(var(--sys-danger))', title: 'Taken to failure' },
 };
-
 const TYPE_CYCLE = ['working', 'warmup', 'drop', 'failure'];
 
 /**
- * One logged set. Inputs stay uncontrolled-feeling (string state) so a hunter
- * can clear a field and retype without the value fighting them.
+ * One logged set.
+ *
+ * Sized for a thumb between sets: 44px controls, 16px inputs so iOS never
+ * zooms the viewport on focus, and the complete button on the right where the
+ * hand already is.
  */
 export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange, onComplete, onRemove }) {
   const [rpeOpen, setRpeOpen] = useState(false);
@@ -29,78 +31,51 @@ export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange
       ? estimate1RM(toKg(Number(set.weight), unit), Number(set.reps), set.rpe)
       : 0;
 
-  const cycleType = () => {
-    const next = TYPE_CYCLE[(TYPE_CYCLE.indexOf(set.type) + 1) % TYPE_CYCLE.length];
-    onChange({ type: next });
-  };
+  const cycleType = () =>
+    onChange({ type: TYPE_CYCLE[(TYPE_CYCLE.indexOf(set.type) + 1) % TYPE_CYCLE.length] });
 
   return (
     <div
-      className={clsx(
-        'group relative rounded-lg border px-2 py-2 transition-colors',
-        set.completed ? 'border-mana-500/30 bg-mana-500/[0.08]' : 'border-white/[0.06] bg-void-950/40',
-      )}
+      className="px-2 py-2 transition-colors"
+      style={{
+        border: set.completed ? '1px solid rgb(var(--sys-good)/0.4)' : '1px solid rgb(var(--sys)/0.16)',
+        background: set.completed ? 'rgb(var(--sys-good)/0.09)' : 'rgb(var(--sys-deep-2)/0.45)',
+      }}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <button
           onClick={cycleType}
           title={type.title}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/10 font-mono text-[11px] font-bold transition hover:bg-white/10"
-          style={{ color: type.color }}
+          className="flex h-11 w-9 shrink-0 items-center justify-center font-mono text-xs font-bold"
+          style={{ border: '1px solid rgb(var(--sys)/0.2)', color: type.color }}
         >
           {type.label || index + 1}
         </button>
 
-        {previous ? (
-          <span className="hidden w-16 shrink-0 truncate text-center font-mono text-[10px] text-slate-600 sm:block">
-            {previous}
-          </span>
-        ) : (
-          <span className="hidden w-16 shrink-0 text-center font-mono text-[10px] text-slate-700 sm:block">—</span>
-        )}
+        <span className="hidden w-14 shrink-0 truncate text-center font-mono text-[10px] text-[rgb(var(--sys-dim))] xs:block">
+          {previous || '—'}
+        </span>
 
         {isTimed ? (
-          <NumField
-            value={set.duration}
-            onChange={(v) => onChange({ duration: v })}
-            placeholder="sec"
-            label="Time"
-          />
+          <NumField value={set.duration} onChange={(v) => onChange({ duration: v })} placeholder="sec" label="Time" />
         ) : isDistance ? (
-          <NumField
-            value={set.distance}
-            onChange={(v) => onChange({ distance: v })}
-            placeholder="m"
-            label="Distance"
-          />
+          <NumField value={set.distance} onChange={(v) => onChange({ distance: v })} placeholder="m" label="Distance" />
         ) : (
           <>
-            <NumField
-              value={set.weight}
-              onChange={(v) => onChange({ weight: v })}
-              placeholder={unit}
-              label="Weight"
-              step="0.5"
-            />
-            <NumField
-              value={set.reps}
-              onChange={(v) => onChange({ reps: v })}
-              placeholder="reps"
-              label="Reps"
-            />
+            <NumField value={set.weight} onChange={(v) => onChange({ weight: v })} placeholder={unit} label="Weight" step="0.5" />
+            <NumField value={set.reps} onChange={(v) => onChange({ reps: v })} placeholder="reps" label="Reps" />
           </>
         )}
 
         {showRpe && !isDistance && (
           <button
             onClick={() => setRpeOpen((v) => !v)}
-            className={clsx(
-              'h-9 w-11 shrink-0 rounded-md border font-mono text-xs font-bold transition',
-              set.rpe
-                ? 'border-transparent text-void-950'
-                : 'border-white/10 text-slate-600 hover:bg-white/5',
-            )}
-            style={set.rpe ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+            className="h-11 w-11 shrink-0 font-mono text-xs font-bold transition-colors"
+            style={{
+              border: set.rpe ? '1px solid rgb(var(--sys))' : '1px solid rgb(var(--sys)/0.2)',
+              background: set.rpe ? 'rgb(var(--sys)/0.2)' : 'transparent',
+              color: set.rpe ? 'rgb(var(--sys-ink))' : 'rgb(var(--sys-dim))',
+            }}
             title="Rate of perceived exertion"
           >
             {set.rpe || 'RPE'}
@@ -110,33 +85,33 @@ export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange
         <button
           onClick={onComplete}
           aria-label={set.completed ? 'Mark set incomplete' : 'Complete set'}
-          className={clsx(
-            'flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition-all active:scale-90',
-            set.completed
-              ? 'border-mana-500/50 bg-mana-500/25 text-mana-300'
-              : 'border-white/15 text-slate-600 hover:border-white/30 hover:text-slate-200',
-          )}
+          className="flex h-11 w-11 shrink-0 items-center justify-center transition-all active:scale-90"
+          style={{
+            border: set.completed ? '1px solid rgb(var(--sys-good))' : '1px solid rgb(var(--sys)/0.3)',
+            background: set.completed ? 'rgb(var(--sys-good)/0.25)' : 'transparent',
+            color: set.completed ? 'rgb(var(--sys-good))' : 'rgb(var(--sys-dim))',
+          }}
         >
-          <Check size={16} strokeWidth={3} />
+          <Check size={17} strokeWidth={3} />
         </button>
 
         <button
           onClick={onRemove}
           aria-label="Remove set"
-          className="hidden h-9 w-8 shrink-0 items-center justify-center rounded-md text-slate-700 transition hover:text-blood-400 group-hover:flex"
+          className="hidden h-11 w-8 shrink-0 items-center justify-center text-[rgb(var(--sys-dim))] sm:flex"
         >
-          <Trash2 size={14} />
+          <Trash2 size={13} />
         </button>
       </div>
 
       {e1rm > 0 && (
-        <div className="mt-1 pl-9 font-mono text-[10px] text-slate-600">
+        <div className="mt-1 pl-11 font-mono text-[10px] text-[rgb(var(--sys-dim))] opacity-70">
           e1RM ≈ {fromKg(e1rm, unit).toFixed(1)} {unit}
         </div>
       )}
 
       {rpeOpen && (
-        <div className="mt-2 rounded-lg border border-white/10 bg-void-900 p-2">
+        <div className="mt-2 p-2" style={{ border: '1px solid rgb(var(--sys)/0.25)' }}>
           <div className="mb-2 grid grid-cols-5 gap-1">
             {[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map((value) => (
               <button
@@ -145,19 +120,18 @@ export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange
                   onChange({ rpe: set.rpe === value ? null : value });
                   setRpeOpen(false);
                 }}
-                className={clsx(
-                  'rounded-md border py-1.5 font-mono text-xs font-bold transition',
-                  set.rpe === value
-                    ? 'border-transparent text-void-950'
-                    : 'border-white/10 text-slate-400 hover:bg-white/10',
-                )}
-                style={set.rpe === value ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+                className="py-2.5 font-mono text-xs font-bold transition-colors"
+                style={{
+                  border: set.rpe === value ? '1px solid rgb(var(--sys))' : '1px solid rgb(var(--sys)/0.2)',
+                  background: set.rpe === value ? 'rgb(var(--sys)/0.25)' : 'transparent',
+                  color: set.rpe === value ? 'rgb(var(--sys-ink))' : 'rgb(var(--sys-dim))',
+                }}
               >
                 {value}
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-[11px] text-[rgb(var(--sys-dim))]">
             {RPE_DESCRIPTIONS[set.rpe] || 'How many reps were left in the tank?'}
           </p>
         </div>
@@ -176,8 +150,11 @@ function NumField({ value, onChange, placeholder, label, step }) {
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="h-9 min-w-0 flex-1 rounded-md border border-white/10 bg-void-950/70 px-2 text-center font-mono text-sm text-slate-100 placeholder:text-slate-700 focus:border-transparent"
-      style={{ outlineColor: 'rgb(var(--accent))' }}
+      className="h-11 min-w-0 flex-1 px-1 text-center font-mono text-base text-[rgb(var(--sys-ink))]"
+      style={{
+        border: '1px solid rgb(var(--sys)/0.22)',
+        background: 'rgb(var(--sys-deep-2)/0.85)',
+      }}
     />
   );
 }
