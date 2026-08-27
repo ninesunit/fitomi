@@ -7,7 +7,7 @@ import { useSystem } from '../context/SystemContext';
 import { MotionPanel, PanelHeader } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
 import { TextField, SelectField, Segmented } from '../components/ui/Field';
-import { RankBadge } from '../components/ui/RankBadge';
+import { HunterPortrait } from '../components/avatar/HunterPortrait';
 import { StatRadar } from '../components/dashboard/StatRadar';
 import { XpBar, Meter } from '../components/ui/Bars';
 import { STATS, fromKg, toKg } from '../engine/constants';
@@ -70,17 +70,19 @@ export default function ProfilePage() {
     <div className="space-y-4">
       {/* ---- identity ---- */}
       <MotionPanel accent notch className="p-5">
-        <div className="flex flex-wrap items-center gap-4">
-          <RankBadge rank={rank} size={80} pulse />
-          <div className="min-w-0 flex-1">
+        <div className="flex items-stretch gap-4">
+          {/* The hunter, at full size. The profile is the one screen where the
+              figure gets room to breathe. */}
+          <HunterPortrait profile={profile} rank={rank} size={128} />
+          <div className="flex min-w-0 flex-1 flex-col justify-center">
             <div className="hud-label mb-1">Hunter</div>
-            <h1 className="truncate font-display text-2xl font-bold text-[rgb(var(--sys-ink))]">
+            <h1 className="truncate font-display text-2xl font-bold leading-tight text-[rgb(var(--sys-ink))]">
               {profile.displayName}
             </h1>
             <p className="text-sm" style={{ color: rank.color }}>
               {rank.name} · {profile.title || rank.title}
             </p>
-            <p className="mt-1 text-xs text-[rgb(var(--sys-dim))]">{rank.blurb}</p>
+            <p className="mt-1.5 text-xs leading-snug text-[rgb(var(--sys-dim))]">{rank.blurb}</p>
           </div>
         </div>
 

@@ -7,6 +7,8 @@ import { STATS } from '../../engine/constants';
 import { splitName } from '../../engine/assessment';
 import { getExercise } from '../../data/exercises';
 import { rankForLevel } from '../../engine/ranks';
+import { HunterPortrait } from '../avatar/HunterPortrait';
+import { inferBodyType } from '../../engine/physique';
 
 // ---------------------------------------------------------------------------
 // The assessment readout.
@@ -29,32 +31,45 @@ export function AssessmentResult({ answers, assessment, onContinue, onRestart })
     >
       {/* ---- the verdict ---- */}
       <SystemWindow title="Assessment Complete" subtitle="System" scan delay={0.05}>
-        <div className="text-center">
-          <div className="sys-label mb-1">Designation</div>
-          <div className="sys-title mb-3 text-xl">{answers.name || 'Unnamed Hunter'}</div>
-
-          <div className="sys-rule mb-3" />
-
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div>
-              <div className="sys-label mb-0.5">Rank</div>
-              <div className="sys-value sys-accent sys-glow text-xl">{rank.id}</div>
-            </div>
-            <div>
-              <div className="sys-label mb-0.5">Level</div>
-              <div className="sys-value sys-accent sys-glow text-xl">1</div>
-            </div>
-            <div>
-              <div className="sys-label mb-0.5">Points</div>
-              <div className="sys-value sys-accent sys-glow text-xl tnum">{assessment.total}</div>
-            </div>
+        {/* The figure is the payoff: the first sight of the body they are
+            about to build, already shaped by the answers they just gave. */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.25, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col items-center"
+        >
+          <HunterPortrait
+            profile={{ stats: assessment.stats, bodyType: answers.bodyType || inferBodyType(answers), gender: answers.gender }}
+            rank={rank}
+            size={150}
+          />
+          <div className="sys-title mt-3 text-xl">{answers.name || 'Unnamed Hunter'}</div>
+          <div className="sys-label mt-0.5" style={{ color: rank.color }}>
+            {rank.name} · {rank.title}
           </div>
+        </motion.div>
 
-          <p className="mt-4 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
-            Every hunter enters at E-Rank, Level 1. What differs is the shape of the build you start
-            with — and yours has been set from your answers.
-          </p>
+        <div className="sys-rule my-3" />
+
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="sys-label mb-0.5">Rank</div>
+            <div className="sys-value sys-accent sys-glow text-xl">{rank.id}</div>
+          </div>
+          <div>
+            <div className="sys-label mb-0.5">Level</div>
+            <div className="sys-value sys-accent sys-glow text-xl">1</div>
+          </div>
+          <div>
+            <div className="sys-label mb-0.5">Points</div>
+            <div className="sys-value sys-accent sys-glow text-xl tnum">{assessment.total}</div>
+          </div>
         </div>
+
+        <p className="mt-4 text-center text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
+          Every hunter enters at E-Rank. What differs is the shape you start with — and yours is set.
+        </p>
       </SystemWindow>
 
       {/* ---- starting attributes ---- */}

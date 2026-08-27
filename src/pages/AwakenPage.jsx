@@ -13,7 +13,9 @@ import {
   EXPERIENCE_LEVELS, GOALS, WEAKNESSES,
   SPLIT_OPTIONS, FOCUS_AREAS, LIMITATIONS, GENDERS, assess,
 } from '../engine/assessment';
+import { inferBodyType } from '../engine/physique';
 import { GearPicker } from '../components/onboarding/GearPicker';
+import { BodyTypePicker } from '../components/onboarding/BodyTypePicker';
 import { play } from '../lib/sound';
 
 // ---------------------------------------------------------------------------
@@ -104,6 +106,15 @@ const STEPS = [
           />
         </FieldRow>
       </div>
+    ),
+  },
+  {
+    id: 'build',
+    title: 'Physical Build',
+    prompt: 'Choose the frame closest to yours. This becomes your avatar.',
+    valid: (a) => Boolean(a.bodyType),
+    render: (a, set) => (
+      <BodyTypePicker value={a.bodyType} onChange={(v) => set({ bodyType: v })} sex={a.gender} />
     ),
   },
   {
@@ -232,6 +243,15 @@ export default function AwakenPage() {
     () => (phase === PHASES.RESULT || phase === PHASES.ANALYSING ? assess(answers) : null),
     [phase, answers],
   );
+
+  // Arriving at the build question with a height and weight already on file,
+  // the System proposes a frame rather than presenting four blank choices. The
+  // hunter confirms or corrects it, which is a far lighter ask.
+  useEffect(() => {
+    if (current?.id === 'build' && !answers.bodyType) {
+      set({ bodyType: inferBodyType(answers) });
+    }
+  }, [current?.id, answers, set]);
 
   const next = () => {
     if (step < STEPS.length - 1) setStep((s) => s + 1);

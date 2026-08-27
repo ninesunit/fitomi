@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity, BookOpen, Calculator, ClipboardList, CloudOff, Dumbbell, Flame, History,
-  LayoutGrid, ListChecks, LogOut, Settings, Skull, Timer, User, X,
+  LayoutGrid, ListChecks, LogOut, Menu, Settings, Skull, Timer, User, X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
@@ -112,7 +112,7 @@ export function AppShell({ children }) {
               className="shrink-0 p-2 text-[rgb(var(--sys-dim))]"
               aria-label="Menu"
             >
-              <Settings size={18} />
+              <Menu size={20} />
             </button>
           </div>
         </div>

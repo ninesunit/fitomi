@@ -7,7 +7,10 @@
 // the System assesses you, and only then asks you to register.
 // ---------------------------------------------------------------------------
 
+import { inferBodyType } from '../engine/physique';
+
 const KEY = 'fitomi:awakening';
+
 
 export const EMPTY_ANSWERS = {
   name: '',
@@ -25,6 +28,7 @@ export const EMPTY_ANSWERS = {
   split: 'auto',
   equipment: [],
   gear: [],
+  bodyType: '',
   limitations: [],
   completedAt: null,
 };
@@ -106,6 +110,9 @@ export function seedProfileFromAssessment(profile, answers, assessment) {
     displayName: answers.name?.trim() || profile.displayName,
     age: Number(answers.age) || null,
     gender: answers.gender || null,
+    // Drives the avatar's starting build, so a hunter recognises themselves on
+    // the status screen before they have trained a single session.
+    bodyType: answers.bodyType || inferBodyType(answers),
     height: Number(answers.height) || null,
     bodyweight: Number(answers.weight) || profile.bodyweight,
     unit: answers.unit || profile.unit,

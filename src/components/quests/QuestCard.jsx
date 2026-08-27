@@ -70,7 +70,7 @@ export function QuestCard({ quest, completed, onComplete, onUndo, compact = fals
             </span>
           </div>
 
-          <p className="sys-label mt-1 normal-case tracking-normal">{quest.subtitle}</p>
+          {!compact && <p className="sys-label mt-1 normal-case tracking-normal">{quest.subtitle}</p>}
 
           {!compact && (
             <>
@@ -84,27 +84,36 @@ export function QuestCard({ quest, completed, onComplete, onUndo, compact = fals
             </>
           )}
 
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]">
-            <span className="text-[rgb(var(--sys-dim))]">
-              Target <span className="text-[rgb(var(--sys-ink))]">{targetLabel}</span>
-            </span>
+          <div className={clsx('flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[11px]', compact ? 'mt-1' : 'mt-2')}>
+            <span className="text-[rgb(var(--sys-ink))]">{targetLabel}</span>
             <span className="sys-accent">+{quest.xp} XP</span>
             <span className="flex items-center gap-1" style={{ color: 'rgb(var(--sys-danger))' }}>
               <Swords size={10} />
               {quest.damage}
             </span>
+            {compact && (
+              <span className="truncate text-[rgb(var(--sys-dim))]">{quest.subtitle}</span>
+            )}
           </div>
 
+          {/* On the dashboard the reasoning is one tap away on the row itself,
+              rather than a "why this quest?" link stacked under every card. */}
           {compact && quest.description && (
-            <button
-              onClick={() => setExpanded((v) => !v)}
-              className="mt-1.5 text-[11px] text-[rgb(var(--sys-dim))] underline-offset-2 hover:underline"
-            >
-              {expanded ? 'Hide reasoning' : 'Why this quest?'}
-            </button>
-          )}
-          {compact && expanded && (
-            <p className="mt-2 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">{quest.description}</p>
+            <>
+              <button
+                onClick={() => setExpanded((v) => !v)}
+                aria-expanded={expanded}
+                aria-label="Show reasoning"
+                className="absolute right-1.5 top-1.5 p-1.5 text-[rgb(var(--sys-dim))]"
+              >
+                <Info size={13} />
+              </button>
+              {expanded && (
+                <p className="mt-2 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
+                  {quest.description}
+                </p>
+              )}
+            </>
           )}
         </div>
       </div>
