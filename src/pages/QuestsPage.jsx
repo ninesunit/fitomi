@@ -3,6 +3,7 @@ import { Brain, CalendarDays, CheckCircle2, ListChecks, Sparkles } from 'lucide-
 import { useGame } from '../context/GameContext';
 import { MotionPanel, PanelHeader } from '../components/ui/Panel';
 import { QuestCard } from '../components/quests/QuestCard';
+import { QuestTimer } from '../components/quests/QuestTimer';
 import { Meter } from '../components/ui/Bars';
 import { MUSCLES } from '../engine/constants';
 import { soreMuscles, neglectedMuscles } from '../engine/soreness';
@@ -32,6 +33,8 @@ export default function QuestsPage() {
           device — no server involved.
         </p>
 
+        <QuestTimer open={open.length} className="mt-3" />
+
         <div className="mt-4">
           <Meter
             value={earnedXp}
@@ -42,6 +45,15 @@ export default function QuestsPage() {
             height="h-2.5"
           />
         </div>
+
+        {open.length > 0 && (
+          <p
+            className="mt-3 text-center text-[11px] leading-relaxed"
+            style={{ color: 'rgb(var(--sys-danger))' }}
+          >
+            Failure to complete the daily quest will incur an appropriate penalty.
+          </p>
+        )}
       </MotionPanel>
 
       {/* ---- how the board was derived ---- */}

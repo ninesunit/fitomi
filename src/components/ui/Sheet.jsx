@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useDragControls } from 'framer-motion';
 import { X } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
 
@@ -23,6 +23,11 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, size =
 
   const widths = { sm: 'sm:max-w-md', md: 'sm:max-w-xl', lg: 'sm:max-w-3xl', xl: 'sm:max-w-5xl' };
 
+  // Drag-to-dismiss, driven only from the handle and header. Making the whole
+  // sheet draggable fights the content's own scrolling — the gesture that
+  // should scroll a long exercise list would instead drag the sheet shut.
+  const dragControls = useDragControls();
+
   return (
     <AnimatePresence>
       {open && (
@@ -39,15 +44,36 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, size =
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 30, opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.55 }}
+            onDragEnd={(_, info) => {
+              // Either a decisive flick or a long pull dismisses, which is how
+              // a native sheet behaves — you should not have to drag it all
+              // the way off the screen.
+              if (info.offset.y > 110 || info.velocity.y > 550) onClose?.();
+            }}
  className={clsx(
               'sys-window relative flex max-h-[92dvh] w-full flex-col overflow-hidden',
               widths[size],
  className,
             )}
           >
+            {/* Grab handle. Also the drag surface, alongside the header. */}
+            <div
+              onPointerDown={(e) => dragControls.start(e)}
+              className="flex touch-none justify-center pb-1 pt-2.5 sm:hidden"
+              aria-hidden
+            >
+              <span className="h-1 w-10 rounded-full" style={{ background: 'rgb(var(--sys)/0.4)' }} />
+            </div>
+
             {(title || onClose) && (
               <header
- className="flex items-start justify-between gap-4 px-5 py-4"
+                onPointerDown={(e) => dragControls.start(e)}
+ className="flex touch-none items-start justify-between gap-4 px-5 pb-4 pt-3 sm:pt-4"
                 style={{ borderBottom: '1px solid rgb(var(--sys)/0.25)' }}
               >
                 <div className="min-w-0">
@@ -56,6 +82,9 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, size =
                 </div>
                 <button
                   onClick={onClose}
+                  // The header is a drag surface; without this the gesture
+                  // starts under the finger and swallows the tap.
+                  onPointerDown={(e) => e.stopPropagation()}
                   aria-label="Close"
  className="-mr-1 p-2 text-[rgb(var(--sys-dim))]"
                 >

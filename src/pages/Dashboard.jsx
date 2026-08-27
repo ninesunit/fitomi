@@ -12,6 +12,7 @@ import { SystemMeter } from '../components/system/SystemMeter';
 import { HunterPortrait } from '../components/avatar/HunterPortrait';
 import { BossFigure } from '../components/raid/BossFigure';
 import { QuestCard } from '../components/quests/QuestCard';
+import { QuestTimer } from '../components/quests/QuestTimer';
 import { fromKg } from '../engine/constants';
 import { formatDuration, relativeTime } from '../lib/date';
 
@@ -149,9 +150,12 @@ export default function Dashboard() {
           )}
         </div>
 
+        <div className="sys-rule my-3" />
+        <QuestTimer open={open.length} compact />
+
         <Link
           to="/quests"
-          className="mt-3 flex items-center justify-center gap-1.5 py-2 text-xs text-[rgb(var(--sys-dim))]"
+          className="mt-2 flex items-center justify-center gap-1.5 py-2 text-xs text-[rgb(var(--sys-dim))]"
         >
           Open quest board
           <ChevronRight size={13} />

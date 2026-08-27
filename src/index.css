@@ -42,6 +42,50 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Native-app touch behaviour.
+     A long press on a button in a native app does nothing; in a web view it
+     raises a text-selection loupe and a share callout, which is the single
+     clearest tell that you are looking at a website. Selection is switched
+     off for chrome and switched back on for anything that is actually
+     content — inputs, and prose the hunter might want to copy. */
+  button,
+  a,
+  label,
+  [role='button'],
+  .sys-label,
+  .sys-title,
+  .sys-value,
+  nav,
+  svg {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  select,
+  p,
+  [contenteditable],
+  [data-selectable] {
+    -webkit-user-select: auto;
+    user-select: text;
+  }
+
+  /* Removes the legacy 300ms tap delay without disabling pinch-zoom on the
+     page as a whole. */
+  button,
+  a,
+  [role='button'] {
+    touch-action: manipulation;
+  }
+
+  /* Momentum scrolling inside sheets and any scrolling pane. */
+  .overflow-y-auto,
+  .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
   html {
     /* iOS: stop the whole document rubber-banding behind the app chrome. */
     height: 100%;
