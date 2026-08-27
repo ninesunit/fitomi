@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { MUSCLES } from '../../engine/constants';
 import { SORENESS_STATES } from '../../engine/soreness';
 
@@ -47,16 +47,19 @@ const BACK = [
 ];
 
 export function MuscleMap({ soreness, className, onSelect }) {
+  const uid = useId().replace(/:/g, '');
   const [view, setView] = useState('front');
   const [active, setActive] = useState(null);
   const regions = view === 'front' ? FRONT : BACK;
 
   const fillFor = (id) => {
     const entry = soreness?.[id];
-    if (!entry) return 'rgba(148,163,184,0.14)';
+    if (!entry) return 'rgba(148,163,184,0.26)';
     const state = entry.state || SORENESS_STATES.fresh;
-    // Opacity carries a second, redundant channel of the same magnitude.
-    return `${state.color}${Math.round(40 + entry.value * 190).toString(16).padStart(2, '0')}`;
+    // Opacity carries a second, redundant channel of the same magnitude. The
+    // floor is high enough that an untrained limb still reads as part of a
+    // body rather than fading out of the figure entirely.
+    return `${state.color}${Math.round(78 + entry.value * 160).toString(16).padStart(2, '0')}`;
   };
 
   const activeEntry = active ? soreness?.[active] : null;
@@ -81,13 +84,32 @@ export function MuscleMap({ soreness, className, onSelect }) {
         </div>
       </div>
 
-      <svg viewBox="0 0 100 200" className="mx-auto h-60 w-auto" role="img" aria-label={`${view} fatigue map`}>
+      <svg viewBox="0 0 100 186" className="mx-auto h-60 w-auto" role="img" aria-label={`${view} fatigue map`}>
+        <defs>
+          <filter id={`${uid}-heat`} x="-25%" y="-25%" width="150%" height="150%">
+            <feGaussianBlur stdDeviation="2.4" />
+          </filter>
+        </defs>
+
+        {/* Aura and footing, so the regions read as a body standing in the
+            System's light rather than a diagram of loose panels. */}
+        <ellipse cx="50" cy="92" rx="52" ry="90" fill="rgb(var(--sys) / 0.05)" />
+        <ellipse cx="50" cy="176" rx="26" ry="3.5" fill="rgb(var(--sys) / 0.18)" />
+
+        {/* Heat bloom: the same regions, blurred, underneath. Fatigue should
+            glow off the body before any individual panel is read. */}
+        <g filter={`url(#${uid}-heat)`} opacity="0.75">
+          {regions.map((region) => (
+            <path key={`h-${view}-${region.id}`} d={region.d} fill={fillFor(region.id)} />
+          ))}
+        </g>
+
         <circle
           cx={HEAD.cx}
           cy={HEAD.cy}
           r={HEAD.r}
-          fill="rgba(148,163,184,0.1)"
-          stroke="rgb(var(--sys) / 0.3)"
+          fill="rgba(148,163,184,0.12)"
+          stroke="rgb(var(--sys) / 0.35)"
           strokeWidth="0.8"
         />
         {regions.map((region) => (
@@ -95,13 +117,18 @@ export function MuscleMap({ soreness, className, onSelect }) {
             key={`${view}-${region.id}`}
             d={region.d}
             fill={fillFor(region.id)}
-            stroke={active === region.id ? 'rgb(var(--sys))' : 'rgba(255,255,255,0.16)'}
-            strokeWidth={active === region.id ? 1.3 : 0.5}
+            stroke={active === region.id ? 'rgb(var(--sys))' : 'rgb(var(--sys) / 0.28)'}
+            strokeWidth={active === region.id ? 1.3 : 0.6}
             strokeLinejoin="round"
- className="cursor-pointer transition-all"
+            className="cursor-pointer transition-all"
+            // Hover is desktop-only; on a phone the same region has to answer
+            // to a tap, or the "tap a muscle" hint below describes nothing.
             onMouseEnter={() => setActive(region.id)}
             onMouseLeave={() => setActive(null)}
-            onClick={() => onSelect?.(region.id)}
+            onClick={() => {
+              setActive((cur) => (cur === region.id ? null : region.id));
+              onSelect?.(region.id);
+            }}
           />
         ))}
       </svg>

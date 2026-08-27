@@ -6,6 +6,7 @@ import { QuestCard } from '../components/quests/QuestCard';
 import { Meter } from '../components/ui/Bars';
 import { MUSCLES } from '../engine/constants';
 import { soreMuscles, neglectedMuscles } from '../engine/soreness';
+import { MuscleMap } from '../components/dashboard/MuscleMap';
 
 export default function QuestsPage() {
   const { quests, completeQuest, uncompleteQuest, soreness, readiness, streak, profile } = useGame();
@@ -47,52 +48,55 @@ export default function QuestsPage() {
       <MotionPanel delay={0.05} className="p-5">
         <PanelHeader label="System analysis" title="Why these quests" icon={Brain} />
 
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <div>
-            <div className="hud-label mb-2">Systemic readiness</div>
-            <div className="flex items-baseline gap-2">
-              <span className="tnum font-display text-2xl font-bold accent-text">
+        {/* The board is derived from where fatigue actually sits, so show the
+            body it was read from rather than two lists of muscle names. */}
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+          <MuscleMap soreness={soreness} className="mx-auto w-full max-w-[220px] shrink-0" />
+
+          <div className="min-w-0 flex-1 space-y-4">
+            <div>
+              <div className="hud-label mb-1">Systemic readiness</div>
+              <div className="tnum font-display text-2xl font-bold accent-text">
                 {Math.round(readiness * 100)}%
-              </span>
-            </div>
-            <p className="mt-1 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
-              Derived from tonnage logged per muscle, decayed over each muscle&apos;s own recovery window.
-            </p>
-          </div>
-
-          <div>
-            <div className="hud-label mb-2">Fatigued tissue</div>
-            {sore.length ? (
-              <div className="space-y-1.5">
-                {sore.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between gap-2">
-                    <span className="truncate text-xs text-[rgb(var(--sys-ink))]">{MUSCLES[m.id]?.name}</span>
-                    <span className="tnum shrink-0 font-mono text-[11px]" style={{ color: m.state.color }}>
-                      {Math.round(m.value * 100)}% · {m.state.label}
-                    </span>
-                  </div>
-                ))}
               </div>
-            ) : (
-              <p className="text-xs text-[rgb(var(--sys-dim))]">Nothing significantly fatigued.</p>
-            )}
-          </div>
+              <p className="mt-1 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
+                Tonnage per muscle, decayed over each muscle&apos;s own recovery window.
+              </p>
+            </div>
 
-          <div>
-            <div className="hud-label mb-2">Neglected tissue</div>
-            {neglected.length ? (
-              <div className="space-y-1.5">
-                {neglected.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between gap-2">
-                    <span className="truncate text-xs text-[rgb(var(--sys-ink))]">{MUSCLES[m.id]?.name}</span>
-                    <span className="tnum shrink-0 font-mono text-[11px] text-[rgb(var(--sys-dim))]">
+            {sore.length > 0 && (
+              <div>
+                <div className="hud-label mb-1.5">Most fatigued</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {sore.map((m) => (
+                    <span
+                      key={m.id}
+                      className="px-1.5 py-0.5 font-mono text-[10px]"
+                      style={{ border: `1px solid ${m.state.color}66`, color: m.state.color }}
+                    >
+                      {MUSCLES[m.id]?.name} {Math.round(m.value * 100)}%
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {neglected.length > 0 && (
+              <div>
+                <div className="hud-label mb-1.5">Untrained</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {neglected.map((m) => (
+                    <span
+                      key={m.id}
+                      className="px-1.5 py-0.5 font-mono text-[10px] text-[rgb(var(--sys-dim))]"
+                      style={{ border: '1px solid rgb(var(--sys)/0.25)' }}
+                    >
+                      {MUSCLES[m.id]?.name}{' '}
                       {Number.isFinite(m.daysSince) ? `${Math.floor(m.daysSince)}d` : 'never'}
                     </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            ) : (
-              <p className="text-xs text-[rgb(var(--sys-dim))]">Everything trained recently.</p>
             )}
           </div>
         </div>
