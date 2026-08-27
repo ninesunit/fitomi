@@ -6,6 +6,7 @@ import { GameProvider, useGame } from './context/GameContext';
 import { WorkoutProvider } from './context/WorkoutContext';
 import { AppShell } from './components/AppShell';
 import { SystemModal } from './components/SystemModal';
+import { RouteTransition } from './components/RouteTransition';
 import { Toasts } from './components/ui/Toasts';
 import { InstallPrompt } from './components/InstallPrompt';
 import { UpdatePrompt } from './components/UpdatePrompt';
@@ -77,6 +78,7 @@ function Protected() {
       <ThemeBridge>
         <AppShell>
           <Suspense fallback={<PageFallback />}>
+            <RouteTransition>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/workout" element={<WorkoutPage />} />
@@ -92,6 +94,7 @@ function Protected() {
               <Route path="/routines" element={<RoutinesPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </RouteTransition>
           </Suspense>
         </AppShell>
         <SystemModal />
