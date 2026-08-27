@@ -4,6 +4,7 @@ import { useGame } from '../context/GameContext';
 import { MotionPanel, PanelHeader } from '../components/ui/Panel';
 import { DAMAGE_SOURCES, BOSSES } from '../engine/raid';
 import { relativeTime } from '../lib/date';
+import { BossFigure } from '../components/raid/BossFigure';
 
 export default function RaidPage() {
   const { boss, raid, profile, xp } = useGame();
@@ -32,13 +33,34 @@ export default function RaidPage() {
 
         <div className="relative">
           <div className="hud-label mb-1">Weekly raid · {raid.week}</div>
-          <h1 className="font-display text-3xl font-bold" style={{ color: boss.color }}>
-            {boss.name}
-          </h1>
-          <p className="mt-0.5 text-sm text-[rgb(var(--sys-dim))]">{boss.title}</p>
-          <p className="mt-3 max-w-lg text-sm italic leading-relaxed text-[rgb(var(--sys-dim))]">
-            &ldquo;{boss.flavor}&rdquo;
-          </p>
+
+          {/* The gate's occupant, and its condition: fractures spread across
+              the body as the week's damage lands. */}
+          <div className="flex items-center gap-3">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              className="shrink-0"
+            >
+              <BossFigure
+                boss={boss}
+                damage={raid.damage}
+                hp={raid.hp}
+                defeated={remaining <= 0}
+                className="h-[138px] w-[138px]"
+              />
+            </motion.div>
+            <div className="min-w-0 flex-1">
+              <h1 className="font-display text-2xl font-bold leading-tight" style={{ color: boss.color }}>
+                {boss.name}
+              </h1>
+              <p className="mt-0.5 text-sm text-[rgb(var(--sys-dim))]">{boss.title}</p>
+              <p className="mt-2 text-xs italic leading-relaxed text-[rgb(var(--sys-dim))]">
+                &ldquo;{boss.flavor}&rdquo;
+              </p>
+            </div>
+          </div>
 
           <div className="mt-5">
             <div className="mb-2 flex items-baseline justify-between">
@@ -162,34 +184,47 @@ export default function RaidPage() {
           One boss per ISO week, selected deterministically — every hunter on Earth faces the same
           monster in the same week.
         </p>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {/* A bestiary of names told you nothing. Each gate now shows what is
+            waiting behind it. */}
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {BOSSES.map((entry) => {
             const current = entry.id === boss.id;
-            const felled = (profile.totals.bossKills > 0 && current && raid.defeated) || false;
+            const felled = current && raid.defeated;
             return (
               <div
                 key={entry.id}
- className="rounded-xl border p-3"
+                className="relative overflow-hidden border p-0"
                 style={{
-                  borderColor: current ? `${entry.color}66` : 'rgba(255,255,255,0.06)',
-                  backgroundColor: current ? `${entry.color}10` : 'rgba(4,6,13,0.5)',
+                  borderColor: current ? `${entry.color}88` : `${entry.color}22`,
+                  backgroundColor: current ? `${entry.color}12` : 'rgba(4,6,13,0.5)',
+                  clipPath: 'polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)',
                 }}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold" style={{ color: entry.color }}>
-                      {entry.name}
-                    </div>
-                    <div className="truncate text-[11px] text-[rgb(var(--sys-dim))]">{entry.title}</div>
+                <BossFigure
+                  boss={entry}
+                  damage={current ? raid.damage : 0}
+                  hp={current ? raid.hp : 1}
+                  defeated={felled}
+                  className="h-[104px] w-full"
+                />
+                {current && (
+                  <span
+                    className="absolute right-1.5 top-1.5 px-1.5 py-px font-mono text-[8px] uppercase tracking-widest"
+                    style={{ border: `1px solid ${entry.color}`, color: entry.color }}
+                  >
+                    {felled ? 'Felled' : 'Active'}
+                  </span>
+                )}
+                <div className="border-t px-2 py-1.5" style={{ borderColor: `${entry.color}22` }}>
+                  <div className="truncate text-[12px] font-semibold leading-tight" style={{ color: entry.color }}>
+                    {entry.name}
                   </div>
-                  {current && (
-                    <span className="shrink-0  border border-[rgb(var(--sys)/0.25)] px-1.5 py-px font-mono text-[9px] uppercase text-[rgb(var(--sys-ink))]">
-                      {felled ? 'Felled' : 'Active'}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 font-mono text-[10px] text-[rgb(var(--sys-dim))]">
-                  Weak to {entry.weaknessLabel} · {Math.round(entry.baseHp * (1 + (xp.level - 1) * 0.028)).toLocaleString()} HP
+                  <div className="truncate font-mono text-[9px] text-[rgb(var(--sys-dim))]">
+                    {Math.round(entry.baseHp * (1 + (xp.level - 1) * 0.028)).toLocaleString()} HP
+                  </div>
+                  <div className="truncate font-mono text-[9px] text-[rgb(var(--sys-dim))]">
+                    Weak: {entry.weaknessLabel}
+                  </div>
                 </div>
               </div>
             );

@@ -10,6 +10,7 @@ import { SystemWindow, SystemPanel } from '../components/system/SystemWindow';
 import { SystemButton } from '../components/system/SystemButton';
 import { SystemMeter } from '../components/system/SystemMeter';
 import { HunterPortrait } from '../components/avatar/HunterPortrait';
+import { BossFigure } from '../components/raid/BossFigure';
 import { QuestCard } from '../components/quests/QuestCard';
 import { fromKg } from '../engine/constants';
 import { formatDuration, relativeTime } from '../lib/date';
@@ -160,8 +161,14 @@ export default function Dashboard() {
       {/* ---------------- RAID ---------------- */}
       <Link to="/raid" className="block">
         <SystemWindow title="Weekly Gate" subtitle={raid?.week} delay={0.14} style={{ '--sys': hexToRgb(boss.color) }}>
-          <div className="mb-3 flex items-center gap-3">
-            <Skull size={26} style={{ color: boss.color }} className="shrink-0" />
+          <div className="mb-2 flex items-center gap-2">
+            <BossFigure
+              boss={boss}
+              damage={raid.damage}
+              hp={raid.hp}
+              defeated={raid.damage >= raid.hp}
+              className="-my-2 h-[76px] w-[76px] shrink-0"
+            />
             <div className="min-w-0 flex-1">
               <div className="sys-value truncate text-base leading-tight">{boss.name}</div>
               <div className="sys-label truncate normal-case tracking-normal">{boss.title}</div>
