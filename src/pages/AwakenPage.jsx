@@ -11,11 +11,12 @@ import { AssessmentResult } from '../components/onboarding/AssessmentResult';
 import { EMPTY_ANSWERS, loadAnswers, saveAnswers } from '../lib/onboarding';
 import {
   EXPERIENCE_LEVELS, GOALS, WEAKNESSES,
-  SPLIT_OPTIONS, FOCUS_AREAS, LIMITATIONS, GENDERS, assess,
+  SPLIT_OPTIONS, LIMITATIONS, GENDERS, assess,
 } from '../engine/assessment';
 import { inferBodyType } from '../engine/physique';
 import { GearPicker } from '../components/onboarding/GearPicker';
 import { BodyTypePicker } from '../components/onboarding/BodyTypePicker';
+import { BodyFocusPicker } from '../components/onboarding/BodyFocusPicker';
 import { HunterAvatar } from '../components/avatar/HunterAvatar';
 import { play } from '../lib/sound';
 
@@ -147,11 +148,11 @@ const STEPS = [
   {
     id: 'focus',
     title: 'Priority Targets',
-    prompt: 'Which areas do you most want to develop?',
+    prompt: 'Tap the areas you most want to develop.',
     valid: () => true,
     optional: true,
     render: (a, set) => (
-      <OptionList options={FOCUS_AREAS} value={a.focus} onChange={(v) => set({ focus: v })} multi columns={2} />
+      <BodyFocusPicker value={a.focus} onChange={(v) => set({ focus: v })} />
     ),
   },
   {

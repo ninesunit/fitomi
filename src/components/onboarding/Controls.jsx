@@ -1,6 +1,9 @@
-import { Check } from 'lucide-react';
+import { Check, Dumbbell, Flame, Heart, TrendingUp, Wind, Zap } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
 import { play } from '../../lib/sound';
+
+/** Options may name an icon; anything unlisted simply renders without one. */
+const ICONS = { Dumbbell, Flame, Heart, TrendingUp, Wind, Zap };
 
 // ---------------------------------------------------------------------------
 // Questionnaire controls, built for a thumb: every target is at least 48px,
@@ -24,6 +27,7 @@ export function OptionList({ options, value, onChange, multi = false, columns = 
     <div className={clsx('grid gap-2', columns === 2 && 'grid-cols-2')}>
       {options.map((option) => {
         const on = multi ? selected.has(option.id) : value === option.id;
+        const Icon = ICONS[option.icon];
         return (
           <button
             key={option.id}
@@ -40,6 +44,12 @@ export function OptionList({ options, value, onChange, multi = false, columns = 
             >
               {on && <Check size={13} strokeWidth={3} className="sys-accent" />}
             </span>
+            {Icon && (
+              <Icon
+                size={19}
+                className={clsx('shrink-0', on ? 'sys-accent' : 'text-[rgb(var(--sys-dim))]')}
+              />
+            )}
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-semibold leading-tight text-[rgb(var(--sys-ink))]">
                 {option.label}

@@ -37,12 +37,12 @@ export const EXPERIENCE_LEVELS = [
 ];
 
 export const GOALS = [
-  { id: 'strength', label: 'Raw Strength', detail: 'Move the heaviest weight possible.', stats: { str: 3.2, vit: 1.4 } },
-  { id: 'hypertrophy', label: 'Muscle Size', detail: 'Build visible mass.', stats: { str: 2.2, vit: 2.0, per: 1.2 } },
-  { id: 'fatloss', label: 'Fat Loss', detail: 'Reduce bodyfat, keep muscle.', stats: { agi: 2.6, vit: 1.8, int: 1.0 } },
-  { id: 'endurance', label: 'Conditioning', detail: 'Lungs, work capacity, stamina.', stats: { agi: 3.0, vit: 2.2 } },
-  { id: 'athletic', label: 'Athleticism', detail: 'Speed, power, coordination.', stats: { agi: 2.8, str: 1.8, per: 1.4 } },
-  { id: 'general', label: 'General Health', detail: 'Feel better, move well, stay consistent.', stats: { vit: 2.2, int: 1.6, agi: 1.2 } },
+  { id: 'strength', label: 'Raw Strength', detail: 'Move the heaviest weight possible.', icon: 'Dumbbell', stats: { str: 3.2, vit: 1.4 } },
+  { id: 'hypertrophy', label: 'Muscle Size', detail: 'Build visible mass.', icon: 'TrendingUp', stats: { str: 2.2, vit: 2.0, per: 1.2 } },
+  { id: 'fatloss', label: 'Fat Loss', detail: 'Reduce bodyfat, keep muscle.', icon: 'Flame', stats: { agi: 2.6, vit: 1.8, int: 1.0 } },
+  { id: 'endurance', label: 'Conditioning', detail: 'Lungs, work capacity, stamina.', icon: 'Wind', stats: { agi: 3.0, vit: 2.2 } },
+  { id: 'athletic', label: 'Athleticism', detail: 'Speed, power, coordination.', icon: 'Zap', stats: { agi: 2.8, str: 1.8, per: 1.4 } },
+  { id: 'general', label: 'General Health', detail: 'Feel better, move well, stay consistent.', icon: 'Heart', stats: { vit: 2.2, int: 1.6, agi: 1.2 } },
 ];
 
 /**
