@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Check, Trash2 } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
 import { RPE_DESCRIPTIONS, estimate1RM } from '../../engine/oneRepMax';
@@ -32,17 +33,44 @@ export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange
       ? estimate1RM(toKg(Number(set.weight), unit), Number(set.reps), set.rpe)
       : 0;
 
+  // A tick is the single most repeated action in the app — a hundred times a
+  // week. It should feel like something landed, not like a checkbox changed
+  // colour, so completing a set sweeps a pulse of light across the row.
+  const [flash, setFlash] = useState(false);
+  const wasCompleted = useRef(set.completed);
+  useEffect(() => {
+    const was = wasCompleted.current;
+    wasCompleted.current = set.completed;
+    if (!set.completed || was) return undefined;
+    setFlash(true);
+    const timer = setTimeout(() => setFlash(false), 520);
+    return () => clearTimeout(timer);
+  }, [set.completed]);
+
   const cycleType = () =>
     onChange({ type: TYPE_CYCLE[(TYPE_CYCLE.indexOf(set.type) + 1) % TYPE_CYCLE.length] });
 
   return (
     <div
-      className="px-2 py-2 transition-colors"
+      className="relative overflow-hidden px-2 py-2 transition-colors"
       style={{
         border: set.completed ? '1px solid rgb(var(--sys-good)/0.4)' : '1px solid rgb(var(--sys)/0.16)',
         background: set.completed ? 'rgb(var(--sys-good)/0.09)' : 'rgb(var(--sys-deep-2)/0.45)',
       }}
     >
+      {flash && (
+        <motion.span
+          className="pointer-events-none absolute inset-y-0 w-full"
+          initial={{ x: '-100%' }}
+          animate={{ x: '100%' }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            background:
+              'linear-gradient(90deg, transparent, rgb(var(--sys-good) / 0.45), transparent)',
+          }}
+        />
+      )}
+
       <div className="flex items-center gap-1.5">
         <button
           onClick={cycleType}
