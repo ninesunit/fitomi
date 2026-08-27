@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Check, Dumbbell, Flame, Info, Moon, Swords, Waves, Wind, Zap } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
 import { formatSpokenDuration } from '../../lib/date';
+import { play } from '../../lib/sound';
 
 const ICONS = { Waves, Zap, Moon, Wind, Dumbbell, Flame };
 
@@ -34,7 +35,10 @@ export function QuestCard({ quest, completed, onComplete, onUndo, compact = fals
     >
       <div className="flex items-start gap-3">
         <button
-          onClick={() => (completed ? onUndo?.(quest) : onComplete?.(quest))}
+          onClick={() => {
+            play(completed ? 'tap' : 'questComplete');
+            return completed ? onUndo?.(quest) : onComplete?.(quest);
+          }}
           aria-label={completed ? 'Mark incomplete' : 'Mark complete'}
           className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center transition-all active:scale-90"
           style={{

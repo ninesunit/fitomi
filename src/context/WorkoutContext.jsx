@@ -5,6 +5,7 @@ import { getExercise } from '../data/exercises';
 import { estimate1RM } from '../engine/oneRepMax';
 import { setVolumeKg } from '../engine/leveling';
 import { summarizeExercise } from '../engine/records';
+import { play } from '../lib/sound';
 
 export const WorkoutContext = createContext(null);
 
@@ -115,7 +116,7 @@ export function WorkoutProvider({ children }) {
     if (profile?.settings?.vibrationEnabled && navigator.vibrate) {
       navigator.vibrate([120, 60, 120]);
     }
-    if (profile?.settings?.soundEnabled) playChime();
+    if (profile?.settings?.soundEnabled) play('restDone');
   }, [profile]);
 
   // --- session lifecycle ---------------------------------------------------
@@ -406,35 +407,6 @@ function lastPerformance(profile, exerciseId) {
     lastPerformed: record.lastPerformed,
     sets: record.lastSets || null,
   };
-}
-
-/**
- * A short two-tone chime via the Web Audio API.
- * Synthesised rather than shipped as an audio file — a 30 KB mp3 downloaded by
- * every visitor is real money against a 360 MB/day bandwidth budget.
- */
-let audioContext = null;
-function playChime() {
-  try {
-    audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-    if (audioContext.state === 'suspended') audioContext.resume();
-
-    const now = audioContext.currentTime;
-    [880, 1174.66].forEach((frequency, i) => {
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = frequency;
-      gain.gain.setValueAtTime(0, now + i * 0.16);
-      gain.gain.linearRampToValueAtTime(0.22, now + i * 0.16 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.16 + 0.35);
-      osc.connect(gain).connect(audioContext.destination);
-      osc.start(now + i * 0.16);
-      osc.stop(now + i * 0.16 + 0.4);
-    });
-  } catch {
-    /* audio is a nicety, never a failure mode */
-  }
 }
 
 export { estimate1RM, summarizeExercise };

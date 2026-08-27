@@ -10,9 +10,11 @@ import { Progress } from '../components/onboarding/Progress';
 import { AssessmentResult } from '../components/onboarding/AssessmentResult';
 import { EMPTY_ANSWERS, loadAnswers, saveAnswers } from '../lib/onboarding';
 import {
-  EXPERIENCE_LEVELS, GOALS, WEAKNESSES, EQUIPMENT_OPTIONS,
+  EXPERIENCE_LEVELS, GOALS, WEAKNESSES,
   SPLIT_OPTIONS, FOCUS_AREAS, LIMITATIONS, GENDERS, assess,
 } from '../engine/assessment';
+import { GearPicker } from '../components/onboarding/GearPicker';
+import { play } from '../lib/sound';
 
 // ---------------------------------------------------------------------------
 // THE AWAKENING
@@ -178,11 +180,10 @@ const STEPS = [
   {
     id: 'equipment',
     title: 'Available Arsenal',
-    prompt: 'Only movements you can actually perform will be prescribed.',
-    valid: (a) => (a.equipment || []).length > 0,
-    render: (a, set) => (
-      <OptionList options={EQUIPMENT_OPTIONS} value={a.equipment} onChange={(v) => set({ equipment: v })} multi />
-    ),
+    prompt: 'Pick a preset, then tick exactly what you have. Only movements you can actually perform will be prescribed.',
+    // Owning nothing is a legitimate answer — it yields a bodyweight programme.
+    valid: () => true,
+    render: (a, set) => <GearPicker value={a.gear} onChange={(v) => set({ gear: v })} />,
   },
   {
     id: 'limitations',
@@ -433,9 +434,11 @@ function Analysing({ onDone, name }) {
 
   useEffect(() => {
     if (shown >= lines.length) {
+      play('reveal');
       const id = setTimeout(onDone, 600);
       return () => clearTimeout(id);
     }
+    play('tap');
     const id = setTimeout(() => setShown((s) => s + 1), 380);
     return () => clearTimeout(id);
   }, [shown, lines.length, onDone]);

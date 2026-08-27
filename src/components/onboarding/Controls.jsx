@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
+import { play } from '../../lib/sound';
 
 // ---------------------------------------------------------------------------
 // Questionnaire controls, built for a thumb: every target is at least 48px,
@@ -11,6 +12,7 @@ export function OptionList({ options, value, onChange, multi = false, columns = 
   const selected = multi ? new Set(value || []) : null;
 
   const toggle = (id) => {
+    play('select');
     if (!multi) return onChange(id);
     const next = new Set(selected);
     if (next.has(id)) next.delete(id);
@@ -62,7 +64,7 @@ export function Stepper({ value, onChange, min = 1, max = 7, suffix, label }) {
     <div className="sys-panel flex items-center justify-between gap-3 p-3">
       <button
         type="button"
-        onClick={() => onChange(Math.max(min, n - 1))}
+        onClick={() => { play('tap'); onChange(Math.max(min, n - 1)); }}
         className="sys-btn h-12 w-12 !min-h-0 !p-0 text-xl"
         aria-label={`Decrease ${label}`}
       >
@@ -74,7 +76,7 @@ export function Stepper({ value, onChange, min = 1, max = 7, suffix, label }) {
       </div>
       <button
         type="button"
-        onClick={() => onChange(Math.min(max, n + 1))}
+        onClick={() => { play('tap'); onChange(Math.min(max, n + 1)); }}
         className="sys-btn h-12 w-12 !min-h-0 !p-0 text-xl"
         aria-label={`Increase ${label}`}
       >

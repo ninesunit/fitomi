@@ -6,6 +6,7 @@ import { STATS } from '../engine/constants';
 import { SystemButton } from './system/SystemButton';
 import { SystemType } from './system/SystemAlert';
 import { PR_TYPES } from '../engine/records';
+import { play } from '../lib/sound';
 
 // ---------------------------------------------------------------------------
 // The System's progression notifications.
@@ -16,12 +17,12 @@ import { PR_TYPES } from '../engine/records';
 // ---------------------------------------------------------------------------
 
 const CONFIG = {
-  levelUp: { title: 'Level Up', icon: ArrowUp, tone: 'default' },
-  pr: { title: 'New Record', icon: Trophy, tone: 'gold' },
-  shadowExtracted: { title: 'Shadow Extracted', icon: Crown, tone: 'shadow' },
-  bossDefeated: { title: 'Gate Cleared', icon: Skull, tone: 'danger' },
-  raidDamage: { title: 'Damage Dealt', icon: Swords, tone: 'danger' },
-  streak: { title: 'Streak Extended', icon: Flame, tone: 'gold' },
+  levelUp: { title: 'Level Up', icon: ArrowUp, tone: 'default', cue: 'levelUp' },
+  pr: { title: 'New Record', icon: Trophy, tone: 'gold', cue: 'record' },
+  shadowExtracted: { title: 'Shadow Extracted', icon: Crown, tone: 'shadow', cue: 'shadow' },
+  bossDefeated: { title: 'Gate Cleared', icon: Skull, tone: 'danger', cue: 'defeat' },
+  raidDamage: { title: 'Damage Dealt', icon: Swords, tone: 'danger', cue: 'damage' },
+  streak: { title: 'Streak Extended', icon: Flame, tone: 'gold', cue: 'questComplete' },
 };
 
 const TONE_VAR = {
@@ -35,6 +36,11 @@ const TONE_VAR = {
 export function SystemModal() {
   const { current, dismiss } = useSystem();
   const config = current ? CONFIG[current.type] : null;
+
+  // Each event announces itself as its window opens.
+  useEffect(() => {
+    if (config?.cue) play(config.cue);
+  }, [current?.key, config?.cue]);
 
   // Enter/Space/Escape all dismiss, so a burst of six can be cleared fast.
   useEffect(() => {

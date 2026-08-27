@@ -3,6 +3,7 @@ import { Check, Trash2 } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
 import { RPE_DESCRIPTIONS, estimate1RM } from '../../engine/oneRepMax';
 import { fromKg, toKg } from '../../engine/constants';
+import { play } from '../../lib/sound';
 
 const SET_TYPES = {
   warmup: { label: 'W', color: 'rgb(var(--sys-gold))', title: 'Warm-up set (quarter XP)' },
@@ -83,7 +84,7 @@ export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange
         )}
 
         <button
-          onClick={onComplete}
+          onClick={() => { play(set.completed ? 'tap' : 'setComplete'); onComplete(); }}
           aria-label={set.completed ? 'Mark set incomplete' : 'Complete set'}
           className="flex h-11 w-11 shrink-0 items-center justify-center transition-all active:scale-90"
           style={{

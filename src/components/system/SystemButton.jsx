@@ -1,4 +1,5 @@
 import { clsx } from '../../lib/clsx';
+import { play } from '../../lib/sound';
 
 const VARIANTS = {
   primary: 'sys-btn-primary',
@@ -16,6 +17,8 @@ export function SystemButton({
   className,
   as: Component = 'button',
   size = 'md',
+  cue = 'tap',
+  onClick,
   ...rest
 }) {
   const sizing = size === 'sm' ? '!px-3 !py-1.5 !text-xs !min-h-[36px]' : size === 'lg' ? '!px-6 !py-4 !text-base' : '';
@@ -23,6 +26,10 @@ export function SystemButton({
     <Component
       className={clsx('sys-btn', VARIANTS[variant], sizing, className)}
       disabled={loading || rest.disabled}
+      onClick={(e) => {
+        if (cue) play(variant === 'primary' ? 'confirm' : cue);
+        onClick?.(e);
+      }}
       {...rest}
     >
       {loading ? (

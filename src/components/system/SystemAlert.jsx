@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { clsx } from '../../lib/clsx';
+import { play } from '../../lib/sound';
 import { SystemButton } from './SystemButton';
 
 /**
@@ -58,6 +59,7 @@ export function SystemAlert({
 }) {
   useEffect(() => {
     if (!open) return undefined;
+    play(tone === 'danger' ? 'error' : 'notify');
     const onKey = (e) => {
       if (e.key === 'Escape' && dismissible) onClose?.();
       if (e.key === 'Enter' && onConfirm) onConfirm();
@@ -69,7 +71,7 @@ export function SystemAlert({
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [open, onClose, onConfirm, dismissible]);
+  }, [open, onClose, onConfirm, dismissible, tone]);
 
   const toneVar =
     tone === 'danger'

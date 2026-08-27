@@ -24,6 +24,7 @@ export const EMPTY_ANSWERS = {
   duration: 60,
   split: 'auto',
   equipment: [],
+  gear: [],
   limitations: [],
   completedAt: null,
 };
@@ -117,6 +118,7 @@ export function seedProfileFromAssessment(profile, answers, assessment) {
       completedAt: answers.completedAt || Date.now(),
       weaknesses: answers.weaknesses || [],
       focus: answers.focus || [],
+      gear: answers.gear || [],
       equipment: answers.equipment || [],
       limitations: answers.limitations || [],
       daysPerWeek: Number(answers.days) || 4,

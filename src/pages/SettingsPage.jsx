@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, Bell, Database, LogOut, Settings as SettingsIcon, Shield, Timer } from 'lucide-react';
+import { AlertTriangle, Bell, Database, LogOut, Settings as SettingsIcon, Shield, Timer, Volume2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { useSystem } from '../context/SystemContext';
@@ -8,6 +8,8 @@ import { Button } from '../components/ui/Button';
 import { Toggle, Segmented } from '../components/ui/Field';
 import { Sheet } from '../components/ui/Sheet';
 import { fromKg, toKg } from '../engine/constants';
+import { getSoundSettings, setSoundSettings, play } from '../lib/sound';
+import { useState as useLocalState } from 'react';
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
@@ -115,6 +117,9 @@ export default function SettingsPage() {
         </div>
       </MotionPanel>
 
+      {/* ---- sound ---- */}
+      <SoundSettings />
+
       {/* ---- streak ---- */}
       <MotionPanel delay={0.15} className="p-5">
         <PanelHeader label="Streak" title="Rest-day allowance" icon={Bell} />
@@ -179,6 +184,62 @@ export default function SettingsPage() {
         </Button>
       </MotionPanel>
     </div>
+  );
+}
+
+/**
+ * The System's cues are synthesised at runtime, so this controls a live
+ * AudioContext rather than a set of files — every change is audible at once.
+ */
+function SoundSettings() {
+  const [sound, setSound] = useLocalState(getSoundSettings);
+
+  const update = (patch) => {
+    const next = { ...sound, ...patch };
+    setSoundSettings(next);
+    setSound(next);
+    if (next.enabled) play('select');
+  };
+
+  return (
+    <MotionPanel delay={0.12} className="p-5">
+      <PanelHeader label="Audio" title="System cues" icon={Volume2} />
+      <div className="mt-3">
+        <Toggle
+          checked={sound.enabled}
+          onChange={(v) => update({ enabled: v })}
+          label="System sound effects"
+          hint="Level-ups, records, quest clears and the rest timer. Synthesised in the browser — nothing is downloaded."
+        />
+      </div>
+
+      {sound.enabled && (
+        <div className="mt-4">
+          <div className="mb-2 flex items-baseline justify-between">
+            <span className="hud-label">Volume</span>
+            <span className="hud-label tnum">{Math.round(sound.volume * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={sound.volume}
+            onChange={(e) => update({ volume: Number(e.target.value) })}
+            className="w-full accent-[rgb(var(--sys))]"
+            aria-label="Sound volume"
+          />
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {['levelUp', 'record', 'shadow', 'defeat', 'questComplete', 'restDone'].map((cue) => (
+              <button key={cue} onClick={() => play(cue)} className="stat-chip">
+                {cue.replace(/([A-Z])/g, ' $1').toLowerCase()}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-[rgb(var(--sys-dim))]">Tap a cue to preview it.</p>
+        </div>
+      )}
+    </MotionPanel>
   );
 }
 

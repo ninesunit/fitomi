@@ -1,5 +1,6 @@
 import { STAT_IDS, EMPTY_STATS, toKg } from './constants';
 import { EXERCISES, getExercise } from '../data/exercises';
+import { canPerform, gearFor, presetGear } from '../data/gear';
 import { seededRandom } from '../lib/date';
 
 // ---------------------------------------------------------------------------
@@ -62,15 +63,19 @@ export const WEAKNESSES = [
   { id: 'recovery', label: 'Recovery & sleep', stat: 'vit', muscles: [] },
 ];
 
-export const EQUIPMENT_OPTIONS = [
-  { id: 'fullgym', label: 'Full commercial gym', covers: ['barbell', 'dumbbell', 'machine', 'cable', 'smith', 'bodyweight', 'kettlebell', 'band', 'plate', 'ez', 'cardio', 'other'] },
-  { id: 'homegym', label: 'Home gym (barbell + rack)', covers: ['barbell', 'dumbbell', 'bodyweight', 'plate', 'ez', 'band'] },
-  { id: 'dumbbells', label: 'Dumbbells only', covers: ['dumbbell', 'bodyweight', 'band'] },
-  { id: 'kettlebell', label: 'Kettlebells', covers: ['kettlebell', 'bodyweight', 'band'] },
-  { id: 'bands', label: 'Resistance bands', covers: ['band', 'bodyweight'] },
-  { id: 'bodyweight', label: 'Bodyweight only', covers: ['bodyweight'] },
-  { id: 'cardio', label: 'Cardio machines', covers: ['cardio', 'bodyweight'] },
-];
+/**
+ * Resolve the hunter's owned gear.
+ *
+ * `gear` is the current shape — an explicit list of apparatus. `equipment` is
+ * the older coarse preset list, kept so an account created before the change
+ * still resolves to something sensible instead of to nothing.
+ */
+export function ownedGear(answers = {}) {
+  if (answers.gear?.length) return new Set(answers.gear);
+  const legacy = new Set();
+  for (const id of answers.equipment || []) for (const g of presetGear(id)) legacy.add(g);
+  return legacy;
+}
 
 export const SPLIT_OPTIONS = [
   { id: 'auto', label: 'Let the System decide', detail: 'Chosen from your days and goal.' },
@@ -189,15 +194,10 @@ export function startingStats(answers) {
 
 // --- programme generation --------------------------------------------------
 
-/** Which library equipment ids the hunter can actually train with. */
-export function availableEquipment(equipmentIds = []) {
-  const set = new Set();
-  for (const id of equipmentIds) {
-    const option = EQUIPMENT_OPTIONS.find((e) => e.id === id);
-    for (const eq of option?.covers || []) set.add(eq);
-  }
-  if (!set.size) set.add('bodyweight');
-  return set;
+/** Every exercise the hunter's gear actually permits. */
+export function availableExercises(answers) {
+  const owned = ownedGear(answers);
+  return EXERCISES.filter((e) => canPerform(e, owned));
 }
 
 /**
@@ -326,7 +326,7 @@ export function chooseSplit(preference, days) {
  * anything their injuries or experience rules out removed.
  */
 export function buildProgram(answers, seed = 'awaken') {
-  const equipment = availableEquipment(answers.equipment);
+  const owned = ownedGear(answers);
   const split = chooseSplit(answers.split, answers.days);
   const focus = new Set(answers.focus || []);
   const rng = seededRandom(`${seed}:${split.id}:${split.days}`);
@@ -351,7 +351,7 @@ export function buildProgram(answers, seed = 'awaken') {
 
   const usable = EXERCISES.filter(
     (e) =>
-      equipment.has(e.equipment) &&
+      canPerform(e, owned) &&
       allowedDifficulty.has(e.difficulty) &&
       !e.primary.some((m) => avoidMuscles.has(m)) &&
       !avoidPatterns.has(e.pattern),
@@ -431,7 +431,7 @@ export function buildProgram(answers, seed = 'awaken') {
     };
   });
 
-  return { ...split, days, equipmentCount: equipment.size };
+  return { ...split, days, gearCount: owned.size, availableCount: usable.length };
 }
 
 // --- the full assessment ---------------------------------------------------
@@ -525,8 +525,8 @@ function buildFindings({ answers, body, goal, experience, named, program }) {
 
   out.push({
     label: 'Equipment matched',
-    value: `${program.equipmentCount} categories`,
-    note: 'Every prescribed movement is one you can actually perform with what you have.',
+    value: `${program.gearCount} items`,
+    note: `${program.availableCount} of the library's movements are performable with what you have — every prescribed lift is one of them.`,
   });
 
   return out;
