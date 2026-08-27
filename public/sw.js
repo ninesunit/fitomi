@@ -12,24 +12,42 @@
  * Firebase traffic is never intercepted — the SDK has its own offline layer
  * and caching auth or Firestore responses here would actively break it.
  */
-const VERSION = 'fitomi-v1';
+// Replaced at build time with the build's own id. This is what makes updates
+// work at all: a service worker is only reinstalled when its BYTES change, and
+// a hardcoded version ships a byte-identical file on every deploy — so the new
+// worker never installs and the installed app is frozen forever.
+const VERSION = '__BUILD_ID__';
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 const PRECACHE = ['/', '/index.html', '/manifest.webmanifest', '/icon-192.png', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(SHELL).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()),
-  );
+  // Deliberately no skipWaiting() here. Activating immediately would swap the
+  // asset set underneath a hunter mid-set. The new worker waits, the app offers
+  // the update, and the swap happens on their word.
+  event.waitUntil(caches.open(SHELL).then((cache) => cache.addAll(PRECACHE)));
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((k) => !k.startsWith(VERSION)).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim()),
+    (async () => {
+      // Purge every cache from a previous build.
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => !k.startsWith(VERSION)).map((k) => caches.delete(k)));
+
+      // Navigation preload shaves the worker's startup off the first request.
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable().catch(() => {});
+      }
+
+      await self.clients.claim();
+    })(),
   );
+});
+
+// The page asks the waiting worker to take over when the user accepts an update.
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('fetch', (event) => {

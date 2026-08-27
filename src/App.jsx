@@ -8,6 +8,7 @@ import { AppShell } from './components/AppShell';
 import { SystemModal } from './components/SystemModal';
 import { Toasts } from './components/ui/Toasts';
 import { InstallPrompt } from './components/InstallPrompt';
+import { UpdatePrompt } from './components/UpdatePrompt';
 import { BootScreen } from './components/BootScreen';
 import { SetupRequired } from './components/SetupRequired';
 import AuthPage from './pages/AuthPage';
@@ -27,6 +28,7 @@ const ToolsPage = lazy(() => import('./pages/ToolsPage'));
 const HistoryPage = lazy(() => import('./pages/HistoryPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const NotomiPage = lazy(() => import('./pages/NotomiPage'));
+const RoutinesPage = lazy(() => import('./pages/RoutinesPage'));
 
 /** Applies the active shadow's theme by rewriting the root CSS variables. */
 function ThemeBridge({ children }) {
@@ -87,6 +89,7 @@ function Protected() {
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/notomi" element={<NotomiPage />} />
+              <Route path="/routines" element={<RoutinesPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
@@ -137,6 +140,7 @@ export default function App() {
           <Gate />
           <Toasts />
           <InstallPrompt />
+          <UpdatePrompt />
         </GameProvider>
       </SystemProvider>
     </AuthProvider>

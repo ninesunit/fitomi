@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Calculator, CheckCircle2, Dumbbell, Info, Play, Plus, Timer, Trash2, X } from 'lucide-react';
+import { Calculator, CheckCircle2, ClipboardList, Info, Play, Plus, Timer, Trash2, X } from 'lucide-react';
 import { useWorkout } from '../context/WorkoutContext';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
@@ -75,7 +75,7 @@ export default function WorkoutPage() {
           </SystemWindow>
 
           {routines.length > 0 && (
-            <SystemWindow title="Assigned Programme" subtitle={`${routines.length} sessions`} delay={0.06}>
+            <SystemWindow title="Your Routines" subtitle={`${routines.length} saved`} delay={0.06}>
               <div className="space-y-2">
                 {routines.map((routine) => (
                   <SystemPanel key={routine.id} className="p-3">
@@ -127,6 +127,26 @@ export default function WorkoutPage() {
                   </SystemPanel>
                 ))}
               </div>
+
+              <SystemButton
+                as={Link}
+                to="/routines"
+                icon={ClipboardList}
+                className="mt-3 w-full"
+              >
+                Manage Routines
+              </SystemButton>
+            </SystemWindow>
+          )}
+
+          {!routines.length && (
+            <SystemWindow delay={0.06}>
+              <p className="text-center text-sm leading-relaxed text-[rgb(var(--sys-dim))]">
+                No routines saved. Build one once and start it with a single tap.
+              </p>
+              <SystemButton as={Link} to="/routines" icon={ClipboardList} className="mt-3 w-full">
+                Build a Routine
+              </SystemButton>
             </SystemWindow>
           )}
         </div>

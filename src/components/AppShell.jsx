@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Activity, BookOpen, Calculator, CloudOff, Dumbbell, Flame, History,
+  Activity, BookOpen, Calculator, ClipboardList, CloudOff, Dumbbell, Flame, History,
   LayoutGrid, ListChecks, LogOut, Settings, Skull, Timer, User, X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,7 @@ const TABS = [
 ];
 
 const MORE = [
+  { to: '/routines', label: 'Routines', icon: ClipboardList },
   { to: '/profile', label: 'Hunter Profile', icon: User },
   { to: '/history', label: 'Training Log', icon: History },
   { to: '/tools', label: 'Utilities', icon: Calculator },

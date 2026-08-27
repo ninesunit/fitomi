@@ -1,12 +1,37 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+/**
+ * Stamps the built service worker with this build's id.
+ *
+ * Without it every deploy emits a byte-identical sw.js, the browser sees no
+ * change, never installs the new worker, and an installed home-screen app is
+ * pinned to whatever it first cached.
+ */
+function stampServiceWorker() {
+  return {
+    name: 'stamp-service-worker',
+    closeBundle() {
+      const file = resolve('dist/sw.js');
+      try {
+        const id = `fitomi-${Date.now().toString(36)}`;
+        writeFileSync(file, readFileSync(file, 'utf8').replaceAll('__BUILD_ID__', id));
+        this.info?.(`service worker stamped ${id}`);
+      } catch {
+        /* no worker in this build */
+      }
+    },
+  };
+}
 
 // Bandwidth is the scarce resource on the Firebase Spark plan (360 MB/day of
 // hosting transfer), so the build is tuned to ship as few bytes as possible:
 // aggressive minification, no sourcemaps in prod, and manual chunks so that a
 // return visitor only re-downloads the chunk that actually changed.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), stampServiceWorker()],
   build: {
     target: 'es2020',
     sourcemap: false,
