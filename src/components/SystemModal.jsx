@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUp, Crown, Flame, Skull, Swords, Trophy, Zap } from 'lucide-react';
 import { useSystem } from '../context/SystemContext';
+import { useGame } from '../context/GameContext';
+import { HunterAvatar } from './avatar/HunterAvatar';
 import { STATS } from '../engine/constants';
 import { SystemButton } from './system/SystemButton';
 import { SystemType } from './system/SystemAlert';
@@ -125,6 +127,8 @@ export function SystemModal() {
 }
 
 function LevelUp({ event }) {
+  const { profile } = useGame();
+
   return (
     <div className="text-center">
       <motion.div
@@ -139,19 +143,39 @@ function LevelUp({ event }) {
         {event.points} attribute points allocated.
       </p>
 
+      {/* A rank up is the largest moment the app has. Show the hunter taking
+          on the new rank's colour rather than naming it in a box. */}
       {event.rankUp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="mb-4 p-3"
+          className="mb-4 flex items-center gap-3 p-3"
           style={{ border: `1px solid ${event.rank.color}66`, background: `${event.rank.color}12` }}
         >
-          <div className="sys-label mb-1">Rank up</div>
-          <div className="sys-value text-lg" style={{ color: event.rank.color, textShadow: `0 0 14px ${event.rank.glow}` }}>
-            {event.rank.name}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <HunterAvatar
+              className="h-[104px] w-[62px]"
+              stats={profile?.stats}
+              bodyType={profile?.bodyType}
+              sex={profile?.gender}
+              color={event.rank.color}
+            />
+          </motion.div>
+          <div className="min-w-0 flex-1 text-left">
+            <div className="sys-label mb-1">Rank up</div>
+            <div
+              className="sys-value text-lg leading-tight"
+              style={{ color: event.rank.color, textShadow: `0 0 14px ${event.rank.glow}` }}
+            >
+              {event.rank.name}
+            </div>
+            <div className="sys-label mt-0.5 normal-case tracking-normal">{event.rank.title}</div>
           </div>
-          <div className="sys-label mt-0.5 normal-case tracking-normal">{event.rank.title}</div>
         </motion.div>
       )}
 

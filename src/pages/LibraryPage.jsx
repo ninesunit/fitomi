@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, ChevronRight, Lightbulb, Search, SlidersHorizontal, X } from 'lucide-react';
@@ -13,6 +13,9 @@ import { useWorkout } from '../context/WorkoutContext';
 import { useGame } from '../context/GameContext';
 import { fromKg } from '../engine/constants';
 import { clsx } from '../lib/clsx';
+
+/** How many cards to reveal per page. */
+const PAGE = 24;
 
 const DIFFICULTIES = [
   { id: 'all', name: 'Any level' },
@@ -32,12 +35,23 @@ export default function LibraryPage() {
   const [equipment, setEquipment] = useState('all');
   const [difficulty, setDifficulty] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  // Every card runs its own animated SVG rig. Rendering all 235 at once is a
+  // 44,000px scroll and 235 simultaneous animations on a phone, so the list
+  // grows a page at a time.
+  const [limit, setLimit] = useState(PAGE);
 
   const deferredQuery = useDeferredValue(query);
   const results = useMemo(
     () => filterExercises({ query: deferredQuery, category, equipment, difficulty }),
     [deferredQuery, category, equipment, difficulty],
   );
+
+  // Landing on the library with nothing typed and nothing filtered, the
+  // browse grid is the answer — not a list of everything that exists.
+  const browsing = !deferredQuery.trim() && category === 'all' && equipment === 'all' && difficulty === 'all';
+  const visible = useMemo(() => results.slice(0, limit), [results, limit]);
+
+  useEffect(() => setLimit(PAGE), [deferredQuery, category, equipment, difficulty]);
 
   const selected = exerciseId ? getExercise(exerciseId) : null;
   const activeFilters = [category, equipment, difficulty].filter((f) => f !== 'all').length;
@@ -117,37 +131,52 @@ export default function LibraryPage() {
         </AnimatePresence>
       </Panel>
 
-      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-        {results.map((exercise, i) => (
-          <motion.button
-            key={exercise.id}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: Math.min(i * 0.012, 0.3), duration: 0.25 }}
-            onClick={() => navigate(`/library/${exercise.id}`)}
- className="panel flex items-center gap-3 p-3 text-left transition hover:bg-[rgb(var(--sys)/0.05)]"
-          >
-            <div className="h-14 w-14 shrink-0  border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
-              <ExerciseAnimation exercise={exercise} speed={3.2} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate text-sm font-semibold text-[rgb(var(--sys-ink))]">{exercise.name}</h3>
-              <p className="truncate font-mono text-[11px] text-[rgb(var(--sys-dim))]">
-                {EQUIPMENT[exercise.equipment]?.name} · {exercise.primary.map((m) => MUSCLES[m]?.name).join(', ')}
-              </p>
-              <div className="mt-1 flex gap-1">
-                <span className="rounded border border-[rgb(var(--sys)/0.25)] px-1.5 py-px font-mono text-[9px] uppercase text-[rgb(var(--sys-dim))]">
-                  {exercise.difficulty}
-                </span>
-                <span className="rounded border border-[rgb(var(--sys)/0.25)] px-1.5 py-px font-mono text-[9px] uppercase text-[rgb(var(--sys-dim))]">
-                  {exercise.mechanics}
-                </span>
-              </div>
-            </div>
-            <ChevronRight size={16} className="shrink-0 text-[rgb(var(--sys-dim))]" />
-          </motion.button>
-        ))}
-      </div>
+      {browsing ? (
+        <CategoryGrid onPick={setCategory} />
+      ) : (
+        <>
+          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((exercise, i) => (
+              <motion.button
+                key={exercise.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min((i % PAGE) * 0.012, 0.3), duration: 0.25 }}
+                onClick={() => navigate(`/library/${exercise.id}`)}
+                className="panel flex items-center gap-3 p-3 text-left transition hover:bg-[rgb(var(--sys)/0.05)]"
+              >
+                <div className="h-14 w-14 shrink-0 border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
+                  <ExerciseAnimation exercise={exercise} speed={3.2} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-sm font-semibold text-[rgb(var(--sys-ink))]">{exercise.name}</h3>
+                  <p className="truncate font-mono text-[11px] text-[rgb(var(--sys-dim))]">
+                    {EQUIPMENT[exercise.equipment]?.name} · {exercise.primary.map((m) => MUSCLES[m]?.name).join(', ')}
+                  </p>
+                  <div className="mt-1 flex gap-1">
+                    <span className="rounded border border-[rgb(var(--sys)/0.25)] px-1.5 py-px font-mono text-[9px] uppercase text-[rgb(var(--sys-dim))]">
+                      {exercise.difficulty}
+                    </span>
+                    <span className="rounded border border-[rgb(var(--sys)/0.25)] px-1.5 py-px font-mono text-[9px] uppercase text-[rgb(var(--sys-dim))]">
+                      {exercise.mechanics}
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight size={16} className="shrink-0 text-[rgb(var(--sys-dim))]" />
+              </motion.button>
+            ))}
+          </div>
+
+          {results.length > limit && (
+            <Button variant="ghost" className="w-full" onClick={() => setLimit((n) => n + PAGE)}>
+              Show {Math.min(PAGE, results.length - limit)} more
+              <span className="ml-1.5 font-mono text-[11px] opacity-70">
+                {limit} / {results.length}
+              </span>
+            </Button>
+          )}
+        </>
+      )}
 
       {!results.length && (
         <Panel className="p-10 text-center">
@@ -169,6 +198,58 @@ export default function LibraryPage() {
           navigate('/workout');
         }}
       />
+    </div>
+  );
+}
+
+/**
+ * The library's front door: one tile per category, each showing a real
+ * movement from it. Choosing a body part is a far better opening question
+ * than scrolling an alphabetical list of everything.
+ */
+function CategoryGrid({ onPick }) {
+  const tiles = useMemo(
+    () =>
+      CATEGORIES.map((c) => {
+        const inCategory = EXERCISES.filter((e) => e.category === c.id);
+        // The showcase is the highest-tier compound in the category, which is
+        // reliably the movement someone picturing "legs" has in mind.
+        const hero =
+          inCategory.find((e) => e.tier === 's') ||
+          inCategory.find((e) => e.mechanics === 'compound') ||
+          inCategory[0];
+        return { ...c, count: inCategory.length, hero };
+      }).filter((c) => c.count > 0),
+    [],
+  );
+
+  return (
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+      {tiles.map((tile, i) => (
+        <motion.button
+          key={tile.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.04, duration: 0.3 }}
+          onClick={() => onPick(tile.id)}
+          className="panel relative overflow-hidden p-0 text-left transition active:scale-[0.98]"
+          style={{ borderColor: `${tile.accent}44` }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{ background: `radial-gradient(120% 80% at 50% 100%, ${tile.accent}1f, transparent 70%)` }}
+          />
+          <div className="relative h-[96px] w-full">
+            <ExerciseAnimation exercise={tile.hero} speed={3.4} showGround={false} />
+          </div>
+          <div className="relative border-t px-3 py-2" style={{ borderColor: `${tile.accent}33` }}>
+            <div className="text-sm font-semibold leading-tight text-[rgb(var(--sys-ink))]">{tile.name}</div>
+            <div className="font-mono text-[10px] uppercase tracking-widest" style={{ color: tile.accent }}>
+              {tile.count} movements
+            </div>
+          </div>
+        </motion.button>
+      ))}
     </div>
   );
 }
