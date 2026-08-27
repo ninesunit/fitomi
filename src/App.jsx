@@ -119,10 +119,11 @@ function Gate() {
         path="/awaken"
         element={user ? <Navigate to="/" replace /> : <AwakenPage />}
       />
-      <Route
-        path="/auth"
-        element={user ? <Navigate to="/" replace /> : awakened ? <AuthPage /> : <Navigate to="/awaken" replace />}
-      />
+      {/* Always reachable. Adding the app to a home screen creates a fresh
+          storage sandbox, so a returning hunter arrives with no saved answers
+          and no session — gating this behind the assessment would force them
+          to redo a setup they have already completed. */}
+      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
       <Route
         path="/*"
         element={user ? <Protected /> : <Navigate to={awakened ? '/auth' : '/awaken'} replace />}

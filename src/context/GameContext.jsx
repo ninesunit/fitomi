@@ -82,6 +82,10 @@ export function GameProvider({ children }) {
           return;
         }
 
+        // Already awakened: the assessment on this device is stale and must
+        // never be applied over real progress. Drop it.
+        if (loaded.awakening && answers?.completedAt) clearAnswers();
+
         setProfile(loaded);
         setError(null);
         setOffline(false);

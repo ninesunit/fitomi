@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, LogIn } from 'lucide-react';
 import { SystemWindow } from '../components/system/SystemWindow';
 import { SystemButton } from '../components/system/SystemButton';
 import { SystemAlert, SystemType } from '../components/system/SystemAlert';
@@ -262,7 +262,12 @@ export default function AwakenPage() {
       <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
         <AnimatePresence mode="wait">
           {phase === PHASES.INTRO && (
-            <Intro key="intro" onAccept={() => setPhase(PHASES.QUESTIONS)} onDecline={() => setDeclined(true)} />
+            <Intro
+              key="intro"
+              onAccept={() => setPhase(PHASES.QUESTIONS)}
+              onDecline={() => setDeclined(true)}
+              onSignIn={() => navigate('/auth')}
+            />
           )}
 
           {phase === PHASES.QUESTIONS && (
@@ -352,7 +357,7 @@ export default function AwakenPage() {
 }
 
 /** The qualification notice — the System's first contact. */
-function Intro({ onAccept, onDecline }) {
+function Intro({ onAccept, onDecline, onSignIn }) {
   const [ready, setReady] = useState(false);
 
   return (
@@ -405,14 +410,29 @@ function Intro({ onAccept, onDecline }) {
         </AnimatePresence>
       </SystemWindow>
 
-      <motion.p
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.6 }}
-        className="mt-5 max-w-xs text-center text-xs leading-relaxed text-[rgb(var(--sys-dim))]"
+        transition={{ delay: 1.4 }}
+        className="mt-5 w-full text-center"
       >
-        Accepting begins a short assessment. No account is required until it is complete.
-      </motion.p>
+        <p className="mx-auto max-w-xs text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
+          Accepting begins a short assessment. No account is required until it is complete.
+        </p>
+
+        <div className="my-4 flex items-center gap-3">
+          <span className="sys-rule flex-1" />
+          <span className="sys-label">or</span>
+          <span className="sys-rule flex-1" />
+        </div>
+
+        <SystemButton className="w-full" icon={LogIn} onClick={onSignIn}>
+          I already have an account
+        </SystemButton>
+        <p className="mt-2 text-[11px] text-[rgb(var(--sys-dim))]">
+          Signing in restores your hunter exactly as you left it.
+        </p>
+      </motion.div>
     </motion.div>
   );
 }

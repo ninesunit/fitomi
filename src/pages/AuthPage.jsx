@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AtSign, KeyRound, Lock, Mail, ShieldCheck, User } from 'lucide-react';
 import { authMessage, useAuth } from '../context/AuthContext';
@@ -15,6 +16,7 @@ const MODES = {
 export default function AuthPage() {
   const { signIn, signUp, signInWithGoogle, resetPassword, reportAuthError, redirectError } = useAuth();
   const { toast } = useSystem();
+  const navigate = useNavigate();
 
   const [mode, setMode] = useState('signin');
   const [form, setForm] = useState({ email: '', password: '', displayName: '' });
@@ -193,8 +195,16 @@ export default function AuthPage() {
         </div>
 
         <p className="mt-5 text-center text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
-          Your assessment is saved to your account. Training data is private and never shared.
+          Signing in restores your hunter exactly as you left it. Training data is private and never
+          shared.
         </p>
+
+        <button
+          onClick={() => navigate('/awaken')}
+          className="mt-3 w-full text-center text-xs text-[rgb(var(--sys-dim))] underline-offset-2 hover:underline"
+        >
+          New here? Take the assessment first
+        </button>
       </motion.div>
     </div>
   );
