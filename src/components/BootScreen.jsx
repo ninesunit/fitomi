@@ -6,7 +6,7 @@ export function BootScreen({ message = 'Initialising' }) {
     <div className="grid-bg flex min-h-screen flex-col items-center justify-center gap-6 bg-void-950">
       <motion.svg
         viewBox="0 0 64 64"
-        className="h-16 w-16"
+ className="h-16 w-16"
         initial={{ opacity: 0, scale: 0.85 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
@@ -30,8 +30,8 @@ export function BootScreen({ message = 'Initialising' }) {
       </motion.svg>
 
       <div className="text-center">
-        <div className="font-display text-2xl font-bold tracking-[0.3em] text-slate-100">FITOMI</div>
-        <div className="mt-2 font-mono text-[11px] uppercase tracking-[0.25em] text-system-400">
+        <div className="font-display text-2xl font-bold tracking-[0.3em] text-[rgb(var(--sys-ink))]">FITOMI</div>
+        <div className="mt-2 font-mono text-[11px] uppercase tracking-[0.25em] text-[rgb(var(--sys))]">
           {message}
           <span className="animate-pulse">…</span>
         </div>

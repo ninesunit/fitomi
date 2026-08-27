@@ -5,14 +5,14 @@ import { clsx } from '../../lib/clsx';
 export function XpBar({ progress = 0, height = 'h-2.5', showShimmer = true, className, color }) {
   const pct = Math.max(0, Math.min(1, progress)) * 100;
   return (
-    <div className={clsx('relative w-full overflow-hidden rounded-full bg-void-700/70', height, className)}>
+    <div className={clsx('relative w-full overflow-hidden  bg-[rgb(var(--sys-deep-2)/0.9)]', height, className)}>
       <motion.div
-        className="relative h-full rounded-full"
+ className="relative h-full "
         style={{
           backgroundImage: color
             ? `linear-gradient(90deg, ${color}, ${color})`
-            : 'linear-gradient(90deg, rgb(var(--accent)), rgb(var(--accent-2)))',
-          boxShadow: '0 0 14px -2px rgb(var(--accent) / 0.85)',
+            : 'linear-gradient(90deg, rgb(var(--sys)), rgb(var(--sys-2)))',
+          boxShadow: '0 0 14px -2px rgb(var(--sys) / 0.85)',
         }}
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}
@@ -34,12 +34,12 @@ export function Meter({ value = 0, max = 100, color = '#26bdff', label, right, h
       {(label || right) && (
         <div className="mb-1.5 flex items-baseline justify-between gap-2">
           {label && <span className="hud-label">{label}</span>}
-          {right && <span className="tnum font-mono text-xs text-slate-300">{right}</span>}
+          {right && <span className="tnum font-mono text-xs text-[rgb(var(--sys-ink))]">{right}</span>}
         </div>
       )}
-      <div className={clsx('w-full overflow-hidden rounded-full bg-void-700/70', height)}>
+      <div className={clsx('w-full overflow-hidden  bg-[rgb(var(--sys-deep-2)/0.9)]', height)}>
         <motion.div
-          className="h-full rounded-full"
+ className="h-full "
           style={{ backgroundColor: color, boxShadow: `0 0 12px -3px ${color}` }}
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -61,7 +61,7 @@ export function SegmentedBar({ value = 0, segments = 10, color = '#26bdff', clas
           initial={{ opacity: 0.2, scaleY: 0.6 }}
           animate={{ opacity: i < filled ? 1 : 0.18, scaleY: 1 }}
           transition={{ delay: i * 0.025, duration: 0.25 }}
-          className="h-3 flex-1 rounded-[2px]"
+ className="h-3 flex-1 rounded-[2px]"
           style={{
             backgroundColor: i < filled ? color : 'rgba(148,163,184,0.25)',
             boxShadow: i < filled ? `0 0 8px -2px ${color}` : 'none',

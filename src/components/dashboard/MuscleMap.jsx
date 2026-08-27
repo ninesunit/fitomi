@@ -65,15 +65,15 @@ export function MuscleMap({ soreness, className, onSelect }) {
     <div className={className}>
       <div className="mb-2 flex items-center justify-between">
         <span className="hud-label">Fatigue map</span>
-        <div className="inline-flex rounded-lg border border-white/10 bg-void-950/60 p-0.5">
+        <div className="inline-flex  border border-[rgb(var(--sys)/0.25)] bg-[rgb(var(--sys-deep-2)/0.6)] p-0.5">
           {['front', 'back'].map((side) => (
             <button
               key={side}
               onClick={() => setView(side)}
-              className={`rounded-md px-2.5 py-1 text-[11px] font-semibold capitalize transition ${
-                view === side ? 'text-void-950' : 'text-slate-400 hover:text-slate-200'
+ className={`rounded-md px-2.5 py-1 text-[11px] font-semibold capitalize transition ${
+                view === side ? 'text-void-950' : 'text-[rgb(var(--sys-dim))] hover:text-[rgb(var(--sys-ink))]'
               }`}
-              style={view === side ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+              style={view === side ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
             >
               {side}
             </button>
@@ -87,7 +87,7 @@ export function MuscleMap({ soreness, className, onSelect }) {
           cy={HEAD.cy}
           r={HEAD.r}
           fill="rgba(148,163,184,0.1)"
-          stroke="rgb(var(--accent) / 0.3)"
+          stroke="rgb(var(--sys) / 0.3)"
           strokeWidth="0.8"
         />
         {regions.map((region) => (
@@ -95,10 +95,10 @@ export function MuscleMap({ soreness, className, onSelect }) {
             key={`${view}-${region.id}`}
             d={region.d}
             fill={fillFor(region.id)}
-            stroke={active === region.id ? 'rgb(var(--accent))' : 'rgba(255,255,255,0.16)'}
+            stroke={active === region.id ? 'rgb(var(--sys))' : 'rgba(255,255,255,0.16)'}
             strokeWidth={active === region.id ? 1.3 : 0.5}
             strokeLinejoin="round"
-            className="cursor-pointer transition-all"
+ className="cursor-pointer transition-all"
             onMouseEnter={() => setActive(region.id)}
             onMouseLeave={() => setActive(null)}
             onClick={() => onSelect?.(region.id)}
@@ -109,14 +109,14 @@ export function MuscleMap({ soreness, className, onSelect }) {
       <div className="mt-1 min-h-[34px] text-center">
         {activeEntry ? (
           <>
-            <div className="text-sm font-semibold text-slate-200">{MUSCLES[active]?.name}</div>
+            <div className="text-sm font-semibold text-[rgb(var(--sys-ink))]">{MUSCLES[active]?.name}</div>
             <div className="font-mono text-[11px]" style={{ color: activeEntry.state.color }}>
               {activeEntry.state.label} · {Math.round(activeEntry.value * 100)}% fatigue
               {Number.isFinite(activeEntry.daysSince) && ` · ${Math.floor(activeEntry.daysSince)}d ago`}
             </div>
           </>
         ) : (
-          <div className="text-xs text-slate-500">Tap a muscle for its recovery state.</div>
+          <div className="text-xs text-[rgb(var(--sys-dim))]">Tap a muscle for its recovery state.</div>
         )}
       </div>
 
@@ -125,7 +125,7 @@ export function MuscleMap({ soreness, className, onSelect }) {
         {Object.values(SORENESS_STATES).map((state) => (
           <span key={state.id} className="inline-flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-[3px]" style={{ backgroundColor: state.color }} />
-            <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">{state.label}</span>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-[rgb(var(--sys-dim))]">{state.label}</span>
           </span>
         ))}
       </div>

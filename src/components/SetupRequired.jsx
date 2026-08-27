@@ -28,14 +28,14 @@ export function SetupRequired({ projectId = 'fitomii' }) {
     <div className="grid-bg flex min-h-screen items-center justify-center bg-void-950 px-4 py-12">
       <div className="w-full max-w-lg">
         <div className="mb-6 text-center">
-          <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold-500/40 bg-gold-500/10">
-            <AlertTriangle size={24} className="text-gold-400" />
+          <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center  border border-[rgb(var(--sys-gold)/0.4)] bg-[rgb(var(--sys-gold)/0.12)]">
+            <AlertTriangle size={24} className="text-[rgb(var(--sys-gold))]" />
           </span>
-          <h1 className="font-display text-2xl font-bold tracking-wide text-slate-100">
+          <h1 className="font-display text-2xl font-bold tracking-wide text-[rgb(var(--sys-ink))]">
             Project setup required
           </h1>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
-            Fitomi is deployed, but the <span className="font-mono text-slate-300">{projectId}</span>{' '}
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[rgb(var(--sys-dim))]">
+            Fitomi is deployed, but the <span className="font-mono text-[rgb(var(--sys-ink))]">{projectId}</span>{' '}
             Firebase project still needs two services switched on. Both are free on the Spark plan
             and take about thirty seconds.
           </p>
@@ -46,19 +46,19 @@ export function SetupRequired({ projectId = 'fitomii' }) {
             <div key={step.title} className="panel p-4">
               <div className="flex items-start gap-3">
                 <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold text-void-950"
-                  style={{ backgroundColor: 'rgb(var(--accent))' }}
+ className="flex h-7 w-7 shrink-0 items-center justify-center  font-mono text-xs font-bold text-void-950"
+                  style={{ backgroundColor: 'rgb(var(--sys))' }}
                 >
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-display text-base font-semibold text-slate-100">{step.title}</h2>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-400">{step.body}</p>
+                  <h2 className="font-display text-base font-semibold text-[rgb(var(--sys-ink))]">{step.title}</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-[rgb(var(--sys-dim))]">{step.body}</p>
                   <a
                     href={step.href}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold accent-text hover:underline"
+ className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold accent-text hover:underline"
                   >
                     {step.cta}
                     <ExternalLink size={13} />
@@ -70,8 +70,8 @@ export function SetupRequired({ projectId = 'fitomii' }) {
         </div>
 
         <div className="panel mt-4 flex items-start gap-2.5 p-4">
-          <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-mana-400" />
-          <p className="text-sm leading-relaxed text-slate-400">
+          <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-[rgb(var(--sys-good))]" />
+          <p className="text-sm leading-relaxed text-[rgb(var(--sys-dim))]">
             Once both are on, reload this page — no redeploy is needed. Then run{' '}
             <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">
               firebase deploy --only firestore
@@ -82,7 +82,7 @@ export function SetupRequired({ projectId = 'fitomii' }) {
 
         <button
           onClick={() => window.location.reload()}
-          className="btn btn-primary mt-4 w-full"
+ className="btn btn-primary mt-4 w-full"
         >
           Reload and try again
         </button>

@@ -41,7 +41,7 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [] }) {
       size="lg"
       footer={
         <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-[rgb(var(--sys-dim))]">
             {selected.length ? `${selected.length} selected` : 'Select one or more'}
           </span>
           <Button variant="primary" className="ml-auto" onClick={commit} disabled={!selected.length}>
@@ -50,17 +50,17 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [] }) {
         </div>
       }
     >
-      <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-3 bg-void-900/95 px-5 pb-3 pt-4 backdrop-blur">
+      <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-3 bg-[rgb(var(--sys-deep)/0.8)] px-5 pb-3 pt-4 backdrop-blur">
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--sys-dim))]" />
             <input
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search 228 exercises, machines and muscles…"
-              className="field pl-9"
-              style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field pl-9"
+              style={{ outlineColor: 'rgb(var(--sys))' }}
             />
           </div>
           <Button
@@ -68,7 +68,7 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [] }) {
             size="icon"
             onClick={() => setShowFilters((v) => !v)}
             aria-label="Filters"
-            className={showFilters ? 'accent-border' : undefined}
+ className={showFilters ? 'accent-border' : undefined}
           >
             <SlidersHorizontal size={16} />
           </Button>
@@ -109,32 +109,32 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [] }) {
               key={exercise.id}
               onClick={() => !already && toggle(exercise.id)}
               disabled={already}
-              className={clsx(
-                'flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition',
-                already && 'cursor-not-allowed border-white/[0.05] opacity-40',
+ className={clsx(
+                'flex w-full items-center gap-3  border px-3 py-2.5 text-left transition',
+                already && 'cursor-not-allowed border-[rgb(var(--sys)/0.18)] opacity-40',
                 picked && 'border-transparent',
-                !already && !picked && 'border-white/[0.07] hover:bg-white/[0.04]',
+                !already && !picked && 'border-[rgb(var(--sys)/0.18)] hover:bg-[rgb(var(--sys)/0.05)]',
               )}
-              style={picked ? { backgroundColor: 'rgb(var(--accent) / 0.14)', borderColor: 'rgb(var(--accent) / 0.5)' } : undefined}
+              style={picked ? { backgroundColor: 'rgb(var(--sys) / 0.14)', borderColor: 'rgb(var(--sys) / 0.5)' } : undefined}
             >
               <span
-                className={clsx(
-                  'flex h-6 w-6 shrink-0 items-center justify-center rounded border',
-                  picked ? 'border-transparent text-void-950' : 'border-white/15',
+ className={clsx(
+                  'flex h-6 w-6 shrink-0 items-center justify-center  border',
+                  picked ? 'border-transparent text-void-950' : 'border-[rgb(var(--sys)/0.25)]',
                 )}
-                style={picked ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+                style={picked ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
               >
                 {(picked || already) && <Check size={13} strokeWidth={3} />}
               </span>
 
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-slate-100">{exercise.name}</span>
-                <span className="block truncate font-mono text-[11px] text-slate-500">
+                <span className="block truncate text-sm font-medium text-[rgb(var(--sys-ink))]">{exercise.name}</span>
+                <span className="block truncate font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                   {exercise.equipment} · {exercise.primary.join(', ')}
                 </span>
               </span>
 
-              <span className="shrink-0 rounded border border-white/10 px-1.5 py-0.5 font-mono text-[10px] uppercase text-slate-500">
+              <span className="shrink-0  border border-[rgb(var(--sys)/0.25)] px-1.5 py-0.5 font-mono text-[10px] uppercase text-[rgb(var(--sys-dim))]">
                 {exercise.tier}
               </span>
             </button>
@@ -142,7 +142,7 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [] }) {
         })}
 
         {!results.length && (
-          <p className="py-10 text-center text-sm text-slate-500">
+          <p className="py-10 text-center text-sm text-[rgb(var(--sys-dim))]">
             Nothing matches that. Try a muscle name or a piece of equipment.
           </p>
         )}
@@ -155,11 +155,11 @@ function Chip({ active, children, ...rest }) {
   return (
     <button
       {...rest}
-      className={clsx(
-        'shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium transition',
-        active ? 'border-transparent text-void-950' : 'border-white/10 text-slate-400 hover:bg-white/5',
+ className={clsx(
+        'shrink-0 whitespace-nowrap  border px-3 py-1 text-xs font-medium transition',
+        active ? 'border-transparent text-void-950' : 'border-[rgb(var(--sys)/0.25)] text-[rgb(var(--sys-dim))] hover:bg-white/5',
       )}
-      style={active ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+      style={active ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
     >
       {children}
     </button>

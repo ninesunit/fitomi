@@ -30,6 +30,12 @@
     --sys-gold: 255 215 110;   /* rare rewards */
 
     --chamfer: 10px;
+
+    /* Aliases for the pre-redesign variable names. Older components set colours
+       through inline styles that cannot be caught by a class rename, and an
+       unresolved var() silently renders black rather than failing loudly. */
+    --accent: var(--sys);
+    --accent-2: var(--sys-2);
   }
 
   * {

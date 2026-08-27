@@ -61,13 +61,13 @@ export function InstallPrompt() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 90, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-          className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom,0px)+76px)] z-[65] lg:inset-x-auto lg:right-4 lg:w-96"
+ className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom,0px)+76px)] z-[65] lg:inset-x-auto lg:right-4 lg:w-96"
         >
           <div className="sys-window sys-brackets p-4">
             <button
               onClick={close}
               aria-label="Dismiss"
-              className="absolute right-2 top-2 p-1.5 text-[rgb(var(--sys-dim))]"
+ className="absolute right-2 top-2 p-1.5 text-[rgb(var(--sys-dim))]"
             >
               <X size={15} />
             </button>

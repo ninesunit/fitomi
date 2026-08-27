@@ -26,7 +26,7 @@ export default function QuestsPage() {
           title={open.length ? `${open.length} quests remaining` : 'Board cleared'}
           icon={ListChecks}
         />
-        <p className="mt-1.5 text-sm text-slate-500">
+        <p className="mt-1.5 text-sm text-[rgb(var(--sys-dim))]">
           Generated fresh each morning from your last 48 hours of training. Same board on every
           device — no server involved.
         </p>
@@ -37,7 +37,7 @@ export default function QuestsPage() {
             max={totalXp || 1}
             label="Board progress"
             right={`${earnedXp} / ${totalXp} XP`}
-            color="rgb(var(--accent))"
+            color="rgb(var(--sys))"
             height="h-2.5"
           />
         </div>
@@ -55,7 +55,7 @@ export default function QuestsPage() {
                 {Math.round(readiness * 100)}%
               </span>
             </div>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+            <p className="mt-1 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
               Derived from tonnage logged per muscle, decayed over each muscle&apos;s own recovery window.
             </p>
           </div>
@@ -66,7 +66,7 @@ export default function QuestsPage() {
               <div className="space-y-1.5">
                 {sore.map((m) => (
                   <div key={m.id} className="flex items-center justify-between gap-2">
-                    <span className="truncate text-xs text-slate-300">{MUSCLES[m.id]?.name}</span>
+                    <span className="truncate text-xs text-[rgb(var(--sys-ink))]">{MUSCLES[m.id]?.name}</span>
                     <span className="tnum shrink-0 font-mono text-[11px]" style={{ color: m.state.color }}>
                       {Math.round(m.value * 100)}% · {m.state.label}
                     </span>
@@ -74,7 +74,7 @@ export default function QuestsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500">Nothing significantly fatigued.</p>
+              <p className="text-xs text-[rgb(var(--sys-dim))]">Nothing significantly fatigued.</p>
             )}
           </div>
 
@@ -84,15 +84,15 @@ export default function QuestsPage() {
               <div className="space-y-1.5">
                 {neglected.map((m) => (
                   <div key={m.id} className="flex items-center justify-between gap-2">
-                    <span className="truncate text-xs text-slate-300">{MUSCLES[m.id]?.name}</span>
-                    <span className="tnum shrink-0 font-mono text-[11px] text-slate-500">
+                    <span className="truncate text-xs text-[rgb(var(--sys-ink))]">{MUSCLES[m.id]?.name}</span>
+                    <span className="tnum shrink-0 font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                       {Number.isFinite(m.daysSince) ? `${Math.floor(m.daysSince)}d` : 'never'}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500">Everything trained recently.</p>
+              <p className="text-xs text-[rgb(var(--sys-dim))]">Everything trained recently.</p>
             )}
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function QuestsPage() {
       {done.length > 0 && (
         <div>
           <div className="mb-2 flex items-center gap-2">
-            <CheckCircle2 size={14} className="text-mana-400" />
+            <CheckCircle2 size={14} className="text-[rgb(var(--sys-good))]" />
             <span className="hud-label">Cleared today ({done.length})</span>
           </div>
           <div className="space-y-2">
@@ -140,17 +140,17 @@ export default function QuestsPage() {
           {quests.weekly.map((quest) => (
             <div
               key={quest.id}
-              className="flex items-start gap-3 rounded-xl border border-white/[0.07] bg-void-950/50 p-3"
+ className="flex items-start gap-3  border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] p-3"
             >
               <span
-                className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+ className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center "
                 style={{ backgroundColor: `${quest.typeMeta?.color}1f`, color: quest.typeMeta?.color }}
               >
                 <Sparkles size={15} />
               </span>
               <div className="min-w-0 flex-1">
-                <h3 className="font-display text-sm font-semibold text-slate-100">{quest.title}</h3>
-                <p className="mt-0.5 text-xs text-slate-500">{quest.description}</p>
+                <h3 className="font-display text-sm font-semibold text-[rgb(var(--sys-ink))]">{quest.title}</h3>
+                <p className="mt-0.5 text-xs text-[rgb(var(--sys-dim))]">{quest.description}</p>
               </div>
               <span className="shrink-0 font-mono text-[11px] accent-text">+{quest.xp}</span>
             </div>
@@ -159,7 +159,7 @@ export default function QuestsPage() {
       </MotionPanel>
 
       {streak.current > 0 && (
-        <p className="pb-2 text-center text-xs text-slate-600">
+        <p className="pb-2 text-center text-xs text-[rgb(var(--sys-dim))]">
           {streak.current}-day streak active · quests refresh at midnight local time
         </p>
       )}

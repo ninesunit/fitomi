@@ -31,7 +31,7 @@ export function VolumeChart({ sessions = [], unit = 'kg', convert = (v) => v, he
 
   if (!data.length) {
     return (
-      <p className="py-8 text-center text-sm text-slate-500">
+      <p className="py-8 text-center text-sm text-[rgb(var(--sys-dim))]">
         No sessions logged yet. The chart fills in as you train.
       </p>
     );
@@ -45,7 +45,7 @@ export function VolumeChart({ sessions = [], unit = 'kg', convert = (v) => v, he
     <div>
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <span className="hud-label">Tonnage per session</span>
-        <span className="tnum font-mono text-[11px] text-slate-400">
+        <span className="tnum font-mono text-[11px] text-[rgb(var(--sys-dim))]">
           {active
             ? `${Math.round(active.value).toLocaleString()} ${unit}`
             : `avg ${Math.round(mean).toLocaleString()} ${unit}`}
@@ -54,7 +54,7 @@ export function VolumeChart({ sessions = [], unit = 'kg', convert = (v) => v, he
 
       <div className="relative" style={{ height }}>
         <div
-          className="absolute inset-x-0 border-t border-dashed border-white/15"
+ className="absolute inset-x-0 border-t border-dashed border-[rgb(var(--sys)/0.25)]"
           style={{ bottom: `${(mean / peak) * 100}%` }}
           aria-hidden
         />
@@ -67,17 +67,17 @@ export function VolumeChart({ sessions = [], unit = 'kg', convert = (v) => v, he
               onMouseLeave={() => setHovered(null)}
               onFocus={() => setHovered(i)}
               onBlur={() => setHovered(null)}
-              className="relative flex h-full flex-1 items-end"
+ className="relative flex h-full flex-1 items-end"
               aria-label={`${d.name}: ${Math.round(d.value)} ${unit}`}
             >
               <motion.span
-                className="w-full rounded-t"
+ className="w-full rounded-t"
                 initial={{ height: 0 }}
                 animate={{ height: `${Math.max(2, (d.value / peak) * 100)}%` }}
                 transition={{ duration: 0.5, delay: i * 0.015, ease: [0.22, 1, 0.36, 1] }}
                 style={{
-                  backgroundColor: hovered === i ? 'rgb(var(--accent))' : 'rgb(var(--accent) / 0.5)',
-                  boxShadow: hovered === i ? '0 0 14px -2px rgb(var(--accent))' : 'none',
+                  backgroundColor: hovered === i ? 'rgb(var(--sys))' : 'rgb(var(--sys) / 0.5)',
+                  boxShadow: hovered === i ? '0 0 14px -2px rgb(var(--sys))' : 'none',
                 }}
               />
             </button>
@@ -85,7 +85,7 @@ export function VolumeChart({ sessions = [], unit = 'kg', convert = (v) => v, he
         </div>
       </div>
 
-      <div className="mt-1.5 flex items-baseline justify-between gap-2 font-mono text-[10px] text-slate-600">
+      <div className="mt-1.5 flex items-baseline justify-between gap-2 font-mono text-[10px] text-[rgb(var(--sys-dim))]">
         <span className="shrink-0">
           {new Date(data[0].at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
         </span>

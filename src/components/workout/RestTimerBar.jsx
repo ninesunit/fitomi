@@ -18,19 +18,19 @@ export function RestTimerBar() {
       initial={{ y: 60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 60, opacity: 0 }}
-      className="fixed inset-x-0 bottom-[62px] z-40 px-3 lg:bottom-4 lg:left-auto lg:right-4 lg:w-80 lg:px-0"
+ className="fixed inset-x-0 bottom-[62px] z-40 px-3 lg:bottom-4 lg:left-auto lg:right-4 lg:w-80 lg:px-0"
     >
       <div
-        className="panel relative overflow-hidden px-4 py-3"
+ className="panel relative overflow-hidden px-4 py-3"
         style={{
-          borderColor: done ? 'rgba(74,222,128,0.5)' : 'rgb(var(--accent) / 0.4)',
-          boxShadow: done ? '0 0 30px -10px rgba(74,222,128,0.8)' : '0 0 30px -12px rgb(var(--accent))',
+          borderColor: done ? 'rgba(74,222,128,0.5)' : 'rgb(var(--sys) / 0.4)',
+          boxShadow: done ? '0 0 30px -10px rgba(74,222,128,0.8)' : '0 0 30px -12px rgb(var(--sys))',
         }}
       >
         {/* The fill sweeps left to right as the rest elapses. */}
         <motion.span
-          className="absolute inset-y-0 left-0"
-          style={{ backgroundColor: done ? 'rgba(74,222,128,0.14)' : 'rgb(var(--accent) / 0.12)' }}
+ className="absolute inset-y-0 left-0"
+          style={{ backgroundColor: done ? 'rgba(74,222,128,0.14)' : 'rgb(var(--sys) / 0.12)' }}
           animate={{ width: `${progress * 100}%` }}
           transition={{ ease: 'linear', duration: 0.25 }}
         />
@@ -41,8 +41,8 @@ export function RestTimerBar() {
               {done ? 'Rest complete — go' : `Resting${exercise ? ` · ${exercise.name}` : ''}`}
             </div>
             <div
-              className="tnum font-display text-2xl font-bold leading-tight"
-              style={{ color: done ? '#4ade80' : 'rgb(var(--accent))' }}
+ className="tnum font-display text-2xl font-bold leading-tight"
+              style={{ color: done ? '#4ade80' : 'rgb(var(--sys))' }}
             >
               {formatClock(restRemaining)}
             </div>
@@ -50,21 +50,21 @@ export function RestTimerBar() {
 
           <button
             onClick={() => adjustRest(-15)}
-            className="rounded-lg border border-white/10 p-2 text-slate-300 transition hover:bg-white/10"
+ className="rounded-lg border border-[rgb(var(--sys)/0.25)] p-2 text-[rgb(var(--sys-ink))] transition hover:bg-[rgb(var(--sys)/0.12)]"
             aria-label="Subtract 15 seconds"
           >
             <Minus size={15} />
           </button>
           <button
             onClick={() => adjustRest(15)}
-            className="rounded-lg border border-white/10 p-2 text-slate-300 transition hover:bg-white/10"
+ className="rounded-lg border border-[rgb(var(--sys)/0.25)] p-2 text-[rgb(var(--sys-ink))] transition hover:bg-[rgb(var(--sys)/0.12)]"
             aria-label="Add 15 seconds"
           >
             <Plus size={15} />
           </button>
           <button
             onClick={skipRest}
-            className="rounded-lg border border-white/10 p-2 text-slate-300 transition hover:bg-white/10"
+ className="rounded-lg border border-[rgb(var(--sys)/0.25)] p-2 text-[rgb(var(--sys-ink))] transition hover:bg-[rgb(var(--sys)/0.12)]"
             aria-label="Skip rest"
           >
             <X size={15} />

@@ -31,7 +31,7 @@ export function RankBadge({ rank, size = 64, className, showName = false, pulse 
           />
         </svg>
         <span
-          className="absolute inset-0 flex items-center justify-center font-display font-bold"
+ className="absolute inset-0 flex items-center justify-center font-display font-bold"
           style={{ color: rank.color, fontSize: font, textShadow: `0 0 16px ${rank.glow}` }}
         >
           {rank.id}
@@ -43,7 +43,7 @@ export function RankBadge({ rank, size = 64, className, showName = false, pulse 
           <div className="font-display text-base font-semibold tracking-wide" style={{ color: rank.color }}>
             {rank.name}
           </div>
-          <div className="truncate text-xs text-slate-500">{rank.title}</div>
+          <div className="truncate text-xs text-[rgb(var(--sys-dim))]">{rank.title}</div>
         </div>
       )}
     </div>

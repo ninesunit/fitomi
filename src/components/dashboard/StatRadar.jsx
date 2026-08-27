@@ -58,7 +58,7 @@ export function StatRadar({ stats, size = 240, className, showValues = true }) {
               return `${cx + Math.cos(angle) * radius * ring},${cy + Math.sin(angle) * radius * ring}`;
             }).join(' ')}
             fill="none"
-            stroke="rgb(var(--accent))"
+            stroke="rgb(var(--sys))"
             strokeOpacity={ring === 1 ? 0.28 : 0.1}
             strokeWidth="1"
           />
@@ -71,7 +71,7 @@ export function StatRadar({ stats, size = 240, className, showValues = true }) {
             y1={cy}
             x2={p.ax}
             y2={p.ay}
-            stroke="rgb(var(--accent))"
+            stroke="rgb(var(--sys))"
             strokeOpacity="0.12"
             strokeWidth="1"
           />
@@ -80,8 +80,8 @@ export function StatRadar({ stats, size = 240, className, showValues = true }) {
         {/* The shape itself. */}
         <motion.polygon
           points={polygon}
-          fill="rgb(var(--accent) / 0.2)"
-          stroke="rgb(var(--accent))"
+          fill="rgb(var(--sys) / 0.2)"
+          stroke="rgb(var(--sys))"
           strokeWidth="2"
           strokeLinejoin="round"
           initial={{ opacity: 0, scale: 0.7 }}
@@ -106,16 +106,16 @@ export function StatRadar({ stats, size = 240, className, showValues = true }) {
               cx={p.x}
               cy={p.y}
               r={hovered === p.id ? 6 : 4}
-              fill="rgb(var(--accent))"
+              fill="rgb(var(--sys))"
               stroke="#0a0f1e"
               strokeWidth="2"
-              className="transition-all"
+ className="transition-all"
             />
             <text
               x={p.lx}
               y={p.ly - 4}
               textAnchor="middle"
-              className="fill-slate-400 font-mono text-[9px] uppercase tracking-widest"
+ className="fill-[rgb(var(--sys-dim))] font-mono text-[9px] uppercase tracking-widest"
             >
               {p.short}
             </text>
@@ -124,7 +124,7 @@ export function StatRadar({ stats, size = 240, className, showValues = true }) {
                 x={p.lx}
                 y={p.ly + 9}
                 textAnchor="middle"
-                className="fill-slate-100 font-mono text-[12px] font-bold"
+ className="fill-[rgb(var(--sys-ink))] font-mono text-[12px] font-bold"
               >
                 {p.value}
               </text>
@@ -134,10 +134,10 @@ export function StatRadar({ stats, size = 240, className, showValues = true }) {
       </svg>
 
       {/* Tooltip: the axis name and what grows it. */}
-      <div className="mt-1 min-h-[32px] text-center text-xs text-slate-500">
+      <div className="mt-1 min-h-[32px] text-center text-xs text-[rgb(var(--sys-dim))]">
         {hovered ? (
           <span>
-            <span className="font-semibold text-slate-200">{STATS.find((s) => s.id === hovered).name}</span>
+            <span className="font-semibold text-[rgb(var(--sys-ink))]">{STATS.find((s) => s.id === hovered).name}</span>
             {' — '}
             {STATS.find((s) => s.id === hovered).blurb}
           </span>

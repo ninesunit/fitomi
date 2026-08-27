@@ -10,24 +10,24 @@ export const TextField = forwardRef(function TextField(
       {label && <span className="hud-label mb-1.5 block">{label}</span>}
       <span className="relative block">
         {Icon && (
-          <Icon size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Icon size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--sys-dim))]" />
         )}
         <input
           ref={ref}
-          className={clsx(
+ className={clsx(
             'field',
             Icon && 'pl-9',
-            error && 'border-blood-500/60',
-            className,
+            error && 'border-[rgb(var(--sys-danger)/0.45)]',
+ className,
           )}
-          style={{ outlineColor: 'rgb(var(--accent))' }}
+          style={{ outlineColor: 'rgb(var(--sys))' }}
           {...rest}
         />
       </span>
       {error ? (
-        <span className="mt-1.5 block text-xs text-blood-400">{error}</span>
+        <span className="mt-1.5 block text-xs text-[rgb(var(--sys-danger))]">{error}</span>
       ) : (
-        hint && <span className="mt-1.5 block text-xs text-slate-500">{hint}</span>
+        hint && <span className="mt-1.5 block text-xs text-[rgb(var(--sys-dim))]">{hint}</span>
       )}
     </label>
   );
@@ -40,7 +40,7 @@ export function SelectField({ label, hint, children, className, containerClassNa
       <select className={clsx('field appearance-none pr-8', className)} {...rest}>
         {children}
       </select>
-      {hint && <span className="mt-1.5 block text-xs text-slate-500">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-xs text-[rgb(var(--sys-dim))]">{hint}</span>}
     </label>
   );
 }
@@ -49,7 +49,7 @@ export function SelectField({ label, hint, children, className, containerClassNa
 export function Segmented({ options, value, onChange, className, size = 'md' }) {
   const pad = size === 'sm' ? 'px-2.5 py-1 text-[11px]' : 'px-3 py-1.5 text-xs';
   return (
-    <div className={clsx('inline-flex rounded-lg border border-white/10 bg-void-950/60 p-0.5', className)}>
+    <div className={clsx('inline-flex  border border-[rgb(var(--sys)/0.25)] bg-[rgb(var(--sys-deep-2)/0.6)] p-0.5', className)}>
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -57,12 +57,12 @@ export function Segmented({ options, value, onChange, className, size = 'md' }) 
             key={option.value}
             type="button"
             onClick={() => onChange(option.value)}
-            className={clsx(
+ className={clsx(
               'rounded-md font-semibold transition-all',
               pad,
-              active ? 'text-void-950' : 'text-slate-400 hover:text-slate-100',
+              active ? 'text-void-950' : 'text-[rgb(var(--sys-dim))] hover:text-[rgb(var(--sys-ink))]',
             )}
-            style={active ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+            style={active ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
           >
             {option.label}
           </button>
@@ -79,22 +79,22 @@ export function Toggle({ checked, onChange, label, hint }) {
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex w-full items-center justify-between gap-4 py-2 text-left"
+ className="flex w-full items-center justify-between gap-4 py-2 text-left"
     >
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-slate-200">{label}</span>
-        {hint && <span className="mt-0.5 block text-xs text-slate-500">{hint}</span>}
+        <span className="block text-sm font-medium text-[rgb(var(--sys-ink))]">{label}</span>
+        {hint && <span className="mt-0.5 block text-xs text-[rgb(var(--sys-dim))]">{hint}</span>}
       </span>
       <span
-        className={clsx(
-          'relative h-6 w-11 shrink-0 rounded-full border transition-colors',
-          checked ? 'border-transparent' : 'border-white/15 bg-void-700',
+ className={clsx(
+          'relative h-6 w-11 shrink-0  border transition-colors',
+          checked ? 'border-transparent' : 'border-[rgb(var(--sys)/0.25)] bg-void-700',
         )}
-        style={checked ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+        style={checked ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
       >
         <span
-          className={clsx(
-            'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform',
+ className={clsx(
+            'absolute top-0.5 h-5 w-5  bg-white shadow transition-transform',
             checked ? 'translate-x-[22px]' : 'translate-x-0.5',
           )}
         />

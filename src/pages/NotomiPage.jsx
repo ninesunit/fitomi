@@ -97,7 +97,7 @@ export default function NotomiPage() {
     <div className="space-y-4">
       <MotionPanel accent notch className="p-5">
         <PanelHeader label={`Companion app · v${NOTOMI_VERSION}`} title="Notomi Sync" icon={Link2} />
-        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-400">
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-[rgb(var(--sys-dim))]">
           Notomi handles your weekly schedule. Fitomi pulls those planned sessions in and turns them
           into one-tap workouts, matching each planned movement against the exercise library.
         </p>
@@ -122,26 +122,26 @@ export default function NotomiPage() {
         </div>
 
         {error && (
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-blood-500/40 bg-blood-500/10 px-3 py-2 text-sm text-blood-300">
+          <div className="mt-3 flex items-start gap-2  border border-[rgb(var(--sys-danger)/0.45)] bg-[rgb(var(--sys-danger)/0.12)] px-3 py-2 text-sm text-[rgb(var(--sys-danger))]">
             <AlertTriangle size={14} className="mt-0.5 shrink-0" />
             {error}
           </div>
         )}
 
         {connected && (
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border border-mana-500/25 bg-mana-500/[0.07] px-3 py-2.5">
-            <span className="flex items-center gap-2 text-sm text-mana-300">
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5  border border-[rgb(var(--sys-good)/0.4)] bg-mana-500/[0.07] px-3 py-2.5">
+            <span className="flex items-center gap-2 text-sm text-[rgb(var(--sys-good))]">
               <CheckCircle2 size={15} />
               Linked as <span className="font-semibold">{profile.notomi.handle}</span>
             </span>
-            <span className="font-mono text-[11px] text-slate-500">
+            <span className="font-mono text-[11px] text-[rgb(var(--sys-dim))]">
               Last sync {relativeTime(profile.notomi.lastSync)} · week {week}
             </span>
           </div>
         )}
 
         {unresolved.length > 0 && (
-          <div className="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/10 px-3 py-2 text-xs text-gold-300">
+          <div className="mt-3  border border-[rgb(var(--sys-gold)/0.4)] bg-[rgb(var(--sys-gold)/0.12)] px-3 py-2 text-xs text-[rgb(var(--sys-gold))]">
             <span className="font-semibold">
               {unresolved.length} movement{unresolved.length === 1 ? '' : 's'} could not be matched:
             </span>{' '}
@@ -164,17 +164,17 @@ export default function NotomiPage() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.06 + i * 0.05 }}
-                  className="rounded-xl border border-white/[0.07] bg-void-950/50 p-4"
+ className="rounded-xl border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] p-4"
                 >
                   <div className="flex flex-wrap items-start gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="hud-label mb-1">
                         {DAYS[routine.dayOfWeek]} · {formatDate(routine.scheduledFor)}
                       </div>
-                      <h3 className="truncate font-display text-base font-semibold text-slate-100">
+                      <h3 className="truncate font-display text-base font-semibold text-[rgb(var(--sys-ink))]">
                         {routine.name}
                       </h3>
-                      <p className="mt-0.5 font-mono text-[11px] text-slate-500">
+                      <p className="mt-0.5 font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                         {resolvable} exercises
                         {routine.estimatedMinutes ? ` · ~${routine.estimatedMinutes} min` : ''}
                       </p>
@@ -188,11 +188,11 @@ export default function NotomiPage() {
                     {routine.blocks.map((block, bi) => (
                       <span
                         key={bi}
-                        className={`stat-chip ${block.resolved ? '' : 'border-gold-500/40 text-gold-400'}`}
+ className={`stat-chip ${block.resolved ? '' : 'border-[rgb(var(--sys-gold)/0.4)] text-[rgb(var(--sys-gold))]'}`}
                         title={block.resolved ? undefined : 'Not found in the exercise library'}
                       >
                         {block.name}
-                        <span className="text-slate-500">
+                        <span className="text-[rgb(var(--sys-dim))]">
                           {block.sets}×{block.reps}
                           {block.rpe ? ` @${block.rpe}` : ''}
                         </span>
@@ -208,8 +208,8 @@ export default function NotomiPage() {
 
       {!loading && !routines.length && (
         <MotionPanel delay={0.05} className="p-10 text-center">
-          <Zap size={28} className="mx-auto mb-3 text-slate-600" />
-          <p className="mx-auto max-w-md text-sm leading-relaxed text-slate-500">
+          <Zap size={28} className="mx-auto mb-3 text-[rgb(var(--sys-dim))]" />
+          <p className="mx-auto max-w-md text-sm leading-relaxed text-[rgb(var(--sys-dim))]">
             No routines imported yet. Enter your Notomi handle above and sync to pull this week&apos;s
             planned sessions.
           </p>
@@ -219,7 +219,7 @@ export default function NotomiPage() {
       {/* ---- integration notes ---- */}
       <MotionPanel delay={0.1} className="p-5">
         <PanelHeader label="Integration" title="How the sync works" />
-        <div className="mt-3 space-y-2.5 text-sm leading-relaxed text-slate-400">
+        <div className="mt-3 space-y-2.5 text-sm leading-relaxed text-[rgb(var(--sys-dim))]">
           <p>
             The sync layer is built against a fixed wire contract and takes its transport as a
             parameter. Today that transport is a local generator that produces a deterministic week
@@ -228,13 +228,13 @@ export default function NotomiPage() {
           </p>
           <p>
             Pointing this at a live Notomi deployment is a single line: swap the transport for a
-            <code className="mx-1 rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">fetch</code>
+            <code className="mx-1  bg-white/10 px-1.5 py-0.5 font-mono text-xs">fetch</code>
             that returns the same payload shape. The adapter, the exercise matching and everything in
             this page stay exactly as they are.
           </p>
         </div>
 
-        <pre className="mt-3 overflow-x-auto rounded-lg border border-white/[0.07] bg-void-950/70 p-3 font-mono text-[11px] leading-relaxed text-slate-400">
+        <pre className="mt-3 overflow-x-auto  border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] p-3 font-mono text-[11px] leading-relaxed text-[rgb(var(--sys-dim))]">
 {`{
   handle: "hunter-name",
   week: "${week}",

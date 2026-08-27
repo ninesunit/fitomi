@@ -54,7 +54,7 @@ function PageFallback() {
       <div className="flex flex-col items-center gap-3">
         <span
           className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: 'rgb(var(--accent) / 0.5)', borderTopColor: 'transparent' }}
+          style={{ borderColor: 'rgb(var(--sys) / 0.5)', borderTopColor: 'transparent' }}
         />
         <span className="hud-label">Loading module</span>
       </div>

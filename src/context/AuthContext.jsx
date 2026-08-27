@@ -13,7 +13,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 /** Firebase's error codes are not something to show a hunter mid-workout. */
 const AUTH_ERRORS = {

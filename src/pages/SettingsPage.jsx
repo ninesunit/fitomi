@@ -32,8 +32,8 @@ export default function SettingsPage() {
     <div className="space-y-4">
       <MotionPanel accent notch className="p-5">
         <PanelHeader label="Preferences" title="Settings" icon={SettingsIcon} />
-        <p className="mt-1.5 text-sm text-slate-500">
-          Signed in as <span className="text-slate-300">{user?.email}</span>
+        <p className="mt-1.5 text-sm text-[rgb(var(--sys-dim))]">
+          Signed in as <span className="text-[rgb(var(--sys-ink))]">{user?.email}</span>
         </p>
       </MotionPanel>
 
@@ -54,7 +54,7 @@ export default function SettingsPage() {
               { value: 'lb', label: 'Pounds' },
             ]}
           />
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-[rgb(var(--sys-dim))]">
             Everything is stored in kilograms internally, so switching units never affects your
             records or XP.
           </p>
@@ -98,8 +98,8 @@ export default function SettingsPage() {
               type="number"
               value={settings.restSeconds}
               onChange={(e) => updateSettings({ restSeconds: Number(e.target.value) || 60 })}
-              className="field text-center font-mono"
-              style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field text-center font-mono"
+              style={{ outlineColor: 'rgb(var(--sys))' }}
             />
           </label>
           <label className="block">
@@ -108,8 +108,8 @@ export default function SettingsPage() {
               type="number"
               value={settings.restSecondsCompound}
               onChange={(e) => updateSettings({ restSecondsCompound: Number(e.target.value) || 120 })}
-              className="field text-center font-mono"
-              style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field text-center font-mono"
+              style={{ outlineColor: 'rgb(var(--sys))' }}
             />
           </label>
         </div>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
       {/* ---- streak ---- */}
       <MotionPanel delay={0.15} className="p-5">
         <PanelHeader label="Streak" title="Rest-day allowance" icon={Bell} />
-        <p className="mt-1.5 text-sm text-slate-500">
+        <p className="mt-1.5 text-sm text-[rgb(var(--sys-dim))]">
           How many consecutive rest days your streak survives. A programme demanding seven sessions
           a week is a programme that gets abandoned.
         </p>
@@ -139,7 +139,7 @@ export default function SettingsPage() {
       <MotionPanel delay={0.2} className="p-5">
         <PanelHeader label="Your data" title="Storage & export" icon={Database} />
 
-        <div className="mt-3 space-y-3 text-sm leading-relaxed text-slate-400">
+        <div className="mt-3 space-y-3 text-sm leading-relaxed text-[rgb(var(--sys-dim))]">
           <p>
             Active sessions live in your browser and are written to the cloud once, when you press
             Finish. That keeps the app usable on bad gym wi-fi and keeps daily database writes in the
@@ -166,7 +166,7 @@ export default function SettingsPage() {
       {/* ---- privacy ---- */}
       <MotionPanel delay={0.25} className="p-5">
         <PanelHeader label="Privacy" title="Who can see this" icon={Shield} />
-        <p className="mt-1.5 text-sm leading-relaxed text-slate-400">
+        <p className="mt-1.5 text-sm leading-relaxed text-[rgb(var(--sys-dim))]">
           Your training data is stored under your own account and the database rules reject any read
           or write that is not yours. There is no social feed, no leaderboard and no third-party
           analytics on your workout data.
@@ -184,9 +184,9 @@ export default function SettingsPage() {
 
 function Cell({ label, value }) {
   return (
-    <div className="rounded-lg border border-white/[0.07] bg-void-950/50 px-3 py-2">
+    <div className="rounded-lg border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] px-3 py-2">
       <div className="hud-label mb-0.5">{label}</div>
-      <div className="tnum truncate font-mono text-sm font-bold text-slate-100">{value}</div>
+      <div className="tnum truncate font-mono text-sm font-bold text-[rgb(var(--sys-ink))]">{value}</div>
     </div>
   );
 }

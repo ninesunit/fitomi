@@ -68,7 +68,7 @@ export default function AuthPage() {
     <div className="grid-bg relative flex min-h-screen items-center justify-center overflow-hidden bg-void-950 px-4 py-10">
       {/* Ambient gate light behind the panel. */}
       <div
-        className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/3 rounded-full opacity-40 blur-3xl"
+ className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/3  opacity-40 blur-3xl"
         style={{ background: 'radial-gradient(circle, rgba(38,189,255,0.4), transparent 65%)' }}
       />
 
@@ -76,7 +76,7 @@ export default function AuthPage() {
         initial={{ opacity: 0, y: 22, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-md"
+ className="relative w-full max-w-md"
       >
         <div className="mb-7 text-center">
           <svg viewBox="0 0 64 64" className="mx-auto mb-4 h-14 w-14">
@@ -146,7 +146,7 @@ export default function AuthPage() {
               <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="px-3 py-2 text-sm"
+ className="px-3 py-2 text-sm"
                 style={{ border: '1px solid rgb(var(--sys-danger)/0.5)', background: 'rgb(var(--sys-danger)/0.1)', color: 'rgb(var(--sys-danger))' }}
               >
                 {error}
@@ -176,16 +176,16 @@ export default function AuthPage() {
           <div className="mt-5 flex flex-col gap-2 text-center text-sm">
             {mode === 'signin' && (
               <>
-                <button onClick={() => setMode('signup')} className="text-slate-400 transition hover:text-slate-100">
+                <button onClick={() => setMode('signup')} className="text-[rgb(var(--sys-dim))] transition hover:text-[rgb(var(--sys-ink))]">
                   No account yet? <span className="accent-text font-semibold">Awaken as a hunter</span>
                 </button>
-                <button onClick={() => setMode('reset')} className="text-xs text-slate-500 transition hover:text-slate-300">
+                <button onClick={() => setMode('reset')} className="text-xs text-[rgb(var(--sys-dim))] transition hover:text-[rgb(var(--sys-ink))]">
                   Forgot your password?
                 </button>
               </>
             )}
             {mode !== 'signin' && (
-              <button onClick={() => setMode('signin')} className="text-slate-400 transition hover:text-slate-100">
+              <button onClick={() => setMode('signin')} className="text-[rgb(var(--sys-dim))] transition hover:text-[rgb(var(--sys-ink))]">
                 Already awakened? <span className="accent-text font-semibold">Sign in</span>
               </button>
             )}

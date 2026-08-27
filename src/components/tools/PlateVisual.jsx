@@ -76,8 +76,8 @@ export function PlateVisual({ embedded = false }) {
             step="2.5"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
-            className="field text-center font-mono text-xl font-bold"
-            style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field text-center font-mono text-xl font-bold"
+            style={{ outlineColor: 'rgb(var(--sys))' }}
           />
         </label>
 
@@ -93,8 +93,8 @@ export function PlateVisual({ embedded = false }) {
         </label>
       </div>
 
-      <div className="rounded-xl border border-white/[0.07] bg-void-950/60 p-4">
-        <svg viewBox="0 0 340 120" className="w-full" role="img" aria-label="Loaded barbell">
+      <div className="rounded-xl border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] p-4">
+        <svg viewBox="0 0 340 132" className="w-full" role="img" aria-label="Loaded barbell">
           <rect x="10" y="56" width="320" height="8" rx="4" fill="#475569" />
           <rect x={COLLAR_L + 6} y="54" width={COLLAR_R - COLLAR_L - 12} height="12" rx="6" fill="#64748b" />
           <rect x={COLLAR_L} y="48" width="7" height="24" rx="2" fill="#334155" />
@@ -137,7 +137,7 @@ export function PlateVisual({ embedded = false }) {
             );
           })}
 
-          <text x={CENTER} y="104" textAnchor="middle" className="fill-slate-500 font-mono text-[10px]">
+          <text x={CENTER} y="124" textAnchor="middle" className="fill-[rgb(var(--sys-dim))] font-mono text-[10px]">
             {bar.name} · {bar.weight} {unit}
           </text>
         </svg>
@@ -147,16 +147,16 @@ export function PlateVisual({ embedded = false }) {
             result.perSide.map((plate) => (
               <span
                 key={plate.weight}
-                className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-xs font-bold"
+ className="inline-flex items-center gap-1.5  border px-2 py-1 font-mono text-xs font-bold"
                 style={{ borderColor: `${plate.color}66`, color: plate.color }}
               >
                 {plate.count} × {plate.weight}
               </span>
             ))
           ) : (
-            <span className="font-mono text-xs text-slate-500">Empty bar</span>
+            <span className="font-mono text-xs text-[rgb(var(--sys-dim))]">Empty bar</span>
           )}
-          <span className="font-mono text-xs text-slate-500">per side</span>
+          <span className="font-mono text-xs text-[rgb(var(--sys-dim))]">per side</span>
         </div>
       </div>
 
@@ -170,7 +170,7 @@ export function PlateVisual({ embedded = false }) {
       </div>
 
       {(!result.exact || result.error) && (
-        <div className="flex items-start gap-2 rounded-lg border border-gold-500/30 bg-gold-500/10 px-3 py-2 text-xs text-gold-300">
+        <div className="flex items-start gap-2  border border-[rgb(var(--sys-gold)/0.4)] bg-[rgb(var(--sys-gold)/0.12)] px-3 py-2 text-xs text-[rgb(var(--sys-gold))]">
           <AlertTriangle size={13} className="mt-0.5 shrink-0" />
           <span>
             {result.error ||
@@ -187,13 +187,13 @@ export function PlateVisual({ embedded = false }) {
               <button
                 key={step.pct}
                 onClick={() => setTarget(step.weight)}
-                className="rounded-lg border border-white/[0.07] bg-void-950/50 px-2 py-2 text-center transition hover:bg-white/[0.05]"
+ className="rounded-lg border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] px-2 py-2 text-center transition hover:bg-[rgb(var(--sys)/0.05)]"
               >
                 <div className="hud-label mb-0.5">{step.pct}%</div>
-                <div className="tnum font-mono text-sm font-bold text-slate-100">
+                <div className="tnum font-mono text-sm font-bold text-[rgb(var(--sys-ink))]">
                   {step.weight} {unit}
                 </div>
-                <div className="font-mono text-[10px] text-slate-500">× {step.reps}</div>
+                <div className="font-mono text-[10px] text-[rgb(var(--sys-dim))]">× {step.reps}</div>
               </button>
             ))}
           </div>
@@ -209,9 +209,9 @@ export function PlateVisual({ embedded = false }) {
               <button
                 key={plate.weight}
                 onClick={() => togglePlate(plate.weight)}
-                className={clsx(
+ className={clsx(
                   'rounded-md border px-2.5 py-1 font-mono text-xs font-bold transition',
-                  on ? 'text-void-950' : 'border-white/10 text-slate-500 hover:bg-white/5',
+                  on ? 'text-void-950' : 'border-[rgb(var(--sys)/0.25)] text-[rgb(var(--sys-dim))] hover:bg-white/5',
                 )}
                 style={on ? { backgroundColor: plate.color, borderColor: plate.color } : undefined}
               >
@@ -220,7 +220,7 @@ export function PlateVisual({ embedded = false }) {
             );
           })}
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-[rgb(var(--sys-dim))]">
           Deselect anything your gym does not stock — the calculator solves exactly for what is left.
         </p>
       </div>
@@ -230,9 +230,9 @@ export function PlateVisual({ embedded = false }) {
 
 function Readout({ label, value, accent }) {
   return (
-    <div className="rounded-lg border border-white/[0.07] bg-void-950/50 px-3 py-2 text-center">
+    <div className="rounded-lg border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] px-3 py-2 text-center">
       <div className="hud-label mb-0.5">{label}</div>
-      <div className={clsx('tnum font-mono text-sm font-bold', accent ? 'accent-text' : 'text-slate-100')}>
+      <div className={clsx('tnum font-mono text-sm font-bold', accent ? 'accent-text' : 'text-[rgb(var(--sys-ink))]')}>
         {value}
       </div>
     </div>

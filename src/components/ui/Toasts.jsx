@@ -3,10 +3,10 @@ import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react';
 import { useSystem } from '../../context/SystemContext';
 
 const TONES = {
-  info: { icon: Info, color: 'text-system-300', ring: 'border-system-400/40' },
-  success: { icon: CheckCircle2, color: 'text-mana-400', ring: 'border-mana-500/40' },
-  warn: { icon: AlertTriangle, color: 'text-gold-400', ring: 'border-gold-500/40' },
-  error: { icon: XCircle, color: 'text-blood-400', ring: 'border-blood-500/40' },
+  info: { icon: Info, color: 'text-[rgb(var(--sys))]', ring: 'border-system-400/40' },
+  success: { icon: CheckCircle2, color: 'text-[rgb(var(--sys-good))]', ring: 'border-[rgb(var(--sys-good)/0.4)]' },
+  warn: { icon: AlertTriangle, color: 'text-[rgb(var(--sys-gold))]', ring: 'border-[rgb(var(--sys-gold)/0.4)]' },
+  error: { icon: XCircle, color: 'text-[rgb(var(--sys-danger))]', ring: 'border-[rgb(var(--sys-danger)/0.45)]' },
 };
 
 export function Toasts() {
@@ -27,7 +27,7 @@ export function Toasts() {
               exit={{ opacity: 0, y: -12, scale: 0.97 }}
               transition={{ duration: 0.2 }}
               onClick={() => dismissToast(toast.id)}
-              className={`panel pointer-events-auto flex max-w-md items-center gap-2.5 border ${tone.ring} px-4 py-2.5 text-left text-sm text-slate-200 shadow-lg`}
+ className={`panel pointer-events-auto flex max-w-md items-center gap-2.5 border ${tone.ring} px-4 py-2.5 text-left text-sm text-[rgb(var(--sys-ink))] shadow-lg`}
             >
               <Icon size={16} className={`${tone.color} shrink-0`} />
               <span>{toast.message}</span>

@@ -74,20 +74,20 @@ export default function ProfilePage() {
           <RankBadge rank={rank} size={80} pulse />
           <div className="min-w-0 flex-1">
             <div className="hud-label mb-1">Hunter</div>
-            <h1 className="truncate font-display text-2xl font-bold text-slate-100">
+            <h1 className="truncate font-display text-2xl font-bold text-[rgb(var(--sys-ink))]">
               {profile.displayName}
             </h1>
             <p className="text-sm" style={{ color: rank.color }}>
               {rank.name} · {profile.title || rank.title}
             </p>
-            <p className="mt-1 text-xs text-slate-500">{rank.blurb}</p>
+            <p className="mt-1 text-xs text-[rgb(var(--sys-dim))]">{rank.blurb}</p>
           </div>
         </div>
 
         <div className="mt-5">
           <div className="mb-1.5 flex items-baseline justify-between">
             <span className="hud-label">Level {xp.level}</span>
-            <span className="tnum font-mono text-xs text-slate-400">
+            <span className="tnum font-mono text-xs text-[rgb(var(--sys-dim))]">
               {xp.totalXp.toLocaleString()} lifetime XP
             </span>
           </div>
@@ -104,25 +104,25 @@ export default function ProfilePage() {
               return (
                 <div key={r.id} className="flex-1 text-center">
                   <div
-                    className="mx-auto mb-1 h-1.5 rounded-full transition-all"
+ className="mx-auto mb-1 h-1.5  transition-all"
                     style={{
                       backgroundColor: reached ? r.color : 'rgba(148,163,184,0.2)',
                       boxShadow: current ? `0 0 12px ${r.glow}` : 'none',
                     }}
                   />
                   <span
-                    className={clsx('font-mono text-[10px] font-bold', current && 'glow-text')}
+ className={clsx('font-mono text-[10px] font-bold', current && 'glow-text')}
                     style={{ color: reached ? r.color : '#475569' }}
                   >
                     {r.id}
                   </span>
-                  <span className="block font-mono text-[9px] text-slate-600">{r.minLevel}</span>
+                  <span className="block font-mono text-[9px] text-[rgb(var(--sys-dim))]">{r.minLevel}</span>
                 </div>
               );
             })}
           </div>
           {nextRank && (
-            <p className="mt-2 text-center text-xs text-slate-500">
+            <p className="mt-2 text-center text-xs text-[rgb(var(--sys-dim))]">
               {nextRank.minLevel - xp.level} levels to{' '}
               <span style={{ color: nextRank.color }}>{nextRank.name}</span> ·{' '}
               {Math.round(rankProgress * 100)}% of the way
@@ -144,15 +144,15 @@ export default function ProfilePage() {
               return (
                 <div key={stat.id}>
                   <div className="mb-1 flex items-baseline justify-between gap-2">
-                    <span className="text-xs font-medium text-slate-300">{stat.name}</span>
-                    <span className="tnum font-mono text-[11px] text-slate-400">
+                    <span className="text-xs font-medium text-[rgb(var(--sys-ink))]">{stat.name}</span>
+                    <span className="tnum font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                       {value} ({Math.round(share * 100)}%)
                     </span>
                   </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-void-700/70">
+                  <div className="h-1.5 w-full overflow-hidden  bg-[rgb(var(--sys-deep-2)/0.9)]">
                     <motion.div
-                      className="h-full rounded-full"
-                      style={{ backgroundColor: 'rgb(var(--accent))' }}
+ className="h-full "
+                      style={{ backgroundColor: 'rgb(var(--sys))' }}
                       initial={{ width: 0 }}
                       animate={{ width: `${share * 100}%` }}
                       transition={{ duration: 0.6 }}
@@ -163,7 +163,7 @@ export default function ProfilePage() {
             })}
           </div>
 
-          <p className="mt-3 text-xs leading-relaxed text-slate-500">
+          <p className="mt-3 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
             Points allocate themselves from what you actually train — heavy compounds feed Strength
             and Vitality, conditioning feeds Agility, consistent logging feeds Intelligence.
           </p>
@@ -176,19 +176,19 @@ export default function ProfilePage() {
             {standards.map(({ exercise, record, level }) => (
               <div key={exercise.id}>
                 <div className="mb-1 flex items-baseline justify-between gap-2">
-                  <span className="truncate text-xs font-medium text-slate-300">{exercise.name}</span>
+                  <span className="truncate text-xs font-medium text-[rgb(var(--sys-ink))]">{exercise.name}</span>
                   {record ? (
-                    <span className="tnum shrink-0 font-mono text-[11px] text-slate-400">
+                    <span className="tnum shrink-0 font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                       {fromKg(record.e1rm, unit).toFixed(0)} {unit} · {level?.ratio.toFixed(2)}×BW
                     </span>
                   ) : (
-                    <span className="shrink-0 font-mono text-[11px] text-slate-600">no data</span>
+                    <span className="shrink-0 font-mono text-[11px] text-[rgb(var(--sys-dim))]">no data</span>
                   )}
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-void-700/70">
+                <div className="h-1.5 w-full overflow-hidden  bg-[rgb(var(--sys-deep-2)/0.9)]">
                   {level && (
                     <motion.div
-                      className="h-full rounded-full"
+ className="h-full "
                       style={{ backgroundColor: tierColor(level.tier) }}
                       initial={{ width: 0 }}
                       animate={{
@@ -204,7 +204,7 @@ export default function ProfilePage() {
                       {level.tier || 'untrained'}
                     </span>
                     {level.nextTier && (
-                      <span className="text-slate-600">
+                      <span className="text-[rgb(var(--sys-dim))]">
                         {fromKg(level.targetWeight, unit).toFixed(0)} {unit} for {level.nextTier}
                       </span>
                     )}
@@ -223,7 +223,7 @@ export default function ProfilePage() {
           title={`${unlocked.size} of ${SHADOWS.length} extracted`}
           icon={Ghost}
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-[rgb(var(--sys-dim))]">
           Each shadow carries an interface theme. Tap an unlocked one to equip it.
         </p>
 
@@ -353,10 +353,10 @@ function ThemeTile({ active, onClick, name, subtitle, theme, sigil, unlocked }) 
     <button
       onClick={onClick}
       disabled={!unlocked}
-      className={clsx(
-        'flex items-center gap-3 rounded-xl border p-3 text-left transition',
+ className={clsx(
+        'flex items-center gap-3  border p-3 text-left transition',
         !unlocked && 'cursor-not-allowed opacity-45',
-        active ? 'border-transparent' : 'border-white/[0.07] hover:bg-white/[0.04]',
+        active ? 'border-transparent' : 'border-[rgb(var(--sys)/0.18)] hover:bg-[rgb(var(--sys)/0.05)]',
       )}
       style={
         active
@@ -365,7 +365,7 @@ function ThemeTile({ active, onClick, name, subtitle, theme, sigil, unlocked }) 
       }
     >
       <span
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+ className="flex h-10 w-10 shrink-0 items-center justify-center "
         style={{ backgroundColor: `rgb(${theme.accent} / 0.15)` }}
       >
         {sigil ? (
@@ -384,13 +384,13 @@ function ThemeTile({ active, onClick, name, subtitle, theme, sigil, unlocked }) 
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-slate-100">{name}</span>
-        <span className="block truncate text-[11px] text-slate-500">{subtitle}</span>
+        <span className="block truncate text-sm font-semibold text-[rgb(var(--sys-ink))]">{name}</span>
+        <span className="block truncate text-[11px] text-[rgb(var(--sys-dim))]">{subtitle}</span>
       </span>
 
       <span className="flex shrink-0 gap-1">
-        <span className="h-4 w-2 rounded-sm" style={{ backgroundColor: `rgb(${theme.accent})` }} />
-        <span className="h-4 w-2 rounded-sm" style={{ backgroundColor: `rgb(${theme.accent2})` }} />
+        <span className="h-4 w-2 " style={{ backgroundColor: `rgb(${theme.accent})` }} />
+        <span className="h-4 w-2 " style={{ backgroundColor: `rgb(${theme.accent2})` }} />
       </span>
 
       {active && <Check size={15} className="shrink-0" style={{ color: `rgb(${theme.accent})` }} />}
@@ -400,9 +400,9 @@ function ThemeTile({ active, onClick, name, subtitle, theme, sigil, unlocked }) 
 
 function Cell({ label, value }) {
   return (
-    <div className="rounded-lg border border-white/[0.07] bg-void-950/50 px-3 py-2.5">
+    <div className="rounded-lg border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] px-3 py-2.5">
       <div className="hud-label mb-0.5">{label}</div>
-      <div className="tnum truncate font-mono text-sm font-bold text-slate-100">{value}</div>
+      <div className="tnum truncate font-mono text-sm font-bold text-[rgb(var(--sys-ink))]">{value}</div>
     </div>
   );
 }

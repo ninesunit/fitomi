@@ -111,37 +111,37 @@ export default function HistoryPage() {
             <div className="panel overflow-hidden">
               <button
                 onClick={() => setExpanded(expanded === workout.id ? null : workout.id)}
-                className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-white/[0.03]"
+ className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-[rgb(var(--sys)/0.05)]"
               >
                 <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: 'rgb(var(--accent) / 0.14)' }}
+ className="flex h-10 w-10 shrink-0 items-center justify-center "
+                  style={{ backgroundColor: 'rgb(var(--sys) / 0.14)' }}
                 >
                   <Dumbbell size={17} className="accent-text" />
                 </span>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate font-display text-sm font-semibold text-slate-100">
+                  <h3 className="truncate font-display text-sm font-semibold text-[rgb(var(--sys-ink))]">
                     {workout.name}
                   </h3>
-                  <p className="truncate font-mono text-[11px] text-slate-500">
+                  <p className="truncate font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                     {formatDate(workout.finishedAt, { weekday: 'short', month: 'short', day: 'numeric' })} ·{' '}
                     {relativeTime(workout.finishedAt)}
                   </p>
                 </div>
 
                 <div className="hidden shrink-0 text-right sm:block">
-                  <div className="tnum font-mono text-sm font-bold text-slate-100">
+                  <div className="tnum font-mono text-sm font-bold text-[rgb(var(--sys-ink))]">
                     {Math.round(convert(workout.volumeKg || 0)).toLocaleString()} {unit}
                   </div>
-                  <div className="font-mono text-[11px] text-slate-500">
+                  <div className="font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                     {workout.sets} sets · +{workout.xp} XP
                   </div>
                 </div>
 
                 <ChevronDown
                   size={16}
-                  className={`shrink-0 text-slate-600 transition-transform ${
+ className={`shrink-0 text-[rgb(var(--sys-dim))] transition-transform ${
                     expanded === workout.id ? 'rotate-180' : ''
                   }`}
                 />
@@ -151,7 +151,7 @@ export default function HistoryPage() {
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
-                  className="overflow-hidden border-t border-white/[0.06]"
+ className="overflow-hidden border-t border-[rgb(var(--sys)/0.18)]"
                 >
                   <div className="space-y-3 p-4">
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -165,8 +165,8 @@ export default function HistoryPage() {
                       const exercise = getExercise(entry.exerciseId);
                       if (!exercise) return null;
                       return (
-                        <div key={entry.exerciseId} className="rounded-lg border border-white/[0.06] p-3">
-                          <div className="mb-2 text-sm font-medium text-slate-200">{exercise.name}</div>
+                        <div key={entry.exerciseId} className="rounded-lg border border-[rgb(var(--sys)/0.18)] p-3">
+                          <div className="mb-2 text-sm font-medium text-[rgb(var(--sys-ink))]">{exercise.name}</div>
                           <div className="flex flex-wrap gap-1.5">
                             {entry.sets.map((set, si) => (
                               <span key={si} className="stat-chip">
@@ -175,7 +175,7 @@ export default function HistoryPage() {
                                   : exercise.tracking === 'distance'
                                     ? `${set.distance}m`
                                     : `${Number(set.weight) || 0}${unit} × ${set.reps}`}
-                                {set.rpe && <span className="text-slate-500">@{set.rpe}</span>}
+                                {set.rpe && <span className="text-[rgb(var(--sys-dim))]">@{set.rpe}</span>}
                               </span>
                             ))}
                           </div>
@@ -184,7 +184,7 @@ export default function HistoryPage() {
                     })}
 
                     {workout.notes && (
-                      <p className="rounded-lg border border-white/[0.06] bg-void-950/50 p-3 text-sm italic text-slate-400">
+                      <p className="rounded-lg border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] p-3 text-sm italic text-[rgb(var(--sys-dim))]">
                         {workout.notes}
                       </p>
                     )}
@@ -202,13 +202,13 @@ export default function HistoryPage() {
 
       {loading && (
         <div className="flex justify-center py-6">
-          <Loader2 size={20} className="animate-spin text-slate-500" />
+          <Loader2 size={20} className="animate-spin text-[rgb(var(--sys-dim))]" />
         </div>
       )}
 
       {!loading && !workouts.length && (
         <MotionPanel className="p-10 text-center">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[rgb(var(--sys-dim))]">
             No sessions logged yet. Your first workout appears here the moment you finish it.
           </p>
         </MotionPanel>
@@ -254,21 +254,21 @@ function TrainingHeatmap({ trainingDays }) {
               <span
                 key={day.key}
                 title={day.key}
-                className="h-3 w-3 rounded-[3px]"
+ className="h-3 w-3 rounded-[3px]"
                 style={{
                   backgroundColor: day.future
                     ? 'transparent'
                     : days.has(day.key)
-                      ? 'rgb(var(--accent))'
+                      ? 'rgb(var(--sys))'
                       : 'rgba(148,163,184,0.12)',
-                  boxShadow: days.has(day.key) ? '0 0 8px -2px rgb(var(--accent))' : 'none',
+                  boxShadow: days.has(day.key) ? '0 0 8px -2px rgb(var(--sys))' : 'none',
                 }}
               />
             ))}
           </div>
         ))}
       </div>
-      <p className="mt-2 text-xs text-slate-500">
+      <p className="mt-2 text-xs text-[rgb(var(--sys-dim))]">
         {trained} training day{trained === 1 ? '' : 's'} in the last 12 weeks.
       </p>
     </div>
@@ -277,9 +277,9 @@ function TrainingHeatmap({ trainingDays }) {
 
 function Cell({ label, value }) {
   return (
-    <div className="rounded-lg border border-white/[0.07] bg-void-950/50 px-3 py-2">
+    <div className="rounded-lg border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] px-3 py-2">
       <div className="hud-label mb-0.5">{label}</div>
-      <div className="tnum truncate font-mono text-sm font-bold text-slate-100">{value}</div>
+      <div className="tnum truncate font-mono text-sm font-bold text-[rgb(var(--sys-ink))]">{value}</div>
     </div>
   );
 }

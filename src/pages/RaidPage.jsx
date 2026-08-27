@@ -22,11 +22,11 @@ export default function RaidPage() {
     <div className="space-y-4">
       <MotionPanel
         notch
-        className="relative overflow-hidden p-5"
+ className="relative overflow-hidden p-5"
         style={{ borderColor: `${boss.color}55`, boxShadow: `0 0 44px -18px ${boss.color}` }}
       >
         <span
-          className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full opacity-30 blur-3xl"
+ className="pointer-events-none absolute -right-20 -top-20 h-72 w-72  opacity-30 blur-3xl"
           style={{ background: `radial-gradient(circle, ${boss.color}, transparent 70%)` }}
         />
 
@@ -35,8 +35,8 @@ export default function RaidPage() {
           <h1 className="font-display text-3xl font-bold" style={{ color: boss.color }}>
             {boss.name}
           </h1>
-          <p className="mt-0.5 text-sm text-slate-400">{boss.title}</p>
-          <p className="mt-3 max-w-lg text-sm italic leading-relaxed text-slate-500">
+          <p className="mt-0.5 text-sm text-[rgb(var(--sys-dim))]">{boss.title}</p>
+          <p className="mt-3 max-w-lg text-sm italic leading-relaxed text-[rgb(var(--sys-dim))]">
             &ldquo;{boss.flavor}&rdquo;
           </p>
 
@@ -47,9 +47,9 @@ export default function RaidPage() {
                 {remaining.toLocaleString()} / {raid.hp.toLocaleString()}
               </span>
             </div>
-            <div className="relative h-5 w-full overflow-hidden rounded-lg border border-white/10 bg-void-950/70">
+            <div className="relative h-5 w-full overflow-hidden  border border-[rgb(var(--sys)/0.25)] bg-[rgb(var(--sys-deep-2)/0.6)]">
               <motion.div
-                className="h-full"
+ className="h-full"
                 style={{ backgroundColor: boss.color, boxShadow: `0 0 22px -4px ${boss.color}` }}
                 initial={{ width: '100%' }}
                 animate={{ width: `${100 - pct}%` }}
@@ -62,23 +62,23 @@ export default function RaidPage() {
           </div>
 
           {raid.defeated ? (
-            <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-mana-500/35 bg-mana-500/10 px-4 py-3">
-              <Trophy size={18} className="shrink-0 text-mana-400" />
+            <div className="mt-4 flex items-center gap-2.5  border border-[rgb(var(--sys-good)/0.4)] bg-[rgb(var(--sys-good)/0.12)] px-4 py-3">
+              <Trophy size={18} className="shrink-0 text-[rgb(var(--sys-good))]" />
               <div>
-                <div className="text-sm font-semibold text-mana-300">Gate cleared</div>
-                <div className="text-xs text-slate-400">
+                <div className="text-sm font-semibold text-[rgb(var(--sys-good))]">Gate cleared</div>
+                <div className="text-xs text-[rgb(var(--sys-dim))]">
                   Felled {relativeTime(raid.defeatedAt)}. A new boss arrives Monday.
                 </div>
               </div>
             </div>
           ) : (
-            <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+            <div className="mt-4 flex items-center gap-2.5  border border-[rgb(var(--sys)/0.25)] bg-[rgb(var(--sys)/0.05)] px-4 py-3">
               <Target size={18} className="shrink-0" style={{ color: boss.accent }} />
               <div>
-                <div className="text-sm font-semibold text-slate-200">
+                <div className="text-sm font-semibold text-[rgb(var(--sys-ink))]">
                   Weakness: {boss.weaknessLabel}
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-[rgb(var(--sys-dim))]">
                   Records set on these movements deal 60% extra damage.
                 </div>
               </div>
@@ -97,14 +97,14 @@ export default function RaidPage() {
               return (
                 <div key={source.id}>
                   <div className="mb-1 flex items-baseline justify-between">
-                    <span className="text-xs text-slate-300">{source.label}</span>
-                    <span className="tnum font-mono text-[11px] text-slate-400">
+                    <span className="text-xs text-[rgb(var(--sys-ink))]">{source.label}</span>
+                    <span className="tnum font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                       {amount.toLocaleString()} ({Math.round(share)}%)
                     </span>
                   </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-void-700/70">
+                  <div className="h-1.5 w-full overflow-hidden  bg-[rgb(var(--sys-deep-2)/0.9)]">
                     <motion.div
-                      className="h-full rounded-full"
+ className="h-full "
                       style={{ backgroundColor: source.color }}
                       initial={{ width: 0 }}
                       animate={{ width: `${share}%` }}
@@ -128,19 +128,19 @@ export default function RaidPage() {
             {[...(raid.log || [])].reverse().map((hit, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-void-950/50 px-3 py-2"
+ className="flex items-center justify-between gap-3  border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] px-3 py-2"
               >
                 <div className="min-w-0">
-                  <div className="truncate text-xs text-slate-300">
+                  <div className="truncate text-xs text-[rgb(var(--sys-ink))]">
                     {hit.label || DAMAGE_SOURCES[hit.source]?.label}
                     {hit.weakness && (
-                      <span className="ml-1.5 font-mono text-[10px] text-gold-400">WEAKNESS</span>
+                      <span className="ml-1.5 font-mono text-[10px] text-[rgb(var(--sys-gold))]">WEAKNESS</span>
                     )}
                   </div>
-                  <div className="font-mono text-[10px] text-slate-600">{relativeTime(hit.at)}</div>
+                  <div className="font-mono text-[10px] text-[rgb(var(--sys-dim))]">{relativeTime(hit.at)}</div>
                 </div>
                 <span
-                  className="tnum shrink-0 font-mono text-sm font-bold"
+ className="tnum shrink-0 font-mono text-sm font-bold"
                   style={{ color: DAMAGE_SOURCES[hit.source]?.color || '#94a3b8' }}
                 >
                   -{hit.amount.toLocaleString()}
@@ -148,7 +148,7 @@ export default function RaidPage() {
               </div>
             ))}
             {!raid.log?.length && (
-              <p className="py-8 text-center text-sm text-slate-500">
+              <p className="py-8 text-center text-sm text-[rgb(var(--sys-dim))]">
                 No damage dealt yet this week. Log a session or clear a quest.
               </p>
             )}
@@ -158,7 +158,7 @@ export default function RaidPage() {
 
       <MotionPanel delay={0.15} className="p-5">
         <PanelHeader label="Bestiary" title={`${BOSSES.length} known gates`} icon={Skull} />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-[rgb(var(--sys-dim))]">
           One boss per ISO week, selected deterministically — every hunter on Earth faces the same
           monster in the same week.
         </p>
@@ -169,7 +169,7 @@ export default function RaidPage() {
             return (
               <div
                 key={entry.id}
-                className="rounded-xl border p-3"
+ className="rounded-xl border p-3"
                 style={{
                   borderColor: current ? `${entry.color}66` : 'rgba(255,255,255,0.06)',
                   backgroundColor: current ? `${entry.color}10` : 'rgba(4,6,13,0.5)',
@@ -180,15 +180,15 @@ export default function RaidPage() {
                     <div className="truncate text-sm font-semibold" style={{ color: entry.color }}>
                       {entry.name}
                     </div>
-                    <div className="truncate text-[11px] text-slate-500">{entry.title}</div>
+                    <div className="truncate text-[11px] text-[rgb(var(--sys-dim))]">{entry.title}</div>
                   </div>
                   {current && (
-                    <span className="shrink-0 rounded border border-white/15 px-1.5 py-px font-mono text-[9px] uppercase text-slate-300">
+                    <span className="shrink-0  border border-[rgb(var(--sys)/0.25)] px-1.5 py-px font-mono text-[9px] uppercase text-[rgb(var(--sys-ink))]">
                       {felled ? 'Felled' : 'Active'}
                     </span>
                   )}
                 </div>
-                <div className="mt-2 font-mono text-[10px] text-slate-600">
+                <div className="mt-2 font-mono text-[10px] text-[rgb(var(--sys-dim))]">
                   Weak to {entry.weaknessLabel} · {Math.round(entry.baseHp * (1 + (xp.level - 1) * 0.028)).toLocaleString()} HP
                 </div>
               </div>
@@ -202,9 +202,9 @@ export default function RaidPage() {
 
 function Cell({ label, value }) {
   return (
-    <div className="rounded-lg border border-white/[0.07] bg-void-950/50 px-3 py-2">
+    <div className="rounded-lg border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] px-3 py-2">
       <div className="hud-label mb-0.5">{label}</div>
-      <div className="tnum font-mono text-sm font-bold text-slate-100">{value}</div>
+      <div className="tnum font-mono text-sm font-bold text-[rgb(var(--sys-ink))]">{value}</div>
     </div>
   );
 }

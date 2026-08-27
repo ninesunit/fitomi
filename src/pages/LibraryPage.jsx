@@ -51,18 +51,18 @@ export default function LibraryPage() {
 
         <div className="mt-3 flex gap-2">
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--sys-dim))]" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search exercises, machines, muscles…"
-              className="field pl-9"
-              style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field pl-9"
+              style={{ outlineColor: 'rgb(var(--sys))' }}
             />
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-slate-200"
+ className="absolute right-2 top-1/2 -translate-y-1/2  p-1 text-[rgb(var(--sys-dim))] hover:text-[rgb(var(--sys-ink))]"
                 aria-label="Clear search"
               >
                 <X size={14} />
@@ -73,14 +73,14 @@ export default function LibraryPage() {
             variant="ghost"
             size="icon"
             onClick={() => setShowFilters((v) => !v)}
-            className={clsx('relative', activeFilters && 'accent-border')}
+ className={clsx('relative', activeFilters && 'accent-border')}
             aria-label="Filters"
           >
             <SlidersHorizontal size={16} />
             {activeFilters > 0 && (
               <span
-                className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-void-950"
-                style={{ backgroundColor: 'rgb(var(--accent))' }}
+ className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center  text-[10px] font-bold text-void-950"
+                style={{ backgroundColor: 'rgb(var(--sys))' }}
               >
                 {activeFilters}
               </span>
@@ -94,7 +94,7 @@ export default function LibraryPage() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
+ className="overflow-hidden"
             >
               <div className="space-y-2 pt-3">
                 <FilterRow
@@ -124,33 +124,33 @@ export default function LibraryPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: Math.min(i * 0.012, 0.3), duration: 0.25 }}
             onClick={() => navigate(`/library/${exercise.id}`)}
-            className="panel flex items-center gap-3 p-3 text-left transition hover:bg-white/[0.04]"
+ className="panel flex items-center gap-3 p-3 text-left transition hover:bg-[rgb(var(--sys)/0.05)]"
           >
-            <div className="h-14 w-14 shrink-0 rounded-lg border border-white/[0.07] bg-void-950/60">
+            <div className="h-14 w-14 shrink-0  border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
               <ExerciseAnimation exercise={exercise} speed={3.2} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="truncate text-sm font-semibold text-slate-100">{exercise.name}</h3>
-              <p className="truncate font-mono text-[11px] text-slate-500">
+              <h3 className="truncate text-sm font-semibold text-[rgb(var(--sys-ink))]">{exercise.name}</h3>
+              <p className="truncate font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                 {EQUIPMENT[exercise.equipment]?.name} · {exercise.primary.map((m) => MUSCLES[m]?.name).join(', ')}
               </p>
               <div className="mt-1 flex gap-1">
-                <span className="rounded border border-white/10 px-1.5 py-px font-mono text-[9px] uppercase text-slate-500">
+                <span className="rounded border border-[rgb(var(--sys)/0.25)] px-1.5 py-px font-mono text-[9px] uppercase text-[rgb(var(--sys-dim))]">
                   {exercise.difficulty}
                 </span>
-                <span className="rounded border border-white/10 px-1.5 py-px font-mono text-[9px] uppercase text-slate-500">
+                <span className="rounded border border-[rgb(var(--sys)/0.25)] px-1.5 py-px font-mono text-[9px] uppercase text-[rgb(var(--sys-dim))]">
                   {exercise.mechanics}
                 </span>
               </div>
             </div>
-            <ChevronRight size={16} className="shrink-0 text-slate-600" />
+            <ChevronRight size={16} className="shrink-0 text-[rgb(var(--sys-dim))]" />
           </motion.button>
         ))}
       </div>
 
       {!results.length && (
         <Panel className="p-10 text-center">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[rgb(var(--sys-dim))]">
             No movements match that. Try a muscle name like &ldquo;lats&rdquo; or equipment like
             &ldquo;cable&rdquo;.
           </p>
@@ -183,11 +183,11 @@ function FilterRow({ label, value, onChange, options }) {
             <button
               key={option.id}
               onClick={() => onChange(option.id)}
-              className={clsx(
-                'shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium transition',
-                on ? 'border-transparent text-void-950' : 'border-white/10 text-slate-400 hover:bg-white/5',
+ className={clsx(
+                'shrink-0 whitespace-nowrap  border px-3 py-1 text-xs font-medium transition',
+                on ? 'border-transparent text-void-950' : 'border-[rgb(var(--sys)/0.25)] text-[rgb(var(--sys-dim))] hover:bg-white/5',
               )}
-              style={on ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+              style={on ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
             >
               {option.name}
             </button>
@@ -215,7 +215,7 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
       {exercise && (
         <div className="space-y-5">
           <div className="flex flex-col gap-4 sm:flex-row">
-            <div className="mx-auto h-44 w-44 shrink-0 rounded-xl border border-white/[0.07] bg-void-950/60">
+            <div className="mx-auto h-44 w-44 shrink-0  border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
               <ExerciseAnimation exercise={exercise} speed={2.6} />
             </div>
 
@@ -258,19 +258,19 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
               <div className="hud-label mb-2">Your records</div>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
-                  <div className="tnum font-mono text-sm font-bold text-gold-300">
+                  <div className="tnum font-mono text-sm font-bold text-[rgb(var(--sys-gold))]">
                     {fromKg(record.e1rm, unit).toFixed(1)}
                   </div>
                   <div className="hud-label">est 1RM</div>
                 </div>
                 <div>
-                  <div className="tnum font-mono text-sm font-bold text-gold-300">
+                  <div className="tnum font-mono text-sm font-bold text-[rgb(var(--sys-gold))]">
                     {fromKg(record.weight, unit).toFixed(1)}
                   </div>
                   <div className="hud-label">Top weight</div>
                 </div>
                 <div>
-                  <div className="tnum font-mono text-sm font-bold text-gold-300">{record.reps || '—'}</div>
+                  <div className="tnum font-mono text-sm font-bold text-[rgb(var(--sys-gold))]">{record.reps || '—'}</div>
                   <div className="hud-label">Best reps</div>
                 </div>
               </div>
@@ -278,19 +278,19 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
           )}
 
           <section>
-            <h3 className="mb-2.5 font-display text-sm font-semibold tracking-wide text-slate-100">
+            <h3 className="mb-2.5 font-display text-sm font-semibold tracking-wide text-[rgb(var(--sys-ink))]">
               How to perform it
             </h3>
             <ol className="space-y-2.5">
               {exercise.steps.map((step, i) => (
                 <li key={i} className="flex gap-3">
                   <span
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md font-mono text-[11px] font-bold text-void-950"
-                    style={{ backgroundColor: 'rgb(var(--accent))' }}
+ className="flex h-6 w-6 shrink-0 items-center justify-center  font-mono text-[11px] font-bold text-void-950"
+                    style={{ backgroundColor: 'rgb(var(--sys))' }}
                   >
                     {i + 1}
                   </span>
-                  <span className="text-sm leading-relaxed text-slate-300">{step}</span>
+                  <span className="text-sm leading-relaxed text-[rgb(var(--sys-ink))]">{step}</span>
                 </li>
               ))}
             </ol>
@@ -298,14 +298,14 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
 
           {exercise.cues.length > 0 && (
             <section>
-              <h3 className="mb-2 flex items-center gap-2 font-display text-sm font-semibold tracking-wide text-slate-100">
-                <Lightbulb size={14} className="text-gold-400" />
+              <h3 className="mb-2 flex items-center gap-2 font-display text-sm font-semibold tracking-wide text-[rgb(var(--sys-ink))]">
+                <Lightbulb size={14} className="text-[rgb(var(--sys-gold))]" />
                 Coaching cues
               </h3>
               <ul className="space-y-1.5">
                 {exercise.cues.map((cue, i) => (
-                  <li key={i} className="flex gap-2 text-sm text-slate-400">
-                    <span className="text-gold-500">›</span>
+                  <li key={i} className="flex gap-2 text-sm text-[rgb(var(--sys-dim))]">
+                    <span className="text-[rgb(var(--sys-gold))]">›</span>
                     {cue}
                   </li>
                 ))}
@@ -315,14 +315,14 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
 
           {exercise.mistakes.length > 0 && (
             <section>
-              <h3 className="mb-2 flex items-center gap-2 font-display text-sm font-semibold tracking-wide text-slate-100">
-                <AlertTriangle size={14} className="text-blood-400" />
+              <h3 className="mb-2 flex items-center gap-2 font-display text-sm font-semibold tracking-wide text-[rgb(var(--sys-ink))]">
+                <AlertTriangle size={14} className="text-[rgb(var(--sys-danger))]" />
                 Common mistakes
               </h3>
               <ul className="space-y-1.5">
                 {exercise.mistakes.map((mistake, i) => (
-                  <li key={i} className="flex gap-2 text-sm text-slate-400">
-                    <span className="text-blood-500">×</span>
+                  <li key={i} className="flex gap-2 text-sm text-[rgb(var(--sys-dim))]">
+                    <span className="text-[rgb(var(--sys-danger))]">×</span>
                     {mistake}
                   </li>
                 ))}
@@ -331,7 +331,7 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
           )}
 
           {exercise.aliases.length > 0 && (
-            <p className="text-xs text-slate-600">Also known as: {exercise.aliases.join(', ')}</p>
+            <p className="text-xs text-[rgb(var(--sys-dim))]">Also known as: {exercise.aliases.join(', ')}</p>
           )}
         </div>
       )}
@@ -341,9 +341,9 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
 
 function MetaCell({ label, value }) {
   return (
-    <div className="rounded-lg border border-white/[0.07] bg-void-950/50 px-2.5 py-1.5">
+    <div className="rounded-lg border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] px-2.5 py-1.5">
       <div className="hud-label mb-0.5">{label}</div>
-      <div className="truncate text-xs font-medium capitalize text-slate-200">{value}</div>
+      <div className="truncate text-xs font-medium capitalize text-[rgb(var(--sys-ink))]">{value}</div>
     </div>
   );
 }

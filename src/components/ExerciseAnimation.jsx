@@ -117,15 +117,15 @@ export function ExerciseAnimation({ exercise, anim, className, speed = 2.6, paus
             x2="120"
             y2="140"
           >
-            <stop offset="0%" stopColor="rgb(var(--accent))" />
-            <stop offset="100%" stopColor="rgb(var(--accent-2))" />
+            <stop offset="0%" stopColor="rgb(var(--sys))" />
+            <stop offset="100%" stopColor="rgb(var(--sys-2))" />
           </linearGradient>
         </defs>
 
         {showGround && (
           <>
-            <line x1="18" y1="136" x2="122" y2="136" stroke="rgb(var(--accent))" strokeOpacity="0.28" strokeWidth="1.5" />
-            <line x1="18" y1="136" x2="122" y2="136" stroke="rgb(var(--accent))" strokeOpacity="0.1" strokeWidth="7" />
+            <line x1="18" y1="136" x2="122" y2="136" stroke="rgb(var(--sys))" strokeOpacity="0.28" strokeWidth="1.5" />
+            <line x1="18" y1="136" x2="122" y2="136" stroke="rgb(var(--sys))" strokeOpacity="0.1" strokeWidth="7" />
           </>
         )}
 
@@ -155,14 +155,14 @@ export function ExerciseAnimation({ exercise, anim, className, speed = 2.6, paus
               {/* --- upper body ------------------------------------------- */}
               <g className="j-torso">
                 <line x1="0" y1="0" x2="0" y2={-SEG.torso} />
-                <circle cx="0" cy={-SEG.torso - 12} r="9" fill="rgb(var(--accent))" fillOpacity="0.16" strokeWidth="4" />
+                <circle cx="0" cy={-SEG.torso - 12} r="9" fill="rgb(var(--sys))" fillOpacity="0.16" strokeWidth="4" />
                 <g transform={`translate(0,${-SEG.torso + 3})`}>
                   <g className="j-arm">
                     <line x1="0" y1="0" x2="0" y2={SEG.upperArm} />
                     <g transform={`translate(0,${SEG.upperArm})`}>
                       <g className="j-forearm">
                         <line x1="0" y1="0" x2="0" y2={SEG.forearm} />
-                        <circle cx="0" cy={SEG.forearm} r="3.5" fill="rgb(var(--accent))" strokeWidth="0" />
+                        <circle cx="0" cy={SEG.forearm} r="3.5" fill="rgb(var(--sys))" strokeWidth="0" />
                       </g>
                     </g>
                   </g>

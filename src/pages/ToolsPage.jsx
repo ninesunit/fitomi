@@ -31,10 +31,10 @@ export default function ToolsPage() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
-                tab === t.id ? 'border-transparent text-void-950' : 'border-white/10 text-slate-400 hover:bg-white/5'
+ className={`inline-flex shrink-0 items-center gap-2  border px-3.5 py-1.5 text-xs font-semibold transition ${
+                tab === t.id ? 'border-transparent text-void-950' : 'border-[rgb(var(--sys)/0.25)] text-[rgb(var(--sys-dim))] hover:bg-white/5'
               }`}
-              style={tab === t.id ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+              style={tab === t.id ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
             >
               <t.icon size={14} />
               {t.label}
@@ -85,8 +85,8 @@ function OneRepMaxTool() {
               step="2.5"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
-              className="field text-center font-mono text-lg font-bold"
-              style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field text-center font-mono text-lg font-bold"
+              style={{ outlineColor: 'rgb(var(--sys))' }}
             />
           </label>
           <label className="block">
@@ -95,8 +95,8 @@ function OneRepMaxTool() {
               type="number"
               value={reps}
               onChange={(e) => setReps(e.target.value)}
-              className="field text-center font-mono text-lg font-bold"
-              style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field text-center font-mono text-lg font-bold"
+              style={{ outlineColor: 'rgb(var(--sys))' }}
             />
           </label>
           <div>
@@ -120,27 +120,27 @@ function OneRepMaxTool() {
                 <button
                   key={value}
                   onClick={() => setRpe(value)}
-                  className={`rounded-md border py-2 font-mono text-xs font-bold transition ${
-                    rpe === value ? 'border-transparent text-void-950' : 'border-white/10 text-slate-400 hover:bg-white/10'
+ className={`rounded-md border py-2 font-mono text-xs font-bold transition ${
+                    rpe === value ? 'border-transparent text-void-950' : 'border-[rgb(var(--sys)/0.25)] text-[rgb(var(--sys-dim))] hover:bg-[rgb(var(--sys)/0.12)]'
                   }`}
-                  style={rpe === value ? { backgroundColor: 'rgb(var(--accent))' } : undefined}
+                  style={rpe === value ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
                 >
                   {value}
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-slate-500">{RPE_DESCRIPTIONS[rpe]}</p>
+            <p className="mt-2 text-xs text-[rgb(var(--sys-dim))]">{RPE_DESCRIPTIONS[rpe]}</p>
           </div>
         )}
 
-        <div className="mt-5 rounded-xl border p-4 text-center accent-border" style={{ backgroundColor: 'rgb(var(--accent) / 0.08)' }}>
+        <div className="mt-5  border p-4 text-center accent-border" style={{ backgroundColor: 'rgb(var(--sys) / 0.08)' }}>
           <div className="hud-label mb-1">Estimated 1RM</div>
           <div className="tnum font-display text-4xl font-bold accent-text glow-text">
             {fromKg(toKg(estimate, unit), unit).toFixed(1)}
             <span className="ml-1 text-lg">{unit}</span>
           </div>
           {pct && (
-            <p className="mt-1.5 text-xs text-slate-400">
+            <p className="mt-1.5 text-xs text-[rgb(var(--sys-dim))]">
               {r} reps at RPE {rpe} is {(pct * 100).toFixed(1)}% of your max
             </p>
           )}
@@ -152,12 +152,12 @@ function OneRepMaxTool() {
             <div className="space-y-1.5">
               {breakdown.map((entry) => (
                 <div key={entry.id} className="flex items-center justify-between gap-3 text-xs">
-                  <span className="text-slate-400">{entry.name}</span>
-                  <span className="tnum font-mono text-slate-200">{entry.value.toFixed(1)} {unit}</span>
+                  <span className="text-[rgb(var(--sys-dim))]">{entry.name}</span>
+                  <span className="tnum font-mono text-[rgb(var(--sys-ink))]">{entry.value.toFixed(1)} {unit}</span>
                 </div>
               ))}
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            <p className="mt-2 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
               The estimate above averages the formulas that behave well at {r} rep
               {r === 1 ? '' : 's'} — Brzycki and Lander drift badly past ten and are dropped there.
             </p>
@@ -170,7 +170,7 @@ function OneRepMaxTool() {
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b border-[rgb(var(--sys)/0.25)]">
                 <th className="hud-label py-2 text-left">%1RM</th>
                 <th className="hud-label py-2 text-right">Weight</th>
                 <th className="hud-label py-2 text-right">Approx reps</th>
@@ -180,9 +180,9 @@ function OneRepMaxTool() {
             <tbody>
               {table.map((row) => (
                 <tr key={row.pct} className="border-b border-white/[0.04]">
-                  <td className="py-2 font-mono text-xs text-slate-400">{row.pct}%</td>
-                  <td className="tnum py-2 text-right font-mono text-slate-100">{row.weight.toFixed(1)}</td>
-                  <td className="tnum py-2 text-right font-mono text-xs text-slate-500">{row.reps}</td>
+                  <td className="py-2 font-mono text-xs text-[rgb(var(--sys-dim))]">{row.pct}%</td>
+                  <td className="tnum py-2 text-right font-mono text-[rgb(var(--sys-ink))]">{row.weight.toFixed(1)}</td>
+                  <td className="tnum py-2 text-right font-mono text-xs text-[rgb(var(--sys-dim))]">{row.reps}</td>
                   <td className="tnum py-2 text-right font-mono text-xs accent-text">
                     {workingWeight(estimate, row.reps, 8).toFixed(1)}
                   </td>
@@ -211,7 +211,7 @@ function RestTimerTool() {
         <div className="tnum font-display text-6xl font-bold accent-text glow-text">
           {formatClock(rest ? restRemaining : custom)}
         </div>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-[rgb(var(--sys-dim))]">
           {rest ? 'Running — it keeps ticking anywhere in the app.' : 'Pick a duration to start.'}
         </p>
       </div>
@@ -224,7 +224,7 @@ function RestTimerTool() {
               setCustom(seconds);
               startRest(seconds);
             }}
-            className="rounded-lg border border-white/10 py-2.5 font-mono text-xs font-bold text-slate-300 transition hover:bg-white/10"
+ className="rounded-lg border border-[rgb(var(--sys)/0.25)] py-2.5 font-mono text-xs font-bold text-[rgb(var(--sys-ink))] transition hover:bg-[rgb(var(--sys)/0.12)]"
           >
             {formatClock(seconds)}
           </button>
@@ -237,31 +237,31 @@ function RestTimerTool() {
         </Button>
       )}
 
-      <div className="mt-6 space-y-3 border-t border-white/10 pt-5">
+      <div className="mt-6 space-y-3 border-t border-[rgb(var(--sys)/0.25)] pt-5">
         <div className="hud-label">Auto-start defaults</div>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-xs text-slate-400">Isolation work (seconds)</span>
+            <span className="mb-1.5 block text-xs text-[rgb(var(--sys-dim))]">Isolation work (seconds)</span>
             <input
               type="number"
               value={profile.settings.restSeconds}
               onChange={(e) => updateSettings({ restSeconds: Number(e.target.value) || 60 })}
-              className="field text-center font-mono"
-              style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field text-center font-mono"
+              style={{ outlineColor: 'rgb(var(--sys))' }}
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-xs text-slate-400">Compound lifts (seconds)</span>
+            <span className="mb-1.5 block text-xs text-[rgb(var(--sys-dim))]">Compound lifts (seconds)</span>
             <input
               type="number"
               value={profile.settings.restSecondsCompound}
               onChange={(e) => updateSettings({ restSecondsCompound: Number(e.target.value) || 120 })}
-              className="field text-center font-mono"
-              style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field text-center font-mono"
+              style={{ outlineColor: 'rgb(var(--sys))' }}
             />
           </label>
         </div>
-        <p className="text-xs leading-relaxed text-slate-500">
+        <p className="text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
           When auto-start is on, ticking a set starts the matching timer automatically — compounds
           get the longer rest.
         </p>
@@ -298,8 +298,8 @@ function ConverterTool() {
             type="number"
             value={kg}
             onChange={(e) => setFromKg(e.target.value)}
-            className="field text-center font-mono text-xl font-bold"
-            style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field text-center font-mono text-xl font-bold"
+            style={{ outlineColor: 'rgb(var(--sys))' }}
           />
         </label>
         <label className="block">
@@ -308,8 +308,8 @@ function ConverterTool() {
             type="number"
             value={lb}
             onChange={(e) => setFromLb(e.target.value)}
-            className="field text-center font-mono text-xl font-bold"
-            style={{ outlineColor: 'rgb(var(--accent))' }}
+ className="field text-center font-mono text-xl font-bold"
+            style={{ outlineColor: 'rgb(var(--sys))' }}
           />
         </label>
       </div>
@@ -321,10 +321,10 @@ function ConverterTool() {
             <button
               key={value}
               onClick={() => setFromKg(value)}
-              className="rounded-lg border border-white/[0.07] bg-void-950/50 px-2 py-2 text-center transition hover:bg-white/[0.05]"
+ className="rounded-lg border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)] px-2 py-2 text-center transition hover:bg-[rgb(var(--sys)/0.05)]"
             >
-              <div className="tnum font-mono text-sm font-bold text-slate-100">{value} kg</div>
-              <div className="tnum font-mono text-[10px] text-slate-500">
+              <div className="tnum font-mono text-sm font-bold text-[rgb(var(--sys-ink))]">{value} kg</div>
+              <div className="tnum font-mono text-[10px] text-[rgb(var(--sys-dim))]">
                 {(value * LBS_PER_KG).toFixed(1)} lb
               </div>
             </button>
