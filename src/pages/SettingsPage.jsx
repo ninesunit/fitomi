@@ -9,6 +9,8 @@ import { Toggle, Segmented } from '../components/ui/Field';
 import { Sheet } from '../components/ui/Sheet';
 import { fromKg, toKg } from '../engine/constants';
 import { getSoundSettings, setSoundSettings, play } from '../lib/sound';
+import { notificationPermission, requestNotificationPermission, notificationsSupported } from '../lib/notify';
+import { isIos, isStandalone } from '../lib/pwa';
 import { useState as useLocalState } from 'react';
 
 export default function SettingsPage() {
@@ -85,6 +87,7 @@ export default function SettingsPage() {
             label="Vibrate when rest ends"
             hint="Supported on most Android browsers."
           />
+          <RestNotificationToggle settings={settings} updateSettings={updateSettings} />
           <Toggle
             checked={settings.showRpe}
             onChange={(v) => updateSettings({ showRpe: v })}
@@ -184,6 +187,47 @@ export default function SettingsPage() {
         </Button>
       </MotionPanel>
     </div>
+  );
+}
+
+/**
+ * Background rest alerts.
+ *
+ * Permission must be requested from a user gesture, so it is asked for on the
+ * toggle itself rather than on mount. iOS only delivers these from an app
+ * installed to the home screen, on 16.4 or newer — where that cannot work, the
+ * control says so instead of silently doing nothing.
+ */
+function RestNotificationToggle({ settings, updateSettings }) {
+  const [permission, setPermission] = useLocalState(notificationPermission);
+  const supported = notificationsSupported();
+  const iosTabOnly = isIos() && !isStandalone();
+
+  const enable = async (wanted) => {
+    if (!wanted) {
+      updateSettings({ restNotifications: false });
+      return;
+    }
+    const result = await requestNotificationPermission();
+    setPermission(result);
+    updateSettings({ restNotifications: result === 'granted' });
+  };
+
+  const hint = !supported
+    ? 'This browser cannot deliver notifications.'
+    : iosTabOnly
+      ? 'On iPhone this needs Fitomi added to your home screen — Safari tabs cannot receive notifications.'
+      : permission === 'denied'
+        ? 'Blocked in your browser settings. Re-allow notifications for this site to use it.'
+        : 'Alerts you when rest ends while the app is in the background.';
+
+  return (
+    <Toggle
+      checked={Boolean(settings.restNotifications) && permission === 'granted'}
+      onChange={enable}
+      label="Notify when rest ends in the background"
+      hint={hint}
+    />
   );
 }
 

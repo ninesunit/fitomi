@@ -4,8 +4,10 @@ import { useSystem } from './SystemContext';
 import { getExercise } from '../data/exercises';
 import { estimate1RM } from '../engine/oneRepMax';
 import { setVolumeKg } from '../engine/leveling';
+import { fromKg } from '../engine/constants';
 import { summarizeExercise } from '../engine/records';
 import { play } from '../lib/sound';
+import { notify } from '../lib/notify';
 
 export const WorkoutContext = createContext(null);
 
@@ -104,7 +106,7 @@ export function WorkoutProvider({ children }) {
       setRestRemaining(remaining);
       if (remaining === 0 && !alerted.current) {
         alerted.current = true;
-        notifyRestComplete();
+        notifyRestComplete(rest.exerciseId ? getExercise(rest.exerciseId)?.name : null);
       }
     };
     tick();
@@ -112,12 +114,25 @@ export function WorkoutProvider({ children }) {
     return () => clearInterval(interval);
   }, [rest]);
 
-  const notifyRestComplete = useCallback(() => {
-    if (profile?.settings?.vibrationEnabled && navigator.vibrate) {
-      navigator.vibrate([120, 60, 120]);
-    }
-    if (profile?.settings?.soundEnabled) play('restDone');
-  }, [profile]);
+  const notifyRestComplete = useCallback(
+    (exerciseName) => {
+      if (profile?.settings?.vibrationEnabled && navigator.vibrate) {
+        navigator.vibrate([120, 60, 120]);
+      }
+      if (profile?.settings?.soundEnabled) play('restDone');
+
+      // The phone is usually in a pocket between sets, so the sound alone
+      // reaches nobody. Only fire when the app is actually in the background —
+      // a notification for a screen you are already looking at is noise.
+      if (document.visibilityState === 'hidden' && profile?.settings?.restNotifications !== false) {
+        notify('Rest complete', {
+          body: exerciseName ? `Next set: ${exerciseName}` : 'Back to work.',
+          tag: 'fitomi-rest',
+        });
+      }
+    },
+    [profile],
+  );
 
   // --- session lifecycle ---------------------------------------------------
   const start = useCallback((options = {}) => {
@@ -157,11 +172,18 @@ export function WorkoutProvider({ children }) {
           return base;
         }
 
-        // Pre-fill from the last time this exercise was performed so the
-        // hunter is confirming numbers rather than typing them from scratch.
+        // Pre-fill from the last time this exercise was performed, so the
+        // hunter confirms numbers rather than typing them from scratch.
         const previous = lastPerformance(profile, exerciseId);
+        const unit = profile?.unit || 'kg';
         const sets = previous?.sets?.length
-          ? previous.sets.slice(0, 4).map((s, i) => emptySet(i, s))
+          ? previous.sets.slice(0, 5).map((s, i) =>
+              emptySet(i, {
+                reps: s.reps || '',
+                weight: s.weightKg ? Number(fromKg(s.weightKg, unit).toFixed(1)) : '',
+                duration: s.duration || '',
+              }),
+            )
           : [emptySet(0)];
 
         return { ...base, entries: [...base.entries, { exerciseId, sets, notes: '' }] };
@@ -395,7 +417,7 @@ function defaultSessionName() {
   return 'Midnight Run';
 }
 
-/** Last logged sets for an exercise, from the rolling profile summaries. */
+/** What this exercise looked like last time it was trained. */
 function lastPerformance(profile, exerciseId) {
   const record = profile?.records?.[exerciseId];
   if (!record) return null;

@@ -75,6 +75,7 @@ export function createProfile({ uid, email, displayName, photoURL } = {}) {
       autoStartRest: true,
       soundEnabled: true,
       vibrationEnabled: true,
+      restNotifications: false,
       graceDays: 1,
       availablePlates: { kg: [25, 20, 15, 10, 5, 2.5, 1.25], lb: [45, 35, 25, 10, 5, 2.5] },
       defaultBar: { kg: 20, lb: 45 },

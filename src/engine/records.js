@@ -120,6 +120,29 @@ export function detectPRs({ entries, records = {}, profile, lookup }) {
 
     updated.lastPerformed = Date.now();
     updated.sessions = (Number(previous.sessions) || 0) + 1;
+
+    // What was actually done last time, in kilograms. This is the number a
+    // lifter needs when deciding today's load — a lifetime best is the wrong
+    // reference for the second set of a deload week. Capped at eight sets so a
+    // long session cannot bloat the profile document.
+    updated.lastSets = completed.slice(0, 8).map((set) => ({
+      reps: Number(set.reps) || 0,
+      weightKg: setLoadKg(set, exercise, profile),
+      rpe: set.rpe ?? null,
+      duration: Number(set.duration) || 0,
+    }));
+
+    // A compact strength trend for this lift. Twenty points at ~24 bytes each
+    // is a few hundred bytes per exercise, which keeps the whole history on
+    // the profile document — so drawing a progress chart costs no extra reads.
+    const point = {
+      at: Date.now(),
+      e1rm: Math.round(summary.e1rm * 10) / 10,
+      volume: Math.round(summary.volume),
+      topWeight: Math.round(summary.weight * 10) / 10,
+    };
+    updated.history = [...(previous.history || []), point].slice(-20);
+
     nextRecords[entry.exerciseId] = updated;
 
     // Keep the headline record for this exercise, and attach the others so the

@@ -6,6 +6,7 @@ import { Panel, PanelHeader } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
 import { Sheet } from '../components/ui/Sheet';
 import { ExerciseAnimation } from '../components/ExerciseAnimation';
+import { ExerciseHistory } from '../components/library/ExerciseHistory';
 import { CATEGORIES, EXERCISES, filterExercises, getExercise } from '../data/exercises';
 import { EQUIPMENT, EQUIPMENT_LIST, MUSCLES, PATTERNS } from '../engine/constants';
 import { useWorkout } from '../context/WorkoutContext';
@@ -275,6 +276,15 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
                 </div>
               </div>
             </div>
+          )}
+
+          {record && (
+            <section>
+              <h3 className="mb-2.5 font-display text-sm font-semibold tracking-wide text-[rgb(var(--sys-ink))]">
+                Your history
+              </h3>
+              <ExerciseHistory record={record} unit={unit} />
+            </section>
           )}
 
           <section>

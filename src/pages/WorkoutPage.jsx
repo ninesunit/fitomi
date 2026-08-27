@@ -16,7 +16,7 @@ import { ExerciseAnimation } from '../components/ExerciseAnimation';
 import { getExercise } from '../data/exercises';
 import { fetchRoutines } from '../lib/firestore';
 import { fromKg } from '../engine/constants';
-import { formatDuration } from '../lib/date';
+import { formatDuration, relativeTime } from '../lib/date';
 
 export default function WorkoutPage() {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ export default function WorkoutPage() {
   const {
     session, active, elapsed, stats, start, discard, finish,
     addExercises, removeExercise, addSet, removeSet, updateSet, completeSet,
-    startRest, setName, setNotes,
+    startRest, setName, setNotes, lastPerformance,
   } = useWorkout();
 
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -180,6 +180,7 @@ export default function WorkoutPage() {
           const exercise = getExercise(entry.exerciseId);
           if (!exercise) return null;
           const record = profile?.records?.[entry.exerciseId];
+          const previous = lastPerformance(entry.exerciseId);
 
           return (
             <motion.div
@@ -203,11 +204,18 @@ export default function WorkoutPage() {
                     <p className="sys-label mt-0.5 truncate normal-case tracking-normal">
                       {exercise.primary.join(' · ')}
                     </p>
-                    {record?.e1rm > 0 && (
-                      <p className="mt-0.5 font-mono text-[10px]" style={{ color: 'rgb(var(--sys-gold))' }}>
-                        Best {fromKg(record.e1rm, unit).toFixed(1)} {unit}
-                      </p>
-                    )}
+                    <div className="mt-0.5 flex flex-wrap gap-x-2 font-mono text-[10px]">
+                      {record?.e1rm > 0 && (
+                        <span style={{ color: 'rgb(var(--sys-gold))' }}>
+                          Best {fromKg(record.e1rm, unit).toFixed(1)} {unit}
+                        </span>
+                      )}
+                      {previous?.lastPerformed && (
+                        <span className="text-[rgb(var(--sys-dim))]">
+                          Last {relativeTime(previous.lastPerformed)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <button
                     onClick={() => removeExercise(entry.exerciseId)}
@@ -227,7 +235,7 @@ export default function WorkoutPage() {
                       exercise={exercise}
                       unit={unit}
                       showRpe={profile?.settings?.showRpe}
-                      previous={record?.weight ? `${fromKg(record.weight, unit).toFixed(0)}${unit}` : null}
+                      previous={formatPrevious(previous?.sets?.[index], unit)}
                       onChange={(patch) => updateSet(entry.exerciseId, set.id, patch)}
                       onComplete={() => completeSet(entry.exerciseId, set.id)}
                       onRemove={() => removeSet(entry.exerciseId, set.id)}
@@ -359,6 +367,14 @@ export default function WorkoutPage() {
       </Sheet>
     </div>
   );
+}
+
+/** The matching set from the last session, e.g. "100×5". */
+function formatPrevious(set, unit) {
+  if (!set) return null;
+  if (set.duration) return `${set.duration}s`;
+  if (!set.weightKg) return `${set.reps} reps`;
+  return `${Number(fromKg(set.weightKg, unit).toFixed(1))}×${set.reps}`;
 }
 
 function Metric({ label, value, accent }) {
