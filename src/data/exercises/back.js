@@ -1,6 +1,35 @@
 import { x, bw, dist } from './schema';
 
 export default [
+  // ---- no-equipment pulling -------------------------------------------
+  // A hunter training at home with literally nothing still needs to pull.
+  // Without these the programme generator can only find pressing for an
+  // upper day, and hands back a one-movement session.
+  x('prone-y-raise', 'Prone Y-Raise', 'bodyweight', 'back', ['traps', 'shoulders'], ['back'], 'horizontalPull', 'c', 'beginner',
+    'Lie face down with the arms overhead in a Y, thumbs to the ceiling.|Lift the arms and chest a few inches off the floor.|Hold for a beat at the top, then lower under control.',
+    'Lead with the thumbs and the lower traps do the work.|Height is irrelevant — tension is the point.',
+    'Shrugging the shoulders up toward the ears.',
+    { anim: 'raise', force: 'pull', ...bw(0.15) }),
+  x('prone-t-raise', 'Prone T-Raise', 'bodyweight', 'back', ['back', 'shoulders'], ['traps'], 'horizontalPull', 'c', 'beginner',
+    'Lie face down with the arms straight out to the sides in a T.|Squeeze the shoulder blades together and lift the arms.|Pause, then lower slowly.',
+    'Pull the shoulder blades toward each other before the arms move.',
+    'Bending the elbows and turning it into a row.',
+    { anim: 'fly', force: 'pull', ...bw(0.15) }),
+  x('reverse-snow-angel', 'Reverse Snow Angel', 'bodyweight', 'back', ['back', 'shoulders'], ['traps', 'lowerBack'], 'horizontalPull', 'c', 'beginner',
+    'Lie face down with the arms at the sides, palms down.|Keeping the arms straight and off the floor, sweep them overhead.|Sweep back to the start without letting them touch down.',
+    'The arms never rest on the floor — that is the whole set.',
+    'Rushing. Slow sweeps are far harder and far more useful.',
+    { anim: 'raise', force: 'pull', ...bw(0.15) }),
+  x('doorway-row', 'Doorway Row', 'bodyweight', 'back', ['back', 'lats'], ['biceps', 'forearms'], 'horizontalPull', 'b', 'beginner',
+    'Stand facing a door frame and grip both sides at chest height.|Walk the feet forward and lean back with the arms straight and the body in one line.|Pull the chest to the frame, leading with the elbows.|Push back out under control.',
+    'The further forward the feet, the harder it gets — that is your loading dial.|Squeeze the shoulder blades at the top of every rep.',
+    'Letting the hips sag, which turns it into an arm exercise.',
+    { anim: 'row', force: 'pull', ...bw(0.5) }),
+  x('prone-scap-retraction', 'Prone Scapular Retraction', 'bodyweight', 'back', ['traps'], ['back', 'shoulders'], 'horizontalPull', 'c', 'beginner',
+    'Lie face down with the arms bent at ninety degrees, elbows at shoulder height.|Without moving the arms, pull the shoulder blades down and together.|Hold the squeeze, then release slowly.',
+    'Nothing should move except the shoulder blades.',
+    'Turning it into an arm lift.',
+    { anim: 'fly', force: 'pull', ...bw(0.12) }),
   x('barbell-deadlift', 'Barbell Deadlift', 'barbell', 'back', ['back', 'lowerBack', 'hamstrings', 'glutes'], ['traps', 'lats', 'forearms', 'quads'], 'hinge', 's', 'intermediate',
     'Stand with the bar over mid-foot, shins about an inch away.|Hinge and grip just outside the legs, then drop the hips until the shins touch the bar.|Pull the slack out of the bar, brace hard, and push the floor away.|Keep the bar dragging up the legs and finish by squeezing the glutes — do not lean back.',
     'The bar travels in a straight vertical line, always.|Think "push the floor away" rather than "pull the bar up".|Reset your brace between every single rep.',
