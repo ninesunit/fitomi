@@ -5,7 +5,7 @@ import { AlertTriangle, ChevronRight, Lightbulb, Search, SlidersHorizontal, X } 
 import { Panel, PanelHeader } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
 import { Sheet } from '../components/ui/Sheet';
-import { LottieExerciseGuide, exerciseAnimationUrl } from '../components/library/LottieExerciseGuide';
+import { MachineExerciseGuide } from '../components/library/MachineExerciseGuide';
 import { ExerciseHistory } from '../components/library/ExerciseHistory';
 import { CATEGORIES, EXERCISES, filterExercises, getExercise } from '../data/exercises';
 import { EQUIPMENT, EQUIPMENT_LIST, MUSCLES, PATTERNS } from '../engine/constants';
@@ -430,16 +430,7 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
 }
 
 function ExerciseGuide({ exercise, compact = false }) {
-  return (
-    <LottieExerciseGuide
-      animationUrl={exerciseAnimationUrl(exercise)}
-      name={exercise.name}
-      primaryMuscles={exercise.primary.map((id) => MUSCLES[id]?.name || id)}
-      secondaryMuscles={exercise.secondary.map((id) => MUSCLES[id]?.name || id)}
-      instructions={exercise.steps}
-      compact={compact}
-    />
-  );
+  return <MachineExerciseGuide exercise={exercise} compact={compact} />;
 }
 
 function MetaCell({ label, value }) {

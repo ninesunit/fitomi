@@ -84,6 +84,7 @@ export function SocialProvider({ children }) {
     const signature = JSON.stringify({
       l: next.level, x: next.totalXp, s: next.streak,
       v: next.weeklyVolumeKg, w: next.weekKey, g: next.guildId, h: next.handle,
+      c: next.equippedCosmetics,
     });
     if (signature === publishedRef.current && !events.length) return;
     publishedRef.current = signature;

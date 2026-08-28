@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Dumbbell, Flame, Info, Moon, Swords, Waves, Wind, Zap } from 'lucide-react';
+import { Check, Coins, Dumbbell, Flame, Info, LockKeyhole, Moon, Swords, Waves, Wind, Zap } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
 import { formatSpokenDuration } from '../../lib/date';
-import { play } from '../../lib/sound';
 
 const ICONS = { Waves, Zap, Moon, Wind, Dumbbell, Flame };
 
@@ -13,7 +12,7 @@ const ICONS = { Waves, Zap, Moon, Wind, Dumbbell, Flame };
  * Laid out the way the System lists objectives: a checkbox, the objective, and
  * the target — with the reward and the reasoning underneath.
  */
-export function QuestCard({ quest, completed, onComplete, onUndo, compact = false }) {
+export function QuestCard({ quest, completed, progress, compact = false }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = ICONS[quest.typeMeta?.icon] || Zap;
   const color = quest.typeMeta?.color || 'rgb(var(--sys))';
@@ -34,12 +33,8 @@ export function QuestCard({ quest, completed, onComplete, onUndo, compact = fals
       }}
     >
       <div className="flex items-start gap-3">
-        <button
-          onClick={() => {
-            play(completed ? 'tap' : 'questComplete');
-            return completed ? onUndo?.(quest) : onComplete?.(quest);
-          }}
-          aria-label={completed ? 'Mark incomplete' : 'Mark complete'}
+        <span
+          aria-label={completed ? 'Verified complete' : 'Verified automatically from workouts'}
           className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center transition-all active:scale-90"
           style={{
             border: completed ? '1px solid rgb(var(--sys-good))' : '1px solid rgb(var(--sys)/0.4)',
@@ -47,8 +42,8 @@ export function QuestCard({ quest, completed, onComplete, onUndo, compact = fals
             color: completed ? 'rgb(var(--sys-good))' : 'rgb(var(--sys-dim))',
           }}
         >
-          <Check size={16} strokeWidth={3} />
-        </button>
+          {completed ? <Check size={16} strokeWidth={3} /> : <LockKeyhole size={14} />}
+        </span>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -87,6 +82,10 @@ export function QuestCard({ quest, completed, onComplete, onUndo, compact = fals
           <div className={clsx('flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[11px]', compact ? 'mt-1' : 'mt-2')}>
             <span className="text-[rgb(var(--sys-ink))]">{targetLabel}</span>
             <span className="sys-accent">+{quest.xp} XP</span>
+            <span className="flex items-center gap-1 text-[rgb(var(--sys-gold))]">
+              <Coins size={10} />
+              {quest.gold || 0}
+            </span>
             <span className="flex items-center gap-1" style={{ color: 'rgb(var(--sys-danger))' }}>
               <Swords size={10} />
               {quest.damage}
@@ -95,6 +94,21 @@ export function QuestCard({ quest, completed, onComplete, onUndo, compact = fals
               <span className="truncate text-[rgb(var(--sys-dim))]">{quest.subtitle}</span>
             )}
           </div>
+
+          {!completed && progress && (
+            <div className="mt-2">
+              <div className="mb-1 flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-[rgb(var(--sys-dim))]">
+                <span>Workout evidence</span>
+                <span>{Math.min(progress.value, progress.target).toLocaleString()} / {progress.target.toLocaleString()}</span>
+              </div>
+              <div className="h-1 overflow-hidden bg-[rgb(var(--sys-deep)/0.9)]">
+                <motion.div
+                  className="h-full bg-[rgb(var(--sys))] shadow-[0_0_8px_rgb(var(--sys))]"
+                  animate={{ width: `${progress.ratio * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* On the dashboard the reasoning is one tap away on the row itself,
               rather than a "why this quest?" link stacked under every card. */}

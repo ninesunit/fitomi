@@ -121,6 +121,12 @@ export function buildFigure(p) {
   const legR = leg(1);
   const armL = arm(-1);
   const armR = arm(1);
+  const jawHalf = p.headR * (p.fem ? 0.68 : 0.78);
+  const headPath = `M${f(cx - p.headR * 0.86)},${f(headY - p.headR * 0.78)}`
+    + ` Q${f(cx)},${f(headY - p.headR * 1.28)} ${f(cx + p.headR * 0.86)},${f(headY - p.headR * 0.78)}`
+    + ` L${f(cx + p.headR * 0.9)},${f(headY + p.headR * 0.26)}`
+    + ` Q${f(cx + jawHalf)},${f(headY + p.headR * 0.94)} ${f(cx)},${f(headY + p.headR * 1.18)}`
+    + ` Q${f(cx - jawHalf)},${f(headY + p.headR * 0.94)} ${f(cx - p.headR * 0.9)},${f(headY + p.headR * 0.26)} Z`;
 
   return {
     torso, legL, legR, armL, armR,
@@ -131,6 +137,7 @@ export function buildFigure(p) {
     clip: [torso, legL, legR, armL, armR],
     neck: `M${f(cx - p.neckHalf)},${f(neckY + 4)} V${f(headY + p.headR * 0.72)} h${f(p.neckHalf * 2)} V${f(neckY + 4)} Z`,
     head: { cx, cy: headY, rx: p.headR, ry: p.headR * 1.22 },
+    headPath,
     // Musculature. Opacity is driven by `tone`, so an untrained hunter is a
     // smooth silhouette and a strong one is visibly striated.
     detail: [
@@ -154,6 +161,12 @@ export function buildFigure(p) {
       // biceps
       `M${f(cx - shX)},${f(shoulderY + 12)} V${f(elbowY - 9)}`,
       `M${f(cx + shX)},${f(shoulderY + 12)} V${f(elbowY - 9)}`,
+      // deltoid caps
+      `M${f(cx - p.shoulderHalf)},${f(shoulderY + 2)} Q${f(cx - shX)},${f(shoulderY + 12)} ${f(cx - shX + 1)},${f(shoulderY + 20)}`,
+      `M${f(cx + p.shoulderHalf)},${f(shoulderY + 2)} Q${f(cx + shX)},${f(shoulderY + 12)} ${f(cx + shX - 1)},${f(shoulderY + 20)}`,
+      // calf heads
+      `M${f(cx - kneeX)},${f(kneeY + 4)} Q${f(cx - ankleX - p.calfHalf)},${f(calfY)} ${f(cx - ankleX)},${f(ankleY - 8)}`,
+      `M${f(cx + kneeX)},${f(kneeY + 4)} Q${f(cx + ankleX + p.calfHalf)},${f(calfY)} ${f(cx + ankleX)},${f(ankleY - 8)}`,
     ],
     // The torso outline crosses the legs at the pelvis. Rather than fight the
     // seam, it is drawn as the hem of a pair of shorts — which is what a

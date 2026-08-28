@@ -2,6 +2,19 @@ import { useId, useMemo } from 'react';
 import { buildBoss, fractures } from './bossShapes';
 import { clsx } from '../../lib/clsx';
 
+const BOSS_ART = {
+  'ashen-warden': '/art/bosses/colossus.webp',
+  'iron-revenant': '/art/bosses/colossus.webp',
+  'frost-marshal': '/art/bosses/colossus.webp',
+  'gate-tyrant': '/art/bosses/colossus.webp',
+  'crimson-hound': '/art/bosses/hound.webp',
+  'glass-serpent': '/art/bosses/serpent.webp',
+  'drowned-choir': '/art/bosses/sovereign.webp',
+  'hollow-sovereign': '/art/bosses/sovereign.webp',
+  'famine-king': '/art/bosses/sovereign.webp',
+  'thousand-arm': '/art/bosses/sovereign.webp',
+};
+
 // ---------------------------------------------------------------------------
 // THE GATE'S OCCUPANT
 //
@@ -25,6 +38,7 @@ export function BossFigure({ boss, damage = 0, hp = 1, className, defeated = fal
   const accent = boss?.accent || '#fbbf24';
   // A boss on its last legs burns low; a fresh one is at full menace.
   const vitality = defeated ? 0.12 : 1 - wounded * 0.55;
+  const art = BOSS_ART[boss?.id];
 
   return (
     <svg
@@ -50,13 +64,21 @@ export function BossFigure({ boss, damage = 0, hp = 1, className, defeated = fal
           @media (prefers-reduced-motion: no-preference) {
             .${uid}-breathe { animation: ${uid}-b 5.2s ease-in-out infinite; transform-origin: 100px 182px; }
             .${uid}-eye { animation: ${uid}-e 3.4s ease-in-out infinite; }
+            .${uid}-art { animation: ${uid}-art 4.8s ease-in-out infinite; transform-origin: 100px 176px; }
+            .${uid}-arc { animation: ${uid}-arc 2.8s ease-in-out infinite; }
           }
           @keyframes ${uid}-b { 0%,100% { transform: scale(1); } 50% { transform: scale(1.018); } }
           @keyframes ${uid}-e { 0%,100% { opacity: 1; } 46% { opacity: 0.55; } }
+          @keyframes ${uid}-art { 0%,100% { transform: translateY(1px) scale(1); } 50% { transform: translateY(-2px) scale(1.012); } }
+          @keyframes ${uid}-arc { 0%,100% { stroke-dashoffset: 0; opacity:.28; } 50% { stroke-dashoffset: 18; opacity:.85; } }
         `}</style>
       </defs>
 
       <ellipse cx="100" cy="106" rx="96" ry="92" fill={`url(#${uid}-aura)`} />
+      <g className={`${uid}-arc`} fill="none" stroke={accent} strokeWidth="0.9" strokeDasharray="4 8">
+        <ellipse cx="100" cy="104" rx="84" ry="78" />
+        <ellipse cx="100" cy="106" rx="70" ry="88" transform="rotate(34 100 106)" opacity="0.55" />
+      </g>
 
       {/* Ground the creature stands on. */}
       <ellipse cx="100" cy="184" rx="62" ry="8" fill={color} opacity={0.2 * vitality} />
@@ -70,16 +92,30 @@ export function BossFigure({ boss, damage = 0, hp = 1, className, defeated = fal
           </g>
         </g>
 
-        <g
-          fill={`url(#${uid}-body)`}
-          stroke={color}
-          strokeOpacity={0.35 + 0.35 * vitality}
-          strokeWidth="1.2"
-          strokeLinejoin="round"
-        >
-          {shapes.spikes.map((d, i) => <path key={`s${i}`} d={d} />)}
-          {shapes.body.map((d, i) => <path key={`b${i}`} d={d} />)}
-        </g>
+        {art ? (
+          <image
+            className={`${uid}-art`}
+            href={art}
+            x="4"
+            y="3"
+            width="192"
+            height="184"
+            preserveAspectRatio="xMidYMid meet"
+            opacity={0.72 + vitality * 0.28}
+            style={{ filter: `drop-shadow(0 0 9px ${color}) ${defeated ? 'grayscale(1)' : ''}` }}
+          />
+        ) : (
+          <g
+            fill={`url(#${uid}-body)`}
+            stroke={color}
+            strokeOpacity={0.35 + 0.35 * vitality}
+            strokeWidth="1.2"
+            strokeLinejoin="round"
+          >
+            {shapes.spikes.map((d, i) => <path key={`s${i}`} d={d} />)}
+            {shapes.body.map((d, i) => <path key={`b${i}`} d={d} />)}
+          </g>
+        )}
 
         {/* Fractures: one more appears with every ~14% of health taken. */}
         {shown > 0 && (

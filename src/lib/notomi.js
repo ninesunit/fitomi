@@ -1,5 +1,6 @@
 import { EXERCISES, getExercise } from '../data/exercises';
 import { seededRandom, weekKey, dayKey, addDays, startOfWeek } from './date';
+import { fromKg } from '../engine/constants';
 
 // ---------------------------------------------------------------------------
 // NOTOMI SYNC
@@ -161,6 +162,7 @@ export function adaptPayload(payload, week = weekKey()) {
         name: exercise?.name || String(block.exercise),
         sets: Number(block.sets) || 3,
         reps: Number(block.reps) || 10,
+        weightKg: Number(block.weightKg) || 0,
         rpe: block.rpe ?? null,
         restSeconds: Number(block.restSeconds) || null,
         notes: block.notes || '',
@@ -214,7 +216,7 @@ function resolveExercise(reference) {
 }
 
 /** Turn an imported routine into the entry shape the workout session expects. */
-export function routineToSession(routine) {
+export function routineToSession(routine, unit = 'kg') {
   return {
     name: routine.name,
     routineId: routine.id,
@@ -226,7 +228,7 @@ export function routineToSession(routine) {
         sets: Array.from({ length: block.sets }, (_, i) => ({
           id: `${routine.id}-${block.exerciseId}-${i}`,
           reps: block.reps,
-          weight: '',
+          weight: Number(fromKg(block.weightKg || 0, unit).toFixed(1)),
           rpe: block.rpe,
           duration: '',
           distance: '',

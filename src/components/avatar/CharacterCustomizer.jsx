@@ -9,7 +9,7 @@ const BASES = [
   { id: 'female', label: 'Female frame', code: 'F' },
 ];
 
-export function CharacterCustomizer({ value, onChange, stats, bodyType, color = '#3ec6ff' }) {
+export function CharacterCustomizer({ value, onChange, stats, bodyType, color = '#3ec6ff', cosmetics }) {
   return (
     <section className="relative overflow-hidden border border-[rgb(var(--sys)/0.28)] bg-[rgb(var(--sys-deep-2)/0.7)] p-3">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,rgb(var(--sys-2)/0.15),transparent_60%)]" aria-hidden />
@@ -53,6 +53,7 @@ export function CharacterCustomizer({ value, onChange, stats, bodyType, color = 
                 stats={stats}
                 bodyType={bodyType}
                 color={color}
+                cosmetics={cosmetics}
                 className="mx-auto h-[134px] w-[82px]"
                 motes={active}
                 aura={active}

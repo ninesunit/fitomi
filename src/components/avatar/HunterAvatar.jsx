@@ -2,6 +2,7 @@ import { useId, useMemo } from 'react';
 import { buildFigure } from './figure';
 import { figureParams } from '../../engine/physique';
 import { clsx } from '../../lib/clsx';
+import { getCosmetic } from '../../data/shop';
 
 // ---------------------------------------------------------------------------
 // THE HUNTER
@@ -30,6 +31,7 @@ export function HunterAvatar({
   bodyType = 'average',
   sex = '',
   color = '#26bdff',
+  cosmetics = {},
   aura = true,
   motes = true,
   breathe = true,
@@ -38,9 +40,14 @@ export function HunterAvatar({
   title,
 }) {
   const uid = useId().replace(/:/g, '');
+  const itemOf = (value) => (typeof value === 'string' ? getCosmetic(value) : value);
+  const auraItem = itemOf(cosmetics?.aura);
+  const armorItem = itemOf(cosmetics?.armor);
+  const crownItem = itemOf(cosmetics?.crown);
+  const activeColor = auraItem?.color || armorItem?.color || crownItem?.color || color;
   const p = useMemo(() => figureParams({ stats, bodyType, sex }), [stats, bodyType, sex]);
   const fig = useMemo(() => buildFigure(p), [p]);
-  const rgb = rgbOf(color);
+  const rgb = rgbOf(activeColor);
 
   // Aura strength tracks Intelligence — programming discipline reads as
   // control. The mote count is capped so a maxed hunter is impressive rather
@@ -109,6 +116,12 @@ export function HunterAvatar({
             80%  { opacity: 0.5; }
             100% { opacity: 0; transform: translateY(-96px); }
           }
+          @media (prefers-reduced-motion: no-preference) {
+            .${uid}-mantle { animation: ${uid}-mantle 3.8s ease-in-out infinite; transform-origin: 60px 72px; }
+            .${uid}-crown { animation: ${uid}-crown 8s linear infinite; transform-origin: 60px 26px; }
+          }
+          @keyframes ${uid}-mantle { 0%,100% { transform: scaleX(.98); opacity:.76; } 50% { transform: scaleX(1.05); opacity:1; } }
+          @keyframes ${uid}-crown { to { transform: rotate(360deg); } }
         `}</style>
       </defs>
 
@@ -154,6 +167,22 @@ export function HunterAvatar({
       />
 
       <g className={`${uid}-rig`}>
+        {armorItem?.id === 'armor-void-mantle' && (
+          <g className={`${uid}-mantle`} fill={`rgb(${rgb} / 0.13)`} stroke={`rgb(${rgb} / 0.7)`} strokeWidth="0.7">
+            <path d="M42 55 L20 47 L31 79 L13 88 L35 102 L20 128 L48 112Z" />
+            <path d="M78 55 L100 47 L89 79 L107 88 L85 102 L100 128 L72 112Z" />
+            <path d="M50 57 L35 36 L52 48Z" />
+            <path d="M70 57 L85 36 L68 48Z" />
+          </g>
+        )}
+
+        {crownItem?.id === 'crown-eclipse' && (
+          <g className={`${uid}-crown`} fill="none" stroke={`rgb(${rgb})`} strokeWidth="0.8" opacity="0.88">
+            <ellipse cx="60" cy="26" rx="18" ry="6" />
+            <path d="M42 26 L47 21 L52 25 L60 17 L68 25 L73 21 L78 26" />
+          </g>
+        )}
+
         {/* Rim glow: the whole body redrawn fat and blurred underneath. */}
         <g filter={`url(#${uid}-glow)`} opacity={0.5 + p.tone * 0.25}>
           <g fill="none" stroke={`rgb(${rgb} / 0.75)`} strokeWidth="2" strokeLinejoin="round">
@@ -162,7 +191,7 @@ export function HunterAvatar({
             <path d={fig.torso} />
             <path d={fig.armL} />
             <path d={fig.armR} />
-            <ellipse cx={fig.head.cx} cy={fig.head.cy} rx={fig.head.rx} ry={fig.head.ry} />
+            <path d={fig.headPath} />
           </g>
         </g>
 
@@ -177,8 +206,17 @@ export function HunterAvatar({
           <path d={fig.torso} />
           <path d={fig.armL} />
           <path d={fig.armR} />
-          <ellipse cx={fig.head.cx} cy={fig.head.cy} rx={fig.head.rx} ry={fig.head.ry} />
+          <path d={fig.headPath} />
         </g>
+
+        {armorItem?.id === 'armor-warden' && (
+          <g fill="rgb(10 12 20 / 0.92)" stroke={`rgb(${rgb})`} strokeWidth="0.8" style={{ filter: `drop-shadow(0 0 3px rgb(${rgb} / .6))` }}>
+            <path d="M39 55 L23 51 L16 59 L28 67 L42 63Z" />
+            <path d="M81 55 L97 51 L104 59 L92 67 L78 63Z" />
+            <path d="M24 52 L19 43 L31 51Z" />
+            <path d="M96 52 L101 43 L89 51Z" />
+          </g>
+        )}
 
         {/* Gear: the hem where the torso outline crosses the legs. */}
         <g
@@ -218,6 +256,16 @@ export function HunterAvatar({
           <circle cx={fig.head.cx - fig.head.rx * 0.4} cy={fig.head.cy - 0.9} r="1.5" fill={`rgb(${rgb})`} />
           <circle cx={fig.head.cx + fig.head.rx * 0.4} cy={fig.head.cy - 0.9} r="1.5" fill={`rgb(${rgb})`} />
         </g>
+
+        {crownItem?.id === 'crown-gate' && (
+          <path
+            d="M48 18 L51 8 L57 15 L60 4 L63 15 L69 8 L72 18 L66 22 L54 22Z"
+            fill="rgb(5 8 18 / 0.94)"
+            stroke={`rgb(${rgb})`}
+            strokeWidth="0.9"
+            style={{ filter: `drop-shadow(0 0 4px rgb(${rgb}))` }}
+          />
+        )}
       </g>
     </svg>
   );

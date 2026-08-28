@@ -232,6 +232,8 @@ export function progressWorkout({ profile, workout, lookup, now = Date.now(), mu
     prCount: prs.length,
     muscleVolume: score.muscleVolume,
     patternVolume: score.patternVolume,
+    muscleSets: score.muscleSets,
+    patternSets: score.patternSets,
     exerciseIds: entries.map((e) => e.exerciseId),
   };
 

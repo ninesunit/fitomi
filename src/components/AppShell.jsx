@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Activity, BookOpen, Calculator, ClipboardList, CloudOff, Dumbbell, Flame,
+  Activity, BookOpen, Calculator, ClipboardList, CloudOff, Coins, Dumbbell, Flame,
   History, LayoutDashboard, ListChecks, LogOut, Menu, Settings, Shield,
-  Swords, Timer, User, Users, X,
+  ShoppingBag, Swords, Timer, User, Users, X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
@@ -24,6 +24,7 @@ const PRIMARY_NAV = [
 const SECONDARY_NAV = [
   { to: '/raid', label: 'Weekly Raid', icon: Swords },
   { to: '/quests', label: 'Quests', icon: ListChecks },
+  { to: '/shop', label: 'System Shop', icon: ShoppingBag },
   { to: '/routines', label: 'Routines', icon: ClipboardList },
   { to: '/history', label: 'Training Log', icon: History },
   { to: '/profile', label: 'Hunter Profile', icon: User },
@@ -34,6 +35,7 @@ const SECONDARY_NAV = [
 const PAGE_TITLES = [
   ['/workout', 'Action Center'], ['/tools', 'Utilities Hub'], ['/library', 'Codex'],
   ['/social', 'Social'], ['/raid', 'Weekly Raid'], ['/quests', 'Quests'],
+  ['/shop', 'System Shop'],
   ['/routines', 'Routines'], ['/history', 'Training Log'], ['/profile', 'Hunter Profile'],
   ['/notomi', 'Notomi Sync'], ['/settings', 'Settings'], ['/', 'Dashboard'],
 ];
@@ -86,6 +88,14 @@ function HunterStatus({ profile, xp, rank, streak, compact = false }) {
           <span className="tnum font-mono text-[11px] font-bold text-[rgb(var(--sys-gold))]">{streak.current}</span>
         </div>
       )}
+      <Link
+        to="/shop"
+        className="flex shrink-0 items-center gap-1 border border-[rgb(var(--sys-gold)/0.3)] bg-[rgb(var(--sys-gold)/0.06)] px-2 py-1"
+        aria-label="Open System Shop"
+      >
+        <Coins size={11} className="text-[rgb(var(--sys-gold))]" />
+        <span className="font-mono text-[10px] font-bold text-[rgb(var(--sys-gold))]">{profile?.wallet?.gold || 0}</span>
+      </Link>
     </div>
   );
 }

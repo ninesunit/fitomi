@@ -5,8 +5,9 @@ import { Sheet } from '../ui/Sheet';
 import { SystemButton } from '../system/SystemButton';
 import { SystemPanel } from '../system/SystemWindow';
 import { ExercisePicker } from '../workout/ExercisePicker';
-import { ExerciseAnimation } from '../ExerciseAnimation';
+import { MachineExerciseGuide } from '../library/MachineExerciseGuide';
 import { getExercise } from '../../data/exercises';
+import { fromKg, toKg } from '../../engine/constants';
 import { play } from '../../lib/sound';
 
 // ---------------------------------------------------------------------------
@@ -27,13 +28,14 @@ const blankBlock = (exerciseId) => {
     sets: compound ? 4 : 3,
     reps: timed ? null : compound ? 8 : 12,
     seconds: timed ? 45 : null,
+    weightKg: 0,
     rpe: null,
     restSeconds: compound ? 180 : 75,
     resolved: true,
   };
 };
 
-export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDuplicate, saving }) {
+export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDuplicate, saving, unit = 'kg' }) {
   const [draft, setDraft] = useState(routine);
   // null = closed, -1 = adding to the end, >= 0 = swapping that block.
   const [picking, setPicking] = useState(null);
@@ -92,6 +94,7 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
           restSeconds: b.restSeconds ?? next.restSeconds,
           reps: timed ? null : b.reps ?? next.reps,
           seconds: timed ? b.seconds ?? next.seconds : null,
+          weightKg: b.weightKg ?? 0,
         };
       }),
     }));
@@ -130,6 +133,13 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
         }
       >
         <div className="space-y-4">
+          <div className="border border-[rgb(var(--sys)/0.18)] bg-[linear-gradient(135deg,rgb(var(--sys)/0.08),transparent_68%)] px-3 py-2.5">
+            <div className="sys-label">Session blueprint</div>
+            <p className="mt-1 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
+              Every movement carries its own set count, target, working load and recovery time into the live session.
+            </p>
+          </div>
+
           <label className="block">
             <span className="sys-label mb-1.5 block">Routine name</span>
             <input
@@ -155,20 +165,23 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
                     exit={{ opacity: 0, scale: 0.97 }}
                     transition={{ duration: 0.18 }}
                   >
-                    <SystemPanel className="p-2.5">
-                      <div className="flex items-center gap-2.5">
+                    <SystemPanel className="overflow-hidden p-0">
+                      <div className="flex items-stretch">
                         {/* Tapping the movement swaps it. The whole row is the
                             target, with the icon there to advertise it. */}
                         <button
                           onClick={() => { play('tap'); setPicking(index); }}
-                          className="flex min-w-0 flex-1 items-center gap-2.5 text-left active:scale-[0.99]"
+                          className="flex min-w-0 flex-1 items-stretch text-left active:scale-[0.99]"
                           aria-label={`Change ${exercise?.name || block.name}`}
                         >
-                          <span className="h-11 w-11 shrink-0" style={{ border: '1px solid rgb(var(--sys)/0.2)' }}>
-                            <ExerciseAnimation exercise={exercise} speed={3.4} />
+                          <span className="h-[78px] w-[108px] shrink-0 border-r border-[rgb(var(--sys)/0.2)] bg-[#030816]">
+                            <MachineExerciseGuide exercise={exercise} compact />
                           </span>
 
-                          <span className="min-w-0 flex-1">
+                          <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
+                            <span className="mb-1 font-mono text-[8px] uppercase tracking-[0.18em] text-[rgb(var(--sys))]">
+                              Movement {String(index + 1).padStart(2, '0')}
+                            </span>
                             <span className="sys-value flex items-center gap-1.5 text-sm leading-tight">
                               <span className="truncate">{exercise?.name || block.name}</span>
                               <ArrowLeftRight size={12} className="shrink-0 text-[rgb(var(--sys-dim))]" />
@@ -179,7 +192,7 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
                           </span>
                         </button>
 
-                        <div className="flex shrink-0 flex-col">
+                        <div className="flex shrink-0 flex-col justify-center border-l border-[rgb(var(--sys)/0.12)] px-0.5">
                           <button
                             onClick={() => move(index, -1)}
                             disabled={index === 0}
@@ -201,14 +214,14 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
                         <button
                           onClick={() => remove(index)}
                           aria-label="Remove exercise"
-                          className="shrink-0 p-2"
+                          className="shrink-0 self-center p-2"
                           style={{ color: 'rgb(var(--sys-danger))' }}
                         >
                           <Trash2 size={14} />
                         </button>
                       </div>
 
-                      <div className="mt-2 grid grid-cols-3 gap-1.5">
+                      <div className="grid grid-cols-4 gap-px border-t border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys)/0.18)]">
                         <NumberField
                           label="Sets"
                           value={block.sets}
@@ -228,7 +241,13 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
                           />
                         )}
                         <NumberField
-                          label="Rest (s)"
+                          label={`Load ${unit}`}
+                          value={Number(fromKg(block.weightKg || 0, unit).toFixed(1))}
+                          inputMode="decimal"
+                          onChange={(v) => patchBlock(index, { weightKg: toKg(v || 0, unit) })}
+                        />
+                        <NumberField
+                          label="Rest s"
                           value={block.restSeconds}
                           onChange={(v) => patchBlock(index, { restSeconds: v })}
                         />
@@ -264,17 +283,18 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
   );
 }
 
-function NumberField({ label, value, onChange }) {
+function NumberField({ label, value, onChange, inputMode = 'numeric' }) {
   return (
     <label className="block">
-      <span className="sys-label mb-1 block text-center">{label}</span>
+      <span className="sys-label block bg-[#020713]/75 px-1 pb-1 pt-1.5 text-center text-[7px]">{label}</span>
       <input
         type="number"
-        inputMode="numeric"
+        inputMode={inputMode}
+        min="0"
+        step={inputMode === 'decimal' ? '0.5' : '1'}
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
-        className="h-10 w-full px-1 text-center font-mono text-base text-[rgb(var(--sys-ink))]"
-        style={{ border: '1px solid rgb(var(--sys)/0.22)', background: 'rgb(var(--sys-deep-2)/0.85)' }}
+        className="h-11 w-full border-0 bg-[rgb(var(--sys-deep-2)/0.92)] px-1 text-center font-mono text-base text-[rgb(var(--sys-ink))] outline-none focus:bg-[rgb(var(--sys)/0.1)]"
       />
     </label>
   );

@@ -157,6 +157,8 @@ export function scoreWorkout({ entries, profile, lookup, prCount = 0, streak = 0
   let reps = 0;
   const muscleVolume = {};
   const patternVolume = {};
+  const muscleSets = {};
+  const patternSets = {};
 
   for (const entry of entries || []) {
     const exercise = lookup?.(entry.exerciseId) || entry.exercise;
@@ -173,12 +175,15 @@ export function scoreWorkout({ entries, profile, lookup, prCount = 0, streak = 0
       // Primary movers take the full share, secondaries a third.
       for (const m of exercise.primary || []) {
         muscleVolume[m] = (muscleVolume[m] || 0) + vol;
+        muscleSets[m] = (muscleSets[m] || 0) + 1;
       }
       for (const m of exercise.secondary || []) {
         muscleVolume[m] = (muscleVolume[m] || 0) + vol * 0.34;
+        muscleSets[m] = (muscleSets[m] || 0) + 0.5;
       }
       if (exercise.pattern) {
         patternVolume[exercise.pattern] = (patternVolume[exercise.pattern] || 0) + vol;
+        patternSets[exercise.pattern] = (patternSets[exercise.pattern] || 0) + 1;
       }
     }
   }
@@ -197,6 +202,8 @@ export function scoreWorkout({ entries, profile, lookup, prCount = 0, streak = 0
     reps,
     muscleVolume,
     patternVolume,
+    muscleSets,
+    patternSets,
   };
 }
 

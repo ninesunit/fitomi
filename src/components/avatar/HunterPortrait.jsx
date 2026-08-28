@@ -1,5 +1,6 @@
 import { HunterAvatar } from './HunterAvatar';
 import { clsx } from '../../lib/clsx';
+import { equippedCosmetics } from '../../data/shop';
 
 // ---------------------------------------------------------------------------
 // The avatar inside a System frame, with the rank sigil stamped on the corner.
@@ -16,6 +17,10 @@ export function HunterPortrait({
   ...avatarProps
 }) {
   const color = rank?.color || '#26bdff';
+  const cosmetics = equippedCosmetics(profile);
+  const frame = cosmetics.profileFrame;
+  const background = cosmetics.profileBackground;
+  const frameColor = frame?.color || color;
 
   return (
     <div
@@ -27,21 +32,44 @@ export function HunterPortrait({
       <div
         className="absolute inset-0"
         style={{
-          border: `1px solid ${color}44`,
+          border: `1px solid ${frameColor}66`,
           background:
             'linear-gradient(160deg, rgb(var(--sys)/0.10), rgb(var(--sys-deep)/0.6) 55%, rgb(var(--sys-deep-2)/0.9))',
           clipPath:
             'polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)',
         }}
       />
+      {background?.asset && (
+        <img
+          src={background.asset}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover opacity-70"
+          style={{ clipPath: 'polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)' }}
+        />
+      )}
       <HunterAvatar
         className="relative h-full w-full"
         stats={profile?.stats}
         bodyType={profile?.bodyType}
         sex={profile?.sex || profile?.gender}
         color={color}
+        cosmetics={profile?.equippedCosmetics}
         {...avatarProps}
       />
+      {frame && (
+        <span
+          className="pointer-events-none absolute inset-0"
+          style={{
+            border: `2px solid ${frameColor}`,
+            boxShadow: `inset 0 0 22px ${frameColor}33, 0 0 18px ${frameColor}35`,
+            clipPath: 'polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)',
+          }}
+        >
+          <i className="absolute left-1 top-1 h-3 w-3 border-l border-t" style={{ borderColor: frameColor }} />
+          <i className="absolute bottom-1 right-1 h-3 w-3 border-b border-r" style={{ borderColor: frameColor }} />
+        </span>
+      )}
       {showRank && rank && (
         <span
           className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center font-display text-[11px] font-bold"

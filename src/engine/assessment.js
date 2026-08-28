@@ -423,6 +423,7 @@ export function buildProgram(answers, seed = 'awaken') {
           sets: compound ? (strengthGoal ? 5 : 4) : 3,
           reps: timed ? null : compound ? (strengthGoal ? 5 : 8) : 12,
           seconds: timed ? 45 : null,
+          weightKg: 0,
           rpe: i === 0 ? 8 : null,
           restSeconds: compound ? 180 : 75,
           resolved: true,

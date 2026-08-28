@@ -15,6 +15,8 @@ import { QuestCard } from '../components/quests/QuestCard';
 import { QuestTimer } from '../components/quests/QuestTimer';
 import { fromKg } from '../engine/constants';
 import { formatDuration, relativeTime } from '../lib/date';
+import { questProgress } from '../engine/quests';
+import { getCosmetic } from '../data/shop';
 
 // ---------------------------------------------------------------------------
 // STATUS
@@ -29,7 +31,7 @@ import { formatDuration, relativeTime } from '../lib/date';
 export default function Dashboard() {
   const {
     profile, xp, rank, nextRank, streak, readiness, boss, raid,
-    shadowProgress, quests, completeQuest, uncompleteQuest,
+    shadowProgress, quests,
   } = useGame();
   const { active, elapsed, stats } = useWorkout();
 
@@ -43,6 +45,7 @@ export default function Dashboard() {
   const hp = 100 + (s.vit || 0) * 12;
   const mp = 50 + (s.int || 0) * 8 + (s.per || 0) * 4;
   const fatigue = Math.round((1 - (readiness ?? 1)) * 100);
+  const equippedTitle = getCosmetic(profile.equippedCosmetics?.title)?.title;
 
   return (
     <div className="space-y-3">
@@ -61,7 +64,7 @@ export default function Dashboard() {
               </div>
               <div className="sys-value mt-1 truncate text-sm">{profile.displayName || 'Hunter'}</div>
               <div className="sys-label mt-0.5 truncate normal-case tracking-normal">
-                {profile.title || rank?.title}
+                {equippedTitle || profile.title || rank?.title}
               </div>
             </div>
 
@@ -138,8 +141,7 @@ export default function Dashboard() {
               key={quest.id}
               quest={quest}
               completed={quests.completed.includes(quest.id)}
-              onComplete={completeQuest}
-              onUndo={uncompleteQuest}
+              progress={questProgress(quest, { history: profile.recentWorkouts || [] })}
               compact
             />
           ))}

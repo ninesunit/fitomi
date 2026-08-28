@@ -32,6 +32,7 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const NotomiPage = lazy(() => import('./pages/NotomiPage'));
 const RoutinesPage = lazy(() => import('./pages/RoutinesPage'));
 const SocialPage = lazy(() => import('./pages/SocialPage'));
+const ShopPage = lazy(() => import('./pages/ShopPage'));
 
 /** Applies the active shadow's theme by rewriting the root CSS variables. */
 function ThemeBridge({ children }) {
@@ -92,6 +93,7 @@ function Protected() {
               <Route path="/notomi" element={<NotomiPage />} />
               <Route path="/routines" element={<RoutinesPage />} />
               <Route path="/social" element={<SocialPage />} />
+              <Route path="/shop" element={<ShopPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             </RouteTransition>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Award, Check, Ghost, Palette, Save, Sparkles, TrendingUp, User } from 'lucide-react';
+import { Award, Check, Coins, Ghost, Palette, Save, Sparkles, TrendingUp, User } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
 import { useSocial } from '../context/SocialContext';
@@ -21,6 +21,7 @@ import { KEY_LIFTS, getExercise } from '../data/exercises';
 import { STANDARD_TIERS, strengthLevel, bodyweightKgOf } from '../engine/records';
 import { clsx } from '../lib/clsx';
 import { play } from '../lib/sound';
+import { equippedCosmetics, getCosmetic } from '../data/shop';
 
 const TABS = [
   { id: 'status', label: 'Status', icon: Sparkles },
@@ -86,6 +87,8 @@ export default function ProfilePage() {
   const unit = profile.unit || 'kg';
   const totalStats = STATS.reduce((sum, s) => sum + (profile.stats[s.id] || 0), 0);
   const unlocked = new Set(profile.shadows || []);
+  const cosmetics = equippedCosmetics(profile);
+  const displayTitle = getCosmetic(profile.equippedCosmetics?.title)?.title || profile.title || rank.title;
 
   const standards = useMemo(() => {
     const bw = bodyweightKgOf(profile);
@@ -136,7 +139,16 @@ export default function ProfilePage() {
   return (
     <div className="space-y-4">
       {/* ---- identity ---- */}
-      <MotionPanel accent notch className="p-5">
+      <MotionPanel
+        accent
+        notch
+        className="p-5"
+        style={cosmetics.profileBackground?.asset ? {
+          backgroundImage: `linear-gradient(90deg, rgb(2 7 19 / .98), rgb(2 7 19 / .72)), url(${cosmetics.profileBackground.asset})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        } : undefined}
+      >
         <div className="flex items-stretch gap-4">
           {/* The hunter, at full size. The profile is the one screen where the
               figure gets room to breathe. */}
@@ -147,7 +159,7 @@ export default function ProfilePage() {
               {profile.displayName}
             </h1>
             <p className="text-sm" style={{ color: rank.color }}>
-              {rank.name} · {profile.title || rank.title}
+              {rank.name} · {displayTitle}
             </p>
             <p className="mt-1.5 text-xs leading-snug text-[rgb(var(--sys-dim))]">{rank.blurb}</p>
           </div>
@@ -161,6 +173,13 @@ export default function ProfilePage() {
             </span>
           </div>
           <XpBar progress={xp.progress} />
+        </div>
+
+        <div className="mt-3 flex items-center justify-between border border-[rgb(var(--sys-gold)/0.28)] bg-[#020713]/65 px-3 py-2">
+          <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[rgb(var(--sys-dim))]">
+            <Coins size={13} className="text-[rgb(var(--sys-gold))]" /> Hunter treasury
+          </span>
+          <span className="font-mono text-sm font-bold text-[rgb(var(--sys-gold))]">{profile.wallet.gold.toLocaleString()} G</span>
         </div>
 
         {/* Rank ladder — where you are on the whole progression. */}
@@ -330,6 +349,7 @@ export default function ProfilePage() {
             onChange={(gender) => setDraft({ ...draft, gender })}
             stats={profile.stats}
             bodyType={profile.bodyType}
+            cosmetics={profile.equippedCosmetics}
             color={rank.color}
           />
         </div>

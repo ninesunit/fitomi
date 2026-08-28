@@ -113,6 +113,7 @@ export function publicCardFrom(profile, uid) {
     bodyType: profile?.bodyType || 'average',
     gender: profile?.gender || '',
     stats: profile?.stats || {},
+    equippedCosmetics: profile?.equippedCosmetics || {},
     guildId: profile?.guildId || null,
     updatedAt: serverTimestamp(),
   };

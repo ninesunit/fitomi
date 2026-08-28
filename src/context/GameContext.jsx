@@ -6,19 +6,95 @@ import { clearAnswers, loadAnswers, seedProfileFromAssessment } from '../lib/onb
 import { assess, programToRoutines } from '../engine/assessment';
 import { createProfile, hydrateProfile } from '../lib/profile';
 import { getExercise } from '../data/exercises';
-import { progressWorkout, grantXp, revokeXp } from '../engine/progression';
+import { progressWorkout, grantXp } from '../engine/progression';
 import { capAward, recordDailyXp } from '../engine/integrity';
 import { levelFromXp } from '../engine/leveling';
 import { rankForLevel, nextRank, rankProgress } from '../engine/ranks';
 import { computeStreak, streakDeadline, nextShadow, themeById } from '../engine/shadows';
 import { estimateSoreness, systemicReadiness } from '../engine/soreness';
-import { generateQuests, generateWeeklyQuests } from '../engine/quests';
-import { bossForWeek, createRaid, applyDamage, revokeDamage, QUEST_DAMAGE } from '../engine/raid';
+import { generateQuests, generateWeeklyQuests, questProgress } from '../engine/quests';
+import { bossForWeek, createRaid, applyDamage } from '../engine/raid';
 import { dayKey, weekKey } from '../lib/date';
+import { getCosmetic } from '../data/shop';
 
 export const GameContext = createContext(null);
 
 const LOCAL_KEY = 'fitomi:profile:';
+
+function rewardVerifiedQuests(profile, questBoard, now = Date.now()) {
+  const today = dayKey(new Date(now));
+  const week = weekKey(new Date(now));
+  const dailyState = profile.questState?.day === today ? profile.questState : {};
+  const weeklyState = profile.weeklyQuestState?.week === week ? profile.weeklyQuestState : {};
+  const dailyDone = new Set(dailyState.completed || []);
+  const weeklyDone = new Set(weeklyState.completed || []);
+  const evidence = { history: profile.recentWorkouts || [], now };
+  const clearedDaily = (questBoard.daily || []).filter(
+    (quest) => !dailyDone.has(quest.id) && questProgress(quest, evidence).complete,
+  );
+  const clearedWeekly = (questBoard.weekly || []).filter(
+    (quest) => !weeklyDone.has(quest.id) && questProgress(quest, evidence).complete,
+  );
+  const cleared = [...clearedDaily, ...clearedWeekly];
+
+  let next = profile;
+  const events = [];
+  const hits = [];
+  const dailyReceipts = { ...(dailyState.receipts || {}) };
+  const weeklyReceipts = { ...(weeklyState.receipts || {}) };
+
+  for (const [index, quest] of cleared.entries()) {
+    const allowed = capAward(next, today, quest.xp, quest.xp).granted;
+    let receipt = { amount: 0 };
+    if (allowed > 0) {
+      const granted = grantXp(next, allowed, `Verified quest: ${quest.title}`);
+      next = granted.profile;
+      receipt = granted.receipt;
+      events.push(...granted.events);
+      next = { ...next, xpLedger: recordDailyXp(next, today, allowed) };
+    }
+
+    const gold = Math.max(0, Number(quest.gold) || 0);
+    next = {
+      ...next,
+      wallet: {
+        gold: (next.wallet?.gold || 0) + gold,
+        lifetimeGold: (next.wallet?.lifetimeGold || 0) + gold,
+      },
+    };
+    const at = now + index;
+    hits.push({ amount: quest.damage, source: 'quest', label: quest.title, at });
+    const questReceipt = { ...receipt, gold, damage: quest.damage, at, week, evidence: quest.auto };
+    if (quest.week) weeklyReceipts[quest.id] = questReceipt;
+    else dailyReceipts[quest.id] = questReceipt;
+  }
+
+  const raidState = next.raid && next.raid.week === week
+    ? next.raid
+    : createRaid(next.level || 1, week);
+
+  return {
+    profile: {
+      ...next,
+      raid: applyDamage(raidState, hits),
+      questState: {
+        day: today,
+        completed: [...dailyDone, ...clearedDaily.map((quest) => quest.id)],
+        receipts: dailyReceipts,
+        board: questBoard.daily,
+        generated: today,
+      },
+      weeklyQuestState: {
+        week,
+        completed: [...weeklyDone, ...clearedWeekly.map((quest) => quest.id)],
+        receipts: weeklyReceipts,
+        board: questBoard.weekly,
+      },
+    },
+    events,
+    cleared,
+  };
+}
 
 export function GameProvider({ children }) {
   const { user } = useAuth();
@@ -229,14 +305,14 @@ export function GameProvider({ children }) {
     if (!profile || !derived) return { daily: [], weekly: [], completed: [], weeklyCompleted: [] };
 
     const today = dayKey();
-    const daily = generateQuests({
+    const generatedDaily = generateQuests({
       history: profile.recentWorkouts || [],
       profile,
       streak: derived.streak,
       records: profile.records || {},
       userId: profile.uid || 'anon',
     });
-    const weekly = generateWeeklyQuests({
+    const generatedWeekly = generateWeeklyQuests({
       history: profile.recentWorkouts || [],
       streak: derived.streak,
       week: derived.week,
@@ -246,6 +322,12 @@ export function GameProvider({ children }) {
     const completed = profile.questState?.day === today ? profile.questState.completed || [] : [];
     const weeklyCompleted =
       profile.weeklyQuestState?.week === derived.week ? profile.weeklyQuestState.completed || [] : [];
+    const daily = profile.questState?.day === today && profile.questState.board?.length
+      ? profile.questState.board
+      : generatedDaily;
+    const weekly = profile.weeklyQuestState?.week === derived.week && profile.weeklyQuestState.board?.length
+      ? profile.weeklyQuestState.board
+      : generatedWeekly;
 
     return { daily, weekly, completed, weeklyCompleted, today };
   }, [profile, derived]);
@@ -263,6 +345,8 @@ export function GameProvider({ children }) {
         lookup: getExercise,
         multiplier: options.multiplier || 1,
       });
+      const verified = rewardVerifiedQuests(result.profile, quests);
+      const finalProfile = verified.profile;
       const record = {
         name: workout.name || 'Session',
         startedAt: workout.startedAt || Date.now(),
@@ -277,15 +361,17 @@ export function GameProvider({ children }) {
         prCount: result.prs.length,
         muscleVolume: result.score.muscleVolume,
         patternVolume: result.score.patternVolume,
+        muscleSets: result.score.muscleSets,
+        patternSets: result.score.patternSets,
       };
 
-      setProfile(result.profile);
+      setProfile(finalProfile);
       pending.current = null;
       if (saveTimer.current) clearTimeout(saveTimer.current);
 
       setSaving(true);
       try {
-        const saved = await commitWorkout(user.uid, record, result.profile);
+        const saved = await commitWorkout(user.uid, record, finalProfile);
         setProfile(saved.profile);
       } catch (err) {
         setError(err);
@@ -297,103 +383,71 @@ export function GameProvider({ children }) {
         setSaving(false);
       }
 
-      announce(result.events);
-      return result;
+      announce([...result.events, ...verified.events]);
+      if (verified.cleared.length) {
+        const gold = verified.cleared.reduce((sum, quest) => sum + (quest.gold || 0), 0);
+        toast(`${verified.cleared.length} verified quest${verified.cleared.length === 1 ? '' : 's'} cleared · +${gold} gold`, { tone: 'success' });
+      }
+      return { ...result, profile: finalProfile, verifiedQuests: verified.cleared };
     },
-    [user, profile, announce, toast],
-  );
-
-  /** Mark a daily quest cleared: XP, raid damage, and one debounced write. */
-  const completeQuest = useCallback(
-    (quest) => {
-      if (!profile) return;
-      const today = dayKey();
-      const state = profile.questState?.day === today ? profile.questState : null;
-      if ((state?.completed || []).includes(quest.id)) return;
-
-      update((current) => {
-        // Quest XP comes out of the same daily allowance as training, so the
-        // board cannot be used to route around the ceiling either.
-        const allowed = capAward(current, today, quest.xp, quest.xp).granted;
-        if (allowed <= 0) return current;
-        const granted = grantXp(current, allowed, `Quest: ${quest.title}`);
-        const week = weekKey();
-        const raidState =
-          current.raid && current.raid.week === week ? current.raid : createRaid(current.level || 1, week);
-        const at = Date.now();
-        const raid = applyDamage(raidState, [
-          { amount: QUEST_DAMAGE, source: 'quest', label: quest.title, at },
-        ]);
-
-        const sameDay = current.questState?.day === today;
-        const completed = sameDay ? [...(current.questState.completed || []), quest.id] : [quest.id];
-        // The receipt is what makes un-ticking exact. Without it the reverse of
-        // an award is a guess, and a quest toggled across a level boundary
-        // hands out stat points every time it is re-ticked.
-        const receipts = {
-          ...(sameDay ? current.questState?.receipts : null),
-          [quest.id]: { ...granted.receipt, damage: QUEST_DAMAGE, at, week },
-        };
-
-        return {
-          ...granted.profile,
-          xpLedger: recordDailyXp(current, today, allowed),
-          raid,
-          questState: {
-            day: today,
-            completed,
-            receipts,
-            generated: (sameDay && current.questState?.generated) || today,
-          },
-        };
-      });
-
-      toast(`Quest cleared · +${quest.xp} XP`, { tone: 'success' });
-    },
-    [profile, update, toast],
-  );
-
-  const uncompleteQuest = useCallback(
-    (quest) => {
-      const today = dayKey();
-      update((current) => {
-        if (current.questState?.day !== today) return current;
-        if (!(current.questState.completed || []).includes(quest.id)) return current;
-
-        const receipt = current.questState.receipts?.[quest.id];
-        // Older profiles pre-date receipts; fall back to the quest's face value
-        // so at minimum the XP is returned.
-        const reversed = revokeXp(current, receipt || { amount: quest.xp, award: {}, points: 0 });
-        // Returning the XP returns the allowance it consumed.
-        const refundedLedger = recordDailyXp(current, today, -(receipt?.amount ?? quest.xp));
-
-        const raid =
-          receipt && current.raid?.week === receipt.week
-            ? revokeDamage(current.raid, { amount: receipt.damage, source: 'quest', at: receipt.at })
-            : current.raid;
-
-        const receipts = { ...(current.questState.receipts || {}) };
-        delete receipts[quest.id];
-
-        return {
-          ...reversed,
-          xpLedger: refundedLedger,
-          raid,
-          questState: {
-            ...current.questState,
-            completed: current.questState.completed.filter((id) => id !== quest.id),
-            receipts,
-          },
-        };
-      });
-    },
-    [update],
+    [user, profile, quests, announce, toast],
   );
 
   const setTheme = useCallback(
     (shadowId) => {
       update({ activeTheme: shadowId });
     },
+    [update],
+  );
+
+  const buyCosmetic = useCallback(
+    (itemId) => {
+      const item = getCosmetic(itemId);
+      if (!item || !profile) return false;
+      if ((profile.inventory || []).includes(itemId)) {
+        toast('Cosmetic already owned.', { tone: 'info' });
+        return false;
+      }
+      if ((profile.wallet?.gold || 0) < item.price) {
+        toast('Insufficient gold.', { tone: 'warn' });
+        return false;
+      }
+      update((current) => {
+        if ((current.inventory || []).includes(itemId) || (current.wallet?.gold || 0) < item.price) {
+          return current;
+        }
+        return {
+          ...current,
+          wallet: { ...current.wallet, gold: Math.max(0, (current.wallet?.gold || 0) - item.price) },
+          inventory: [...new Set([...(current.inventory || []), itemId])],
+        };
+      });
+      toast(`${item.name} acquired.`, { tone: 'success' });
+      return true;
+    },
+    [profile, update, toast],
+  );
+
+  const equipCosmetic = useCallback(
+    (itemId) => {
+      const item = getCosmetic(itemId);
+      if (!item || !(profile?.inventory || []).includes(itemId)) return false;
+      update((current) => ({
+        ...current,
+        equippedCosmetics: { ...(current.equippedCosmetics || {}), [item.slot]: item.id },
+      }));
+      toast(`${item.name} equipped.`, { tone: 'success' });
+      return true;
+    },
+    [profile, update, toast],
+  );
+
+  const unequipCosmetic = useCallback(
+    (slot) => update((current) => {
+      const equippedCosmetics = { ...(current.equippedCosmetics || {}) };
+      delete equippedCosmetics[slot];
+      return { ...current, equippedCosmetics };
+    }),
     [update],
   );
 
@@ -414,8 +468,9 @@ export function GameProvider({ children }) {
       ...(derived || {}),
       quests,
       finishWorkout,
-      completeQuest,
-      uncompleteQuest,
+      buyCosmetic,
+      equipCosmetic,
+      unequipCosmetic,
       setTheme,
       updateSettings,
       updateProfile: updateProfileFields,
@@ -424,7 +479,8 @@ export function GameProvider({ children }) {
     }),
     [
       profile, loading, saving, error, offline, derived, quests,
-      finishWorkout, completeQuest, uncompleteQuest, setTheme, updateSettings, updateProfileFields, update, flush,
+      finishWorkout, buyCosmetic, equipCosmetic, unequipCosmetic,
+      setTheme, updateSettings, updateProfileFields, update, flush,
     ],
   );
 

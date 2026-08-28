@@ -84,7 +84,7 @@ export default function NotomiPage() {
   }
 
   function startRoutine(routine) {
-    const session = routineToSession(routine);
+    const session = routineToSession(routine, profile?.unit || 'kg');
     if (!session.entries.length) {
       toast('No exercises in this routine could be matched.', { tone: 'warn' });
       return;

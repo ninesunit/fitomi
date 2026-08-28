@@ -105,6 +105,7 @@ export function figureParams({ stats = {}, bodyType = 'average', sex = '' } = {}
     aura: int,      // aura ring opacity and count
     visor: per,     // eye/visor intensity
     mass,
+    fem,
   };
 }
 

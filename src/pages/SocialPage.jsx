@@ -15,6 +15,7 @@ import * as social from '../lib/social';
 import { relativeTime } from '../lib/date';
 import { clsx } from '../lib/clsx';
 import { play } from '../lib/sound';
+import { getCosmetic } from '../data/shop';
 
 // ---------------------------------------------------------------------------
 // THE HUNTERS ASSOCIATION
@@ -328,6 +329,7 @@ function HunterRow({ hunter, action, rank: place }) {
         bodyType={hunter.bodyType}
         sex={hunter.gender}
         color={rank.color}
+        cosmetics={hunter.equippedCosmetics}
         aura={false}
         motes={false}
         breathe={false}
@@ -335,7 +337,7 @@ function HunterRow({ hunter, action, rank: place }) {
       <div className="min-w-0 flex-1">
         <div className="sys-value truncate text-sm leading-tight">{hunter.displayName}</div>
         <div className="sys-label truncate normal-case tracking-normal">
-          {hunter.handle ? `@${hunter.handle}` : 'Hunter'}
+          {getCosmetic(hunter.equippedCosmetics?.title)?.title || (hunter.handle ? `@${hunter.handle}` : 'Hunter')}
         </div>
       </div>
       <div className="shrink-0 text-right">

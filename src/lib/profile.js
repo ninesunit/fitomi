@@ -52,6 +52,11 @@ export function createProfile({ uid, email, displayName, photoURL } = {}) {
     activeTheme: 'system',
     title: null,
 
+    // --- cosmetic economy ---
+    wallet: { gold: 0, lifetimeGold: 0 },
+    inventory: [],
+    equippedCosmetics: {},
+
     // --- aggregates (kept here so the dashboard needs no extra queries) ---
     totals: { workouts: 0, volumeKg: 0, sets: 0, reps: 0, prCount: 0, bossKills: 0, durationSec: 0 },
 
@@ -130,6 +135,9 @@ export function hydrateProfile(raw, fallback = {}) {
     questState: { ...base.questState, ...(raw.questState || {}) },
     weeklyQuestState: { ...base.weeklyQuestState, ...(raw.weeklyQuestState || {}) },
     weekly: { ...base.weekly, ...(raw.weekly || {}) },
+    wallet: { ...base.wallet, ...(raw.wallet || {}) },
+    inventory: raw.inventory || [],
+    equippedCosmetics: { ...base.equippedCosmetics, ...(raw.equippedCosmetics || {}) },
     records: raw.records || {},
     recentWorkouts: raw.recentWorkouts || [],
     trainingDays: raw.trainingDays || [],

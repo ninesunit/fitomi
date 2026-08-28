@@ -2,7 +2,7 @@ import { useDeferredValue, useMemo, useState } from 'react';
 import { ArrowLeftRight, Check, Search, SlidersHorizontal } from 'lucide-react';
 import { Sheet } from '../ui/Sheet';
 import { Button } from '../ui/Button';
-import { ExerciseAnimation } from '../ExerciseAnimation';
+import { MachineExerciseGuide } from '../library/MachineExerciseGuide';
 import { CATEGORIES, filterExercises, getExercise } from '../../data/exercises';
 import { EQUIPMENT_LIST } from '../../engine/constants';
 import { clsx } from '../../lib/clsx';
@@ -137,7 +137,7 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [], mode = 'ad
               onClick={() => (isCurrent ? onClose() : !already && toggle(exercise.id))}
               disabled={already}
               className={clsx(
-                'flex w-full items-center gap-3 border px-2.5 py-2 text-left transition active:scale-[0.99]',
+                'flex w-full items-stretch gap-0 overflow-hidden border text-left transition active:scale-[0.99]',
                 already && 'cursor-not-allowed border-[rgb(var(--sys)/0.18)] opacity-40',
                 (picked || isCurrent) && 'border-transparent',
                 !already && !picked && !isCurrent && 'border-[rgb(var(--sys)/0.18)] hover:bg-[rgb(var(--sys)/0.05)]',
@@ -149,30 +149,30 @@ export function ExercisePicker({ open, onClose, onAdd, existing = [], mode = 'ad
               }
             >
               {/* A movement is far easier to recognise drawn than described. */}
-              <span
-                className="h-11 w-11 shrink-0"
-                style={{ border: '1px solid rgb(var(--sys)/0.2)', background: 'rgb(var(--sys-deep-2)/0.6)' }}
-              >
-                <ExerciseAnimation exercise={exercise} speed={3.4} />
+              <span className="h-[72px] w-[104px] shrink-0 border-r border-[rgb(var(--sys)/0.2)] bg-[#030816]">
+                <MachineExerciseGuide exercise={exercise} compact />
               </span>
 
-              <span className="min-w-0 flex-1">
+              <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
                 <span className="block truncate text-sm font-medium text-[rgb(var(--sys-ink))]">
                   {exercise.name}
                 </span>
                 <span className="block truncate font-mono text-[11px] text-[rgb(var(--sys-dim))]">
                   {exercise.equipment} · {exercise.primary.join(', ')}
                 </span>
+                <span className="mt-1 font-mono text-[8px] uppercase tracking-[0.16em] text-[rgb(var(--sys))]">
+                  {exercise.pattern} · {exercise.difficulty}
+                </span>
               </span>
 
               {swapping ? (
-                <span className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-[rgb(var(--sys-dim))]">
+                <span className="flex shrink-0 items-center px-3 font-mono text-[10px] uppercase tracking-widest text-[rgb(var(--sys-dim))]">
                   {isCurrent ? 'current' : <ArrowLeftRight size={15} className="sys-accent" />}
                 </span>
               ) : (
                 <span
                   className={clsx(
-                    'flex h-6 w-6 shrink-0 items-center justify-center border',
+                    'mr-3 mt-[24px] flex h-6 w-6 shrink-0 items-center justify-center border',
                     picked ? 'border-transparent text-void-950' : 'border-[rgb(var(--sys)/0.25)]',
                   )}
                   style={picked ? { backgroundColor: 'rgb(var(--sys))' } : undefined}

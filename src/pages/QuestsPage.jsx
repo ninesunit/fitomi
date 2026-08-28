@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Brain, CalendarDays, CheckCircle2, ListChecks, Sparkles } from 'lucide-react';
+import { Brain, CalendarDays, CheckCircle2, Coins, ListChecks, LockKeyhole, Sparkles } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { MotionPanel, PanelHeader } from '../components/ui/Panel';
 import { QuestCard } from '../components/quests/QuestCard';
@@ -8,14 +8,16 @@ import { Meter } from '../components/ui/Bars';
 import { MUSCLES } from '../engine/constants';
 import { soreMuscles, neglectedMuscles } from '../engine/soreness';
 import { MuscleMap, SorenessLegend } from '../components/dashboard/MuscleMap';
+import { questProgress } from '../engine/quests';
 
 export default function QuestsPage() {
-  const { quests, completeQuest, uncompleteQuest, soreness, readiness, streak } = useGame();
+  const { quests, profile, soreness, readiness, streak } = useGame();
 
   const done = quests.daily.filter((q) => quests.completed.includes(q.id));
   const open = quests.daily.filter((q) => !quests.completed.includes(q.id));
   const totalXp = quests.daily.reduce((sum, q) => sum + q.xp, 0);
   const earnedXp = done.reduce((sum, q) => sum + q.xp, 0);
+  const progressOf = (quest) => questProgress(quest, { history: profile.recentWorkouts || [] });
 
   const sore = soreMuscles(soreness, 0.45).slice(0, 4);
   const neglected = neglectedMuscles(soreness).slice(0, 4);
@@ -29,8 +31,7 @@ export default function QuestsPage() {
           icon={ListChecks}
         />
         <p className="mt-1.5 text-sm text-[rgb(var(--sys-dim))]">
-          Generated fresh each morning from your last 48 hours of training. Same board on every
-          device — no server involved.
+          Generated from recent training and verified only against finished workout records. Quests cannot be checked by hand.
         </p>
 
         <QuestTimer open={open.length} className="mt-3" />
@@ -51,7 +52,7 @@ export default function QuestsPage() {
             className="mt-3 text-center text-[11px] leading-relaxed"
             style={{ color: 'rgb(var(--sys-danger))' }}
           >
-            Failure to complete the daily quest will incur an appropriate penalty.
+            Unverified objectives grant no XP, gold, or raid damage.
           </p>
         )}
       </MotionPanel>
@@ -127,7 +128,7 @@ export default function QuestsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 + i * 0.05 }}
           >
-            <QuestCard quest={quest} completed={false} onComplete={completeQuest} onUndo={uncompleteQuest} />
+            <QuestCard quest={quest} completed={false} progress={progressOf(quest)} />
           </motion.div>
         ))}
       </div>
@@ -144,8 +145,6 @@ export default function QuestsPage() {
                 key={quest.id}
                 quest={quest}
                 completed
-                onComplete={completeQuest}
-                onUndo={uncompleteQuest}
                 compact
               />
             ))}
@@ -171,8 +170,15 @@ export default function QuestsPage() {
               <div className="min-w-0 flex-1">
                 <h3 className="font-display text-sm font-semibold text-[rgb(var(--sys-ink))]">{quest.title}</h3>
                 <p className="mt-0.5 text-xs text-[rgb(var(--sys-dim))]">{quest.description}</p>
+                <div className="mt-2 h-1 overflow-hidden bg-[rgb(var(--sys-deep)/0.9)]">
+                  <div className="h-full bg-[rgb(var(--sys))]" style={{ width: `${progressOf(quest).ratio * 100}%` }} />
+                </div>
               </div>
-              <span className="shrink-0 font-mono text-[11px] accent-text">+{quest.xp}</span>
+              <span className="shrink-0 text-right font-mono text-[10px]">
+                <span className="block accent-text">+{quest.xp} XP</span>
+                <span className="mt-1 flex items-center justify-end gap-1 text-[rgb(var(--sys-gold))]"><Coins size={10} />{quest.gold}</span>
+                <LockKeyhole size={10} className="ml-auto mt-1 text-[rgb(var(--sys-dim))]" />
+              </span>
             </div>
           ))}
         </div>

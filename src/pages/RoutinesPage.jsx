@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ClipboardList, Copy, Pencil, Play, Plus } from 'lucide-react';
+import { ClipboardList, Copy, Layers3, Pencil, Play, Plus, Weight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { useWorkout } from '../context/WorkoutContext';
@@ -13,9 +13,11 @@ import { RoutineEditor } from '../components/routines/RoutineEditor';
 import { deleteRoutine, fetchRoutines, saveRoutine } from '../lib/firestore';
 import { getExercise } from '../data/exercises';
 import { splitName } from '../engine/assessment';
+import { fromKg } from '../engine/constants';
+import { MachineExerciseGuide } from '../components/library/MachineExerciseGuide';
 
 /** A routine turned into the entry shape a live session expects. */
-export function routineToEntries(routine) {
+export function routineToEntries(routine, unit = 'kg') {
   return (routine.blocks || [])
     .filter((b) => b.exerciseId && getExercise(b.exerciseId))
     .map((b) => ({
@@ -24,7 +26,7 @@ export function routineToEntries(routine) {
       sets: Array.from({ length: Math.max(1, Number(b.sets) || 3) }, (_, i) => ({
         id: `${routine.id || 'new'}-${b.exerciseId}-${i}-${Math.random().toString(36).slice(2, 6)}`,
         reps: b.reps ?? '',
-        weight: '',
+        weight: Number(fromKg(Number(b.weightKg) || 0, unit).toFixed(1)),
         rpe: b.rpe ?? null,
         duration: b.seconds ?? '',
         distance: '',
@@ -98,7 +100,7 @@ export default function RoutinesPage() {
   }
 
   function startRoutine(routine) {
-    const entries = routineToEntries(routine);
+    const entries = routineToEntries(routine, profile?.unit || 'kg');
     if (!entries.length) {
       toast('No usable exercises in that routine.', { tone: 'warn' });
       return;
@@ -139,6 +141,7 @@ export default function RoutinesPage() {
                 onStart={() => startRoutine(routine)}
                 onEdit={() => setEditing(routine)}
                 onDuplicate={() => duplicate(routine)}
+                unit={profile?.unit || 'kg'}
               />
             ))}
           </div>
@@ -156,6 +159,7 @@ export default function RoutinesPage() {
                 onStart={() => startRoutine(routine)}
                 onEdit={() => setEditing(routine)}
                 onDuplicate={() => duplicate(routine)}
+                unit={profile?.unit || 'kg'}
               />
             ))}
           </div>
@@ -181,6 +185,7 @@ export default function RoutinesPage() {
         onSave={persist}
         onDelete={(r) => setConfirmDelete(r)}
         onDuplicate={duplicate}
+        unit={profile?.unit || 'kg'}
       />
 
       <SystemAlert
@@ -198,11 +203,35 @@ export default function RoutinesPage() {
   );
 }
 
-function RoutineRow({ routine, onStart, onEdit, onDuplicate, delay = 0 }) {
+function RoutineRow({ routine, onStart, onEdit, onDuplicate, unit = 'kg', delay = 0 }) {
   const sets = (routine.blocks || []).reduce((sum, b) => sum + (Number(b.sets) || 0), 0);
+  const loadedSets = (routine.blocks || []).reduce(
+    (sum, b) => sum + ((Number(b.weightKg) || 0) > 0 ? Number(b.sets) || 0 : 0),
+    0,
+  );
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
-      <SystemPanel className="p-3">
+      <SystemPanel className="group overflow-hidden p-0">
+        <div className="grid h-[94px] grid-cols-3 border-b border-[rgb(var(--sys)/0.16)] bg-[#030816]">
+          {(routine.blocks || []).slice(0, 3).map((block, index) => {
+            const exercise = getExercise(block.exerciseId);
+            return (
+              <div key={`${block.exerciseId}-${index}`} className="relative min-w-0 border-r border-[rgb(var(--sys)/0.12)] last:border-r-0">
+                <MachineExerciseGuide exercise={exercise} compact />
+                <span className="absolute bottom-1 left-1 max-w-[calc(100%-8px)] truncate bg-[#020713]/85 px-1 py-0.5 font-mono text-[7px] uppercase tracking-wider text-[rgb(var(--sys-ink))]">
+                  {exercise?.name || block.name}
+                </span>
+              </div>
+            );
+          })}
+          {!(routine.blocks || []).length && (
+            <div className="col-span-3 flex items-center justify-center text-[rgb(var(--sys-dim))]">
+              <Layers3 size={24} />
+            </div>
+          )}
+        </div>
+
+        <div className="p-3">
         <div className="flex items-center gap-2.5">
           <div className="min-w-0 flex-1">
             <div className="sys-value truncate text-sm leading-tight">{routine.name}</div>
@@ -223,15 +252,19 @@ function RoutineRow({ routine, onStart, onEdit, onDuplicate, delay = 0 }) {
           </SystemButton>
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-1">
-          {(routine.blocks || []).slice(0, 5).map((b, i) => (
-            <span key={i} className="stat-chip text-[10px]">
-              {getExercise(b.exerciseId)?.name || b.name}
+        <div className="mt-2 flex items-center gap-2 font-mono text-[9px] uppercase tracking-wider text-[rgb(var(--sys-dim))]">
+          <span className="flex items-center gap-1 border border-[rgb(var(--sys)/0.18)] px-1.5 py-1">
+            <Layers3 size={10} /> {routine.blocks?.length || 0} moves
+          </span>
+          <span className="flex items-center gap-1 border border-[rgb(var(--sys)/0.18)] px-1.5 py-1">
+            <Weight size={10} /> {loadedSets} loaded sets
+          </span>
+          {(routine.blocks || []).some((b) => Number(b.weightKg) > 0) && (
+            <span className="ml-auto text-[rgb(var(--sys))]">
+              up to {Math.max(...routine.blocks.map((b) => fromKg(Number(b.weightKg) || 0, unit))).toFixed(1)} {unit}
             </span>
-          ))}
-          {(routine.blocks || []).length > 5 && (
-            <span className="stat-chip text-[10px]">+{routine.blocks.length - 5}</span>
           )}
+        </div>
         </div>
       </SystemPanel>
     </motion.div>

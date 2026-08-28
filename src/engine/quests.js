@@ -7,7 +7,7 @@ import {
   regionReadiness,
 } from './soreness';
 import { MOBILITY_DRILLS, CONDITIONING_DRILLS, RECOVERY_DRILLS } from '../data/mobility';
-import { dayKey, seededRandom, seededSample, DAY_MS } from '../lib/date';
+import { dayKey, weekKey, seededRandom, seededSample, DAY_MS } from '../lib/date';
 import { QUEST_DAMAGE } from './raid';
 
 // ---------------------------------------------------------------------------
@@ -30,14 +30,11 @@ export const QUEST_TYPES = {
 };
 
 export const DIFFICULTY = {
-  easy: { id: 'easy', label: 'E', xp: 30, color: '#94a3b8' },
-  normal: { id: 'normal', label: 'D', xp: 55, color: '#4ade80' },
-  hard: { id: 'hard', label: 'C', xp: 90, color: '#26bdff' },
-  elite: { id: 'elite', label: 'B', xp: 140, color: '#a78bfa' },
+  easy: { id: 'easy', label: 'E', xp: 30, gold: 18, color: '#94a3b8' },
+  normal: { id: 'normal', label: 'D', xp: 55, gold: 32, color: '#4ade80' },
+  hard: { id: 'hard', label: 'C', xp: 90, gold: 55, color: '#26bdff' },
+  elite: { id: 'elite', label: 'B', xp: 140, gold: 90, color: '#a78bfa' },
 };
-
-const drillTarget = (drill) =>
-  drill.duration ? { value: drill.duration, unit: 'seconds' } : { value: drill.reps, unit: 'reps' };
 
 /**
  * Build today's quest board.
@@ -75,7 +72,6 @@ export function generateQuests({ history = [], streak = {}, records = {}, now = 
     const drills = MOBILITY_DRILLS.filter((d) => d.muscles.includes(muscle.id));
     if (!drills.length) continue;
     const drill = drills[Math.floor(rng() * drills.length)];
-    const target = drillTarget(drill);
     push({
       id: `mobility-${muscle.id}-${drill.id}`,
       type: 'mobility',
@@ -87,7 +83,8 @@ export function generateQuests({ history = [], streak = {}, records = {}, now = 
       )}% fatigue from the last ${Math.round(muscle.hoursSince || 0)}h. Restore tissue quality before it costs you a session.`,
       cue: drill.cue,
       difficulty: 'easy',
-      target,
+      target: { value: 2, unit: 'verified sets' },
+      auto: 'muscleSets',
       muscles: [muscle.id],
       reason: `${MUSCLES[muscle.id].name} at ${Math.round(muscle.value * 100)}% fatigue`,
     });
@@ -100,14 +97,15 @@ export function generateQuests({ history = [], streak = {}, records = {}, now = 
       id: `recovery-${drill.id}`,
       type: 'recovery',
       priority: 95,
-      title: drill.name,
-      subtitle: 'Systemic recovery',
+      title: 'Deload Protocol',
+      subtitle: 'Verified recovery session',
       description: `You moved ${Math.round(volume48).toLocaleString()} kg in 48 hours and readiness has dropped to ${Math.round(
         readiness * 100,
       )}%. Recovery is the training. Take it.`,
       cue: drill.cue,
       difficulty: 'easy',
-      target: drill.duration ? { value: drill.duration, unit: 'seconds' } : { value: 1, unit: 'complete' },
+      target: { value: 600, unit: 'seconds' },
+      auto: 'recoverySession',
       muscles: [],
       reason: `Readiness at ${Math.round(readiness * 100)}%`,
     });
@@ -134,7 +132,8 @@ export function generateQuests({ history = [], streak = {}, records = {}, now = 
         : `${MUSCLES[muscle.id].name} has never appeared in a logged session. Weak links become injuries. Wake it up.`,
       cue: drill.cue,
       difficulty: 'normal',
-      target: drillTarget(drill),
+      target: { value: 2, unit: 'verified sets' },
+      auto: 'muscleSets',
       muscles: [muscle.id],
       reason: known ? `${days} days untrained` : 'Never trained',
     });
@@ -206,7 +205,9 @@ export function generateQuests({ history = [], streak = {}, records = {}, now = 
       }. Agility is the stat most hunters let rot. Raise it.`,
       cue: drill.cue,
       difficulty: 'normal',
-      target: { value: drill.duration, unit: 'seconds' },
+      target: { value: 3, unit: 'conditioning sets' },
+      auto: 'patternSets',
+      pattern: 'conditioning',
       muscles: ['cardio'],
       reason: 'Conditioning gap',
     });
@@ -279,7 +280,8 @@ export function generateQuests({ history = [], streak = {}, records = {}, now = 
       description: 'A baseline mobility drill so the System has something to compare against.',
       cue: drill.cue,
       difficulty: 'easy',
-      target: drillTarget(drill),
+      target: { value: 2, unit: 'verified sets' },
+      auto: 'muscleSets',
       muscles: drill.muscles,
       reason: 'Onboarding',
     });
@@ -288,9 +290,28 @@ export function generateQuests({ history = [], streak = {}, records = {}, now = 
   // Rank by priority, then trim to a board that does not overwhelm.
   candidates.sort((a, b) => b.priority - a.priority);
 
+  const verifiedCandidates = candidates.filter((quest) => quest.auto);
+  verifiedCandidates.push(
+    {
+      id: 'discipline-three-sets', type: 'discipline', priority: 42,
+      title: 'Proof of Work', subtitle: 'Record three completed sets',
+      description: 'Only completed sets stored in a finished session count. The objective cannot be checked by hand.',
+      cue: 'Finish the session after the sets are logged.', difficulty: 'easy',
+      target: { value: 3, unit: 'verified sets' }, auto: 'dailySets', muscles: [], reason: 'Daily baseline',
+    },
+    {
+      id: 'discipline-ten-minutes', type: 'discipline', priority: 38,
+      title: 'Stay in the Gate', subtitle: 'Train for ten recorded minutes',
+      description: 'The timer on a finished workout provides the evidence. Manual quest completion is disabled.',
+      cue: 'The live session clock must reach ten minutes.', difficulty: 'easy',
+      target: { value: 600, unit: 'seconds' }, auto: 'duration', muscles: [], reason: 'Daily baseline',
+    },
+  );
+  verifiedCandidates.sort((a, b) => b.priority - a.priority);
+
   const chosen = [];
   const usedTypes = {};
-  for (const quest of candidates) {
+  for (const quest of verifiedCandidates) {
     const count = usedTypes[quest.type] || 0;
     // At most two quests of any one type — a board of five mobility drills is
     // technically correct and completely demoralising.
@@ -304,6 +325,7 @@ export function generateQuests({ history = [], streak = {}, records = {}, now = 
     ...quest,
     day: today,
     xp: DIFFICULTY[quest.difficulty].xp,
+    gold: DIFFICULTY[quest.difficulty].gold,
     damage: QUEST_DAMAGE,
     typeMeta: QUEST_TYPES[quest.type],
     difficultyMeta: DIFFICULTY[quest.difficulty],
@@ -346,6 +368,7 @@ export function generateWeeklyQuests({ history = [], week, userId = 'anon' }) {
       target: { value: Math.max(3, avgSessions + 1), unit: 'workouts' },
       auto: 'weeklyWorkouts',
       xp: 260,
+      gold: 150,
       type: 'discipline',
     },
     {
@@ -355,6 +378,7 @@ export function generateWeeklyQuests({ history = [], week, userId = 'anon' }) {
       target: { value: Math.round(avgVolume * 4), unit: 'kg' },
       auto: 'weeklyVolume',
       xp: 300,
+      gold: 180,
       type: 'strength',
     },
     {
@@ -364,15 +388,17 @@ export function generateWeeklyQuests({ history = [], week, userId = 'anon' }) {
       target: { value: 1, unit: 'PR' },
       auto: 'weeklyPr',
       xp: 340,
+      gold: 220,
       type: 'strength',
     },
     {
-      id: 'weekly-streak',
+      id: 'weekly-active-days',
       title: 'Unbroken',
-      description: 'Do not let the streak lapse before the week closes.',
-      target: { value: 1, unit: 'streak held' },
-      auto: 'streakHeld',
+      description: 'Finish sessions on three distinct days this week.',
+      target: { value: 3, unit: 'active days' },
+      auto: 'weeklyActiveDays',
       xp: 220,
+      gold: 130,
       type: 'discipline',
     },
     {
@@ -382,6 +408,7 @@ export function generateWeeklyQuests({ history = [], week, userId = 'anon' }) {
       target: { value: 2, unit: 'sessions' },
       auto: 'weeklyConditioning',
       xp: 240,
+      gold: 145,
       type: 'conditioning',
     },
   ];
@@ -395,3 +422,55 @@ export function generateWeeklyQuests({ history = [], week, userId = 'anon' }) {
 }
 
 export { PATTERNS };
+
+function workoutsForDay(history, day) {
+  return (history || []).filter((workout) => dayKey(new Date(workout.finishedAt || 0)) === day);
+}
+
+function workoutsForWeek(history, week) {
+  return (history || []).filter((workout) => weekKey(new Date(workout.finishedAt || 0)) === week);
+}
+
+/** Evidence for an objective, derived only from committed workout summaries. */
+export function questProgress(quest, { history = [], now = Date.now() } = {}) {
+  const day = quest.day || dayKey(new Date(now));
+  const week = quest.week || weekKey(new Date(now));
+  const daily = workoutsForDay(history, day);
+  const weekly = workoutsForWeek(history, week);
+  const target = Math.max(1, Number(quest.target?.value) || 1);
+  const sum = (items, field) => items.reduce((total, item) => total + (Number(item[field]) || 0), 0);
+  const nested = (items, field, key) => items.reduce(
+    (total, item) => total + (Number(item[field]?.[key]) || 0),
+    0,
+  );
+
+  let value = 0;
+  switch (quest.auto) {
+    case 'workout': value = daily.length; break;
+    case 'volume': value = sum(daily, 'volumeKg'); break;
+    case 'pr': value = sum(daily, 'prCount'); break;
+    case 'weeklyVolume': value = sum(weekly, 'volumeKg'); break;
+    case 'muscleSets':
+      value = Math.max(0, ...quest.muscles.map((muscle) => nested(daily, 'muscleSets', muscle)));
+      break;
+    case 'patternSets': value = nested(daily, 'patternSets', quest.pattern); break;
+    case 'dailySets': value = sum(daily, 'sets'); break;
+    case 'duration': value = sum(daily, 'durationSec'); break;
+    case 'recoverySession':
+      value = daily.some((workout) => (workout.durationSec || 0) >= target && (workout.volumeKg || 0) <= 1200)
+        ? target
+        : 0;
+      break;
+    case 'weeklyWorkouts': value = weekly.length; break;
+    case 'weeklyPr': value = sum(weekly, 'prCount'); break;
+    case 'weeklyConditioning':
+      value = weekly.filter((workout) => (workout.patternSets?.conditioning || 0) > 0).length;
+      break;
+    case 'weeklyActiveDays':
+      value = new Set(weekly.map((workout) => dayKey(new Date(workout.finishedAt || 0)))).size;
+      break;
+    default: value = 0;
+  }
+
+  return { value, target, complete: value >= target, ratio: Math.min(1, value / target) };
+}

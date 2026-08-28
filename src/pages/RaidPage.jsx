@@ -36,22 +36,22 @@ export default function RaidPage() {
 
           {/* The gate's occupant, and its condition: fractures spread across
               the body as the week's damage lands. */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center gap-3 sm:flex-row">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="shrink-0"
+              className="w-full shrink-0 sm:w-auto"
             >
               <BossFigure
                 boss={boss}
                 damage={raid.damage}
                 hp={raid.hp}
                 defeated={remaining <= 0}
-                className="h-[138px] w-[138px]"
+                className="h-[236px] w-full sm:w-[250px]"
               />
             </motion.div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 text-center sm:text-left">
               <h1 className="font-display text-2xl font-bold leading-tight" style={{ color: boss.color }}>
                 {boss.name}
               </h1>
