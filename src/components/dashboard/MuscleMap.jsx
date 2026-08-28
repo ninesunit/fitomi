@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import { MUSCLES } from '../../engine/constants';
 import { clsx } from '../../lib/clsx';
-import { HEAD, FRONT, BACK, regionAt } from '../../data/bodyRegions';
+import { FRONT, BACK, regionAt } from '../../data/bodyRegions';
 import { SORENESS_STATES } from '../../engine/soreness';
 import { play } from '../../lib/sound';
 
@@ -54,7 +54,8 @@ export function MuscleMap({ soreness, className, onSelect }) {
     const box = svg.getBoundingClientRect();
     const vb = svg.viewBox.baseVal;
     const x = ((event.clientX - box.left) / box.width) * vb.width + vb.x;
-    const y = ((event.clientY - box.top) / box.height) * vb.height + vb.y;
+    const atlasY = ((event.clientY - box.top) / box.height) * vb.height + vb.y;
+    const y = atlasY * (186 / 300);
     const region = regionAt(regions, x, y);
 
     if (hovering) {
@@ -88,46 +89,45 @@ export function MuscleMap({ soreness, className, onSelect }) {
         </div>
       </div>
 
-      <svg viewBox="0 0 100 186" className="mx-auto h-auto w-full max-w-[190px]" role="img" aria-label={`${view} fatigue map`}>
+      <svg viewBox="0 0 100 300" className="mx-auto h-auto w-full max-w-[160px]" role="img" aria-label={`${view} detailed fatigue map`}>
         <defs>
           <filter id={`${uid}-heat`} x="-25%" y="-25%" width="150%" height="150%">
             <feGaussianBlur stdDeviation="2.4" />
           </filter>
         </defs>
 
-        {/* Aura and footing, so the regions read as a body standing in the
-            System's light rather than a diagram of loose panels. */}
-        <ellipse cx="50" cy="92" rx="52" ry="90" fill="rgb(var(--sys) / 0.05)" />
-        <ellipse cx="50" cy="176" rx="26" ry="3.5" fill="rgb(var(--sys) / 0.18)" />
+        <image
+          href={`/art/anatomy/anatomy-${view}-v2.webp`}
+          x="0"
+          y="0"
+          width="100"
+          height="300"
+          preserveAspectRatio="none"
+        />
+        <ellipse cx="50" cy="285" rx="27" ry="4" fill="rgb(var(--sys) / 0.22)" />
 
         {/* Heat bloom: the same regions, blurred, underneath. Fatigue should
             glow off the body before any individual panel is read. */}
-        <g filter={`url(#${uid}-heat)`} opacity="0.75">
+        <g transform="scale(1 1.6129)" filter={`url(#${uid}-heat)`} opacity="0.66">
           {regions.map((region) => (
             <path key={`h-${view}-${region.id}`} d={region.d} fill={fillFor(region.id)} />
           ))}
         </g>
 
-        <circle
-          cx={HEAD.cx}
-          cy={HEAD.cy}
-          r={HEAD.r}
-          fill="rgba(148,163,184,0.12)"
-          stroke="rgb(var(--sys) / 0.35)"
-          strokeWidth="0.8"
-        />
-        {regions.map((region) => (
-          <path
-            key={`${view}-${region.id}`}
-            d={region.d}
-            fill={fillFor(region.id)}
-            stroke={active === region.id ? 'rgb(var(--sys))' : 'rgb(var(--sys) / 0.28)'}
-            strokeWidth={active === region.id ? 1.3 : 0.6}
-            strokeLinejoin="round"
-            className="transition-all"
-            pointerEvents="none"
-          />
-        ))}
+        <g transform="scale(1 1.6129)">
+          {regions.map((region) => (
+            <path
+              key={`${view}-${region.id}`}
+              d={region.d}
+              fill={fillFor(region.id)}
+              stroke={active === region.id ? 'rgb(var(--sys))' : 'rgb(var(--sys) / 0.34)'}
+              strokeWidth={active === region.id ? 1.3 : 0.55}
+              strokeLinejoin="round"
+              className="transition-all"
+              pointerEvents="none"
+            />
+          ))}
+        </g>
 
         {/* One surface takes every tap and resolves it to the nearest region,
             because several of these shapes are two or three pixels wide on a
@@ -136,7 +136,7 @@ export function MuscleMap({ soreness, className, onSelect }) {
           x="0"
           y="0"
           width="100"
-          height="186"
+          height="300"
           fill="transparent"
           className="cursor-pointer"
           onPointerDown={pick}

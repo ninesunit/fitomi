@@ -2,6 +2,23 @@
 
 The source images were produced with the built-in image generation tool, then resized and converted to WebP for Firebase Spark bandwidth control. The checked-in files are the optimized project assets. No runtime generation or third-party image request is used.
 
+## Anatomical atlas
+
+- `public/art/anatomy/anatomy-atlas-v2.webp`
+- `public/art/anatomy/anatomy-front-v2.webp`
+- `public/art/anatomy/anatomy-back-v2.webp`
+  - Prompt: Original medically grounded front and rear superficial muscular anatomy plate, complete adult athletic human figure, accurate muscle separation and fiber direction, graphite and cool-slate scientific rendering with restrained cyan rim light, no labels or text. Generated as one atlas, then optimized and cropped for the Codex and recovery map.
+
+## Hunter appearance presets
+
+- `public/art/avatars/v2/male-umbra.webp`
+- `public/art/avatars/v2/male-phantom.webp`
+- `public/art/avatars/v2/male-eclipse.webp`
+- `public/art/avatars/v2/female-umbra.webp`
+- `public/art/avatars/v2/female-phantom.webp`
+- `public/art/avatars/v2/female-eclipse.webp`
+  - Prompt set: Six original adult Hunter character presets in a premium dark-fantasy Korean webcomic-inspired rendering. Each preset uses a distinct male or female body silhouette, face structure, hair treatment, and expression. All wear fitted charcoal training gear with cyan and violet accents, stand in a complete neutral full-body pose, and avoid existing copyrighted characters, weapons, text, logos, and watermarks.
+
 ## Raid boss archetypes
 
 - `public/art/bosses/colossus.webp`

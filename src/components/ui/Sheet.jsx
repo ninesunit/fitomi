@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { AnimatePresence, motion, useDragControls } from 'framer-motion';
 import { X } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 /**
  * Modal surface. Renders as a bottom sheet on phones and a centred dialog on
@@ -9,15 +10,14 @@ import { clsx } from '../../lib/clsx';
  * reaching for the top of the screen with one hand full of barbell.
  */
 export function Sheet({ open, onClose, title, subtitle, children, footer, size = 'md', className }) {
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => e.key === 'Escape' && onClose?.();
     document.addEventListener('keydown', onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previous;
     };
   }, [open, onClose]);
 

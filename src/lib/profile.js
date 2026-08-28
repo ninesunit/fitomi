@@ -44,6 +44,7 @@ export function createProfile({ uid, email, displayName, photoURL } = {}) {
     height: null,
     goal: 'strength',
     experience: 'beginner',
+    appearance: { preset: null },
 
     // --- streak / shadows ---
     trainingDays: [],
@@ -138,6 +139,7 @@ export function hydrateProfile(raw, fallback = {}) {
     wallet: { ...base.wallet, ...(raw.wallet || {}) },
     inventory: raw.inventory || [],
     equippedCosmetics: { ...base.equippedCosmetics, ...(raw.equippedCosmetics || {}) },
+    appearance: { ...base.appearance, ...(raw.appearance || {}) },
     records: raw.records || {},
     recentWorkouts: raw.recentWorkouts || [],
     trainingDays: raw.trainingDays || [],

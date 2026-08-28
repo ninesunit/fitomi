@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { play } from '../../lib/sound';
 import { SystemButton } from './SystemButton';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 /**
  * Text that types itself in, the way System messages arrive.
@@ -56,21 +57,24 @@ export function SystemAlert({
   onCancel,
   dismissible = true,
 }) {
+  const closeRef = useRef(onClose);
+  const confirmRef = useRef(onConfirm);
+  closeRef.current = onClose;
+  confirmRef.current = onConfirm;
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return undefined;
     play(tone === 'danger' ? 'error' : 'notify');
     const onKey = (e) => {
-      if (e.key === 'Escape' && dismissible) onClose?.();
-      if (e.key === 'Enter' && onConfirm) onConfirm();
+      if (e.key === 'Escape' && dismissible) closeRef.current?.();
+      if (e.key === 'Enter') confirmRef.current?.();
     };
     document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
     };
-  }, [open, onClose, onConfirm, dismissible, tone]);
+  }, [open, dismissible, tone]);
 
   const toneVar =
     tone === 'danger'

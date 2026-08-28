@@ -1,95 +1,116 @@
 import { useId } from 'react';
 import { clsx } from '../../lib/clsx';
 
-const FRONT = {
-  shoulders: ['M34 32 Q26 34 24 42 L30 45 Q34 41 38 36Z', 'M66 32 Q74 34 76 42 L70 45 Q66 41 62 36Z'],
-  chest: ['M39 37 Q49 34 49 49 Q42 51 35 47Z', 'M51 37 Q61 34 65 47 Q58 51 51 49Z'],
-  biceps: ['M25 44 Q20 51 22 63 Q27 61 30 48Z', 'M75 44 Q80 51 78 63 Q73 61 70 48Z'],
-  forearms: ['M22 63 L17 82 Q20 86 24 82 L28 63Z', 'M78 63 L83 82 Q80 86 76 82 L72 63Z'],
-  abs: ['M42 51 Q50 48 58 51 L57 79 Q50 83 43 79Z'],
-  obliques: ['M35 48 Q40 54 42 79 L36 76 L32 55Z', 'M65 48 Q60 54 58 79 L64 76 L68 55Z'],
-  hipFlexors: ['M40 78 L49 84 L43 94 L36 86Z', 'M60 78 L51 84 L57 94 L64 86Z'],
-  adductors: ['M45 88 L49 91 L47 123 L40 112Z', 'M55 88 L51 91 L53 123 L60 112Z'],
-  quads: ['M36 86 Q43 83 48 91 L46 124 Q37 121 34 106Z', 'M64 86 Q57 83 52 91 L54 124 Q63 121 66 106Z'],
-  calves: ['M35 125 Q42 122 46 132 L43 157 L36 157 L32 141Z', 'M65 125 Q58 122 54 132 L57 157 L64 157 L68 141Z'],
+// Coordinates track the generated 1024 by 1536 atlas. Each region follows the
+// visible superficial muscle belly instead of painting a generic body segment.
+const REGIONS = {
+  neck: ['M214 142 Q256 116 298 142 L306 258 Q258 280 210 258Z', 'M704 116 Q768 92 832 116 L842 274 Q768 300 694 274Z'],
+  shoulders: [
+    'M74 276 Q126 230 190 284 L171 402 Q104 420 58 365Z',
+    'M330 284 Q395 230 454 278 L468 365 Q419 420 350 402Z',
+    'M562 292 Q620 236 688 286 L669 406 Q601 422 548 366Z',
+    'M844 286 Q915 236 974 294 L985 367 Q931 421 861 406Z',
+  ],
+  chest: ['M146 284 Q207 258 253 309 L248 478 Q181 496 129 435Z', 'M259 309 Q307 258 374 286 L388 436 Q330 496 263 478Z'],
+  biceps: ['M67 389 Q118 359 149 417 L125 620 Q77 640 51 577Z', 'M371 417 Q407 359 454 389 L470 577 Q441 640 394 620Z'],
+  triceps: ['M560 405 Q610 372 649 426 L628 644 Q576 652 548 589Z', 'M875 426 Q917 372 968 405 L980 589 Q949 652 901 644Z'],
+  forearms: [
+    'M46 588 Q93 559 126 621 L103 813 Q61 850 30 795Z',
+    'M396 621 Q435 559 473 588 L498 795 Q467 850 425 813Z',
+    'M546 608 Q588 577 629 642 L609 826 Q570 854 535 801Z',
+    'M900 642 Q944 577 982 608 L1015 801 Q976 854 939 826Z',
+  ],
+  abs: ['M200 452 Q256 426 313 452 L324 776 Q257 811 188 776Z'],
+  obliques: ['M143 447 Q185 463 205 518 L189 786 Q148 751 125 619Z', 'M372 447 Q329 463 310 518 L324 786 Q367 751 389 619Z'],
+  back: ['M670 308 Q767 268 865 308 L852 657 Q768 730 684 657Z'],
+  traps: ['M686 220 Q768 170 848 220 L855 386 Q768 421 678 386Z'],
+  lats: ['M629 378 Q698 389 719 467 L684 731 Q628 709 596 568Z', 'M907 378 Q839 389 817 467 L852 731 Q910 709 941 568Z'],
+  lowerBack: ['M681 635 Q768 687 854 635 L860 819 Q768 855 674 819Z'],
+  hipFlexors: ['M168 762 Q221 745 257 805 L231 906 Q181 894 151 839Z', 'M346 762 Q293 745 258 805 L285 906 Q333 894 365 839Z'],
+  adductors: ['M220 822 Q252 814 270 878 L263 1090 Q223 1083 204 978Z', 'M294 822 Q262 814 247 878 L256 1090 Q294 1083 311 978Z'],
+  abductors: ['M638 773 Q686 739 728 792 L713 946 Q660 956 625 890Z', 'M900 773 Q852 739 810 792 L825 946 Q878 956 913 890Z'],
+  quads: ['M126 820 Q190 777 239 840 L230 1114 Q158 1141 119 1038Z', 'M388 820 Q326 777 278 840 L288 1114 Q360 1141 399 1038Z'],
+  glutes: ['M646 760 Q710 720 766 790 L760 946 Q696 978 636 919Z', 'M890 760 Q826 720 770 790 L777 946 Q841 978 901 919Z'],
+  hamstrings: ['M632 918 Q697 885 748 949 L733 1180 Q664 1194 622 1098Z', 'M904 918 Q839 885 788 949 L803 1180 Q872 1194 914 1098Z'],
+  calves: [
+    'M117 1092 Q169 1056 215 1123 L204 1420 Q148 1452 109 1363Z',
+    'M399 1092 Q347 1056 301 1123 L312 1420 Q368 1452 407 1363Z',
+    'M622 1124 Q677 1080 728 1147 L714 1430 Q655 1450 613 1362Z',
+    'M914 1124 Q859 1080 808 1147 L822 1430 Q881 1450 923 1362Z',
+  ],
 };
 
-const BACK = {
-  traps: ['M41 32 Q50 27 59 32 L56 44 L50 49 L44 44Z'],
-  shoulders: FRONT.shoulders,
-  back: ['M37 39 Q50 45 63 39 L60 70 Q50 79 40 70Z'],
-  lats: ['M35 43 Q41 48 42 72 L36 79 L31 55Z', 'M65 43 Q59 48 58 72 L64 79 L69 55Z'],
-  triceps: ['M25 44 Q20 53 23 66 L29 62 L31 47Z', 'M75 44 Q80 53 77 66 L71 62 L69 47Z'],
-  forearms: FRONT.forearms,
-  lowerBack: ['M42 69 Q50 76 58 69 L59 82 Q50 88 41 82Z'],
-  glutes: ['M36 81 Q43 78 49 86 L48 98 Q40 101 34 94Z', 'M64 81 Q57 78 51 86 L52 98 Q60 101 66 94Z'],
-  hamstrings: ['M35 98 Q42 95 47 100 L46 125 Q38 127 34 116Z', 'M65 98 Q58 95 53 100 L54 125 Q62 127 66 116Z'],
-  abductors: ['M33 82 L41 78 L39 98 L33 94Z', 'M67 82 L59 78 L61 98 L67 94Z'],
-  calves: FRONT.calves,
-};
-
-function regionTone(id, primary, secondary) {
+function toneFor(id, primary, secondary) {
   if (primary.has(id)) return 'primary';
   if (secondary.has(id)) return 'secondary';
-  return 'idle';
+  return null;
 }
 
-function Figure({ regions, primary, secondary, offset = 0, label }) {
-  return (
-    <g transform={`translate(${offset} 0)`}>
-      <g fill="#111a2a" stroke="rgb(var(--sys) / 0.24)" strokeWidth="0.9">
-        <ellipse cx="50" cy="18" rx="9" ry="12" />
-        <path d="M43 29 Q50 26 57 29 L66 43 L62 80 L66 92 L64 124 L68 141 L64 161 L55 161 L52 128 L50 96 L48 128 L45 161 L36 161 L32 141 L36 124 L34 92 L38 80 L34 43Z" />
-        <path d="M35 38 L24 43 L16 82 L23 86 L31 61Z" />
-        <path d="M65 38 L76 43 L84 82 L77 86 L69 61Z" />
-      </g>
-      {Object.entries(regions).flatMap(([id, paths]) => paths.map((d, index) => {
-        const tone = regionTone(id, primary, secondary);
-        const fill = tone === 'primary'
-          ? 'rgb(var(--sys))'
-          : tone === 'secondary'
-            ? 'rgb(var(--sys-2))'
-            : 'rgb(37 50 71 / 0.72)';
-        return (
-          <path
-            key={`${id}-${index}`}
-            d={d}
-            fill={fill}
-            stroke={tone === 'idle' ? 'rgb(148 163 184 / 0.08)' : fill}
-            strokeWidth={tone === 'idle' ? 0.35 : 0.75}
-            opacity={tone === 'idle' ? 0.56 : 0.96}
-            style={tone === 'idle' ? undefined : { filter: `drop-shadow(0 0 3px ${fill})` }}
-          />
-        );
-      }))}
-      <text x="50" y="170" textAnchor="middle" fill="rgb(var(--sys-dim))" fontSize="5" letterSpacing="1.2">{label}</text>
-    </g>
-  );
-}
-
-export function AnatomyTargetMap({ primary = [], secondary = [], className, showLegend = false }) {
+export function AnatomyTargetMap({ primary = [], secondary = [], className, showLegend = false, animated = true }) {
   const uid = useId().replace(/:/g, '');
   const primarySet = new Set(primary);
   const secondarySet = new Set(secondary.filter((id) => !primarySet.has(id)));
+  const cardio = primarySet.has('cardio') || secondarySet.has('cardio');
 
   return (
-    <figure className={clsx('relative h-full w-full', className)} aria-label="Primary and secondary muscle anatomy map">
-      <svg viewBox="0 0 205 178" className="h-full w-full" role="img">
+    <figure className={clsx('relative h-full w-full overflow-hidden bg-[#020713]', className)} aria-label="Detailed front and rear muscle anatomy map">
+      <img
+        src="/art/anatomy/anatomy-atlas-v2.webp"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="absolute inset-0 h-full w-full object-contain"
+      />
+      <svg viewBox="0 0 1024 1536" preserveAspectRatio="xMidYMid meet" className="absolute inset-0 h-full w-full" aria-hidden>
         <defs>
-          <linearGradient id={`${uid}-scan`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="rgb(var(--sys) / 0.14)" />
-            <stop offset="1" stopColor="rgb(var(--sys-2) / 0.03)" />
+          <filter id={`${uid}-primary`} x="-45%" y="-45%" width="190%" height="190%">
+            <feGaussianBlur stdDeviation="13" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id={`${uid}-secondary`} x="-35%" y="-35%" width="170%" height="170%">
+            <feGaussianBlur stdDeviation="9" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <linearGradient id={`${uid}-scan`} x1="0" y1="0" x2="1" y2="0">
+            <stop stopColor="transparent" />
+            <stop offset=".5" stopColor="rgb(var(--sys) / .7)" />
+            <stop offset="1" stopColor="transparent" />
           </linearGradient>
+          <style>{`
+            @media (prefers-reduced-motion: no-preference) {
+              .${uid}-primary { animation: ${uid}-pulse 1.8s ease-in-out infinite; }
+              .${uid}-scan { animation: ${uid}-scan 3.4s linear infinite; }
+            }
+            @keyframes ${uid}-pulse { 0%,100% { opacity:.52 } 50% { opacity:.88 } }
+            @keyframes ${uid}-scan { from { transform:translateY(-90px) } to { transform:translateY(1620px) } }
+          `}</style>
         </defs>
-        <rect x="1" y="1" width="203" height="176" fill={`url(#${uid}-scan)`} stroke="rgb(var(--sys) / 0.16)" />
-        <Figure regions={FRONT} primary={primarySet} secondary={secondarySet} label="FRONT" />
-        <Figure regions={BACK} primary={primarySet} secondary={secondarySet} offset={104} label="BACK" />
-        <path d="M102.5 8V168" stroke="rgb(var(--sys) / 0.12)" strokeDasharray="2 4" />
+
+        {cardio && <rect width="1024" height="1536" fill="rgb(var(--sys) / .08)" />}
+        {Object.entries(REGIONS).flatMap(([id, paths]) => {
+          const tone = toneFor(id, primarySet, secondarySet);
+          if (!tone) return [];
+          const primaryTone = tone === 'primary';
+          return paths.map((d, index) => (
+            <path
+              key={`${id}-${index}`}
+              d={d}
+              className={primaryTone && animated ? `${uid}-primary` : undefined}
+              fill={primaryTone ? 'rgb(var(--sys) / .56)' : 'rgb(var(--sys-2) / .42)'}
+              stroke={primaryTone ? 'rgb(var(--sys))' : 'rgb(var(--sys-2))'}
+              strokeWidth={primaryTone ? 5 : 3}
+              filter={animated ? `url(#${uid}-${tone})` : undefined}
+            />
+          ));
+        })}
+        {animated ? <rect className={`${uid}-scan`} x="0" y="-90" width="1024" height="5" fill={`url(#${uid}-scan)`} opacity=".7" /> : null}
       </svg>
+
+      <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,transparent_49.85%,rgb(var(--sys)/0.18)_50%,transparent_50.15%)]" aria-hidden />
       {showLegend && (
         <figcaption className="absolute inset-x-1 bottom-1 flex justify-center gap-2 font-mono text-[7px] uppercase tracking-wider text-[rgb(var(--sys-dim))]">
-          <span><i className="mr-1 inline-block h-1.5 w-1.5 bg-[rgb(var(--sys))]" />Primary</span>
-          <span><i className="mr-1 inline-block h-1.5 w-1.5 bg-[rgb(var(--sys-2))]" />Assist</span>
+          <span className="bg-[#020713]/85 px-1"><i className="mr-1 inline-block h-1.5 w-1.5 bg-[rgb(var(--sys))]" />Primary</span>
+          <span className="bg-[#020713]/85 px-1"><i className="mr-1 inline-block h-1.5 w-1.5 bg-[rgb(var(--sys-2))]" />Assist</span>
         </figcaption>
       )}
     </figure>

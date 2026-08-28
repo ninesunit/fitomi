@@ -1,6 +1,7 @@
 import { HunterAvatar } from './HunterAvatar';
 import { clsx } from '../../lib/clsx';
 import { equippedCosmetics } from '../../data/shop';
+import { defaultAvatarPreset } from '../../data/avatarPresets';
 
 // ---------------------------------------------------------------------------
 // The avatar inside a System frame, with the rank sigil stamped on the corner.
@@ -21,6 +22,8 @@ export function HunterPortrait({
   const frame = cosmetics.profileFrame;
   const background = cosmetics.profileBackground;
   const frameColor = frame?.color || color;
+  const sex = profile?.sex || profile?.gender;
+  const preset = profile?.appearance?.preset || defaultAvatarPreset(sex);
 
   return (
     <div
@@ -52,7 +55,8 @@ export function HunterPortrait({
         className="relative h-full w-full"
         stats={profile?.stats}
         bodyType={profile?.bodyType}
-        sex={profile?.sex || profile?.gender}
+        sex={sex}
+        preset={preset}
         color={color}
         cosmetics={profile?.equippedCosmetics}
         {...avatarProps}

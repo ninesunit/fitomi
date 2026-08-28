@@ -12,6 +12,7 @@ import { useWorkout } from '../context/WorkoutContext';
 import { RestTimerBar } from './workout/RestTimerBar';
 import { formatDuration } from '../lib/date';
 import { clsx } from '../lib/clsx';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 const PRIMARY_NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true, caption: 'Status and weekly gate' },
@@ -154,6 +155,7 @@ export function AppShell({ children }) {
   const { signOut } = useAuth();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  useBodyScrollLock(menuOpen);
 
   useEffect(() => setMenuOpen(false), [location.pathname]);
 

@@ -144,7 +144,7 @@ export default function LibraryPage() {
                 onClick={() => navigate(`/library/${exercise.id}`)}
                 className="tap panel flex items-center gap-3 p-3 text-left hover:bg-[rgb(var(--sys)/0.05)]"
               >
-                <div className="h-14 w-14 shrink-0 border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
+                <div className="h-16 w-16 shrink-0 border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
                   <ExerciseGuide exercise={exercise} compact />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -295,12 +295,12 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
     >
       {exercise && (
         <div className="space-y-5">
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <div className="mx-auto h-44 w-44 shrink-0  border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
+          <div className="space-y-4">
+            <div className="h-[250px] w-full border border-[rgb(var(--sys)/0.24)] bg-[rgb(var(--sys-deep-2)/0.6)] sm:h-[320px]">
               <ExerciseGuide exercise={exercise} />
             </div>
 
-            <div className="min-w-0 flex-1 space-y-3">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
               <div>
                 <div className="hud-label mb-1.5">Primary movers</div>
                 <div className="flex flex-wrap gap-1.5">
@@ -325,7 +325,7 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:col-span-2">
                 <MetaCell label="Difficulty" value={exercise.difficulty} />
                 <MetaCell label="Mechanics" value={exercise.mechanics} />
                 <MetaCell label="Pattern" value={PATTERNS[exercise.pattern]} />

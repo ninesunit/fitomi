@@ -22,6 +22,7 @@ import { STANDARD_TIERS, strengthLevel, bodyweightKgOf } from '../engine/records
 import { clsx } from '../lib/clsx';
 import { play } from '../lib/sound';
 import { equippedCosmetics, getCosmetic } from '../data/shop';
+import { avatarPresetForBodyType } from '../data/avatarPresets';
 
 const TABS = [
   { id: 'status', label: 'Status', icon: Sparkles },
@@ -74,6 +75,7 @@ export default function ProfilePage() {
     age: profile.age || '',
     gender: profile.gender || '',
     bodyType: profile.bodyType || 'average',
+    appearance: profile.appearance || { preset: null },
     goal: profile.goal,
     experience: profile.experience,
     unit: profile.unit,
@@ -117,6 +119,7 @@ export default function ProfilePage() {
         age: draft.age ? Number(draft.age) : null,
         gender: draft.gender || null,
         bodyType: draft.bodyType,
+        appearance: draft.appearance,
         goal: draft.goal,
         experience: draft.experience,
         unit: draft.unit,
@@ -345,10 +348,17 @@ export default function ProfilePage() {
 
         <div className="mt-4">
           <CharacterCustomizer
-            value={draft.gender}
-            onChange={(gender) => setDraft({ ...draft, gender })}
+            sex={draft.gender}
+            preset={draft.appearance?.preset}
+            onSexChange={(gender) => setDraft((current) => ({ ...current, gender }))}
+            onPresetChange={(preset) => setDraft((current) => ({
+              ...current,
+              gender: preset.sex,
+              bodyType: preset.bodyType,
+              appearance: { ...current.appearance, preset: preset.id },
+            }))}
             stats={profile.stats}
-            bodyType={profile.bodyType}
+            bodyType={draft.bodyType}
             cosmetics={profile.equippedCosmetics}
             color={rank.color}
           />
@@ -429,7 +439,17 @@ export default function ProfilePage() {
           <SelectField
             label="Sex"
             value={draft.gender}
-            onChange={(e) => setDraft({ ...draft, gender: e.target.value })}
+            onChange={(e) => {
+              const gender = e.target.value;
+              setDraft((current) => ({
+                ...current,
+                gender,
+                appearance: {
+                  ...current.appearance,
+                  preset: gender ? avatarPresetForBodyType(gender, current.bodyType) : current.appearance?.preset,
+                },
+              }));
+            }}
           >
             <option value="">Prefer not to say</option>
             <option value="male">Male</option>
@@ -444,7 +464,14 @@ export default function ProfilePage() {
           <BodyTypePicker
             value={draft.bodyType}
             sex={draft.gender}
-            onChange={(v) => setDraft((d) => ({ ...d, bodyType: v }))}
+            onChange={(bodyType) => setDraft((current) => ({
+              ...current,
+              bodyType,
+              appearance: {
+                ...current.appearance,
+                preset: avatarPresetForBodyType(current.gender, bodyType),
+              },
+            }))}
           />
         </div>
 

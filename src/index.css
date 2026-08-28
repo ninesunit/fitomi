@@ -389,6 +389,27 @@
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .hunter-preset-motes i {
+    position: absolute;
+    bottom: 3%;
+    width: 2px;
+    height: 2px;
+    background: rgb(var(--sys));
+    box-shadow: 0 0 8px rgb(var(--sys));
+    animation: hunter-preset-rise 4.4s linear infinite;
+  }
+
+  @keyframes hunter-preset-rise {
+    0% { opacity: 0; transform: translateY(0) scale(.7); }
+    18% { opacity: .9; }
+    82% { opacity: .45; }
+    100% { opacity: 0; transform: translateY(-130px) scale(1.4); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hunter-preset-motes i { animation: none; opacity: .35; }
+  }
 }
 
 /* ===========================================================================

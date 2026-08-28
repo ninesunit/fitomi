@@ -3,6 +3,7 @@ import { buildFigure } from './figure';
 import { figureParams } from '../../engine/physique';
 import { clsx } from '../../lib/clsx';
 import { getCosmetic } from '../../data/shop';
+import { avatarPreset } from '../../data/avatarPresets';
 
 // ---------------------------------------------------------------------------
 // THE HUNTER
@@ -38,6 +39,7 @@ export function HunterAvatar({
   className,
   style,
   title,
+  preset,
 }) {
   const uid = useId().replace(/:/g, '');
   const itemOf = (value) => (typeof value === 'string' ? getCosmetic(value) : value);
@@ -48,6 +50,7 @@ export function HunterAvatar({
   const p = useMemo(() => figureParams({ stats, bodyType, sex }), [stats, bodyType, sex]);
   const fig = useMemo(() => buildFigure(p), [p]);
   const rgb = rgbOf(activeColor);
+  const presetData = avatarPreset(preset);
 
   // Aura strength tracks Intelligence — programming discipline reads as
   // control. The mote count is capped so a maxed hunter is impressive rather
@@ -55,6 +58,51 @@ export function HunterAvatar({
   const moteCount = motes ? 3 + Math.round(p.aura * 5) : 0;
   const rimOpacity = 0.42 + p.tone * 0.34;
   const detailOpacity = Math.max(0, p.tone - 0.28) * 0.62;
+
+  if (presetData) {
+    return (
+      <div
+        className={clsx('relative block isolate', className)}
+        style={{ '--hue': rgb, ...style }}
+        role={title ? 'img' : 'presentation'}
+        aria-label={title || undefined}
+        aria-hidden={title ? undefined : true}
+      >
+        {aura && (
+          <span
+            className="pointer-events-none absolute -inset-[12%] -z-10 opacity-75"
+            style={{
+              background: `radial-gradient(ellipse at 50% 46%, rgb(${rgb} / .38), rgb(${rgb} / .08) 48%, transparent 72%)`,
+              filter: `drop-shadow(0 0 14px rgb(${rgb} / .55))`,
+            }}
+            aria-hidden
+          />
+        )}
+        <img
+          src={presetData.asset}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+        <span
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `linear-gradient(180deg, transparent 56%, rgb(${rgb} / .12)), linear-gradient(90deg, rgb(${rgb} / .1), transparent 24%, transparent 76%, rgb(${rgb} / .1))`,
+            boxShadow: `inset 0 0 22px rgb(${rgb} / .2)`,
+          }}
+          aria-hidden
+        />
+        {motes && (
+          <span className="hunter-preset-motes pointer-events-none absolute inset-0" aria-hidden>
+            <i style={{ left: '18%', animationDelay: '-.6s' }} />
+            <i style={{ left: '73%', animationDelay: '-1.9s' }} />
+            <i style={{ left: '48%', animationDelay: '-3.1s' }} />
+          </span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <svg

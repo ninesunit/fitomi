@@ -242,9 +242,9 @@ export function RoutineEditor({ open, routine, onClose, onSave, onDelete, onDupl
                         )}
                         <NumberField
                           label={`Load ${unit}`}
-                          value={Number(fromKg(block.weightKg || 0, unit).toFixed(1))}
+                          value={block.weightKg == null ? '' : Number(fromKg(block.weightKg, unit).toFixed(1))}
                           inputMode="decimal"
-                          onChange={(v) => patchBlock(index, { weightKg: toKg(v || 0, unit) })}
+                          onChange={(v) => patchBlock(index, { weightKg: v == null ? null : toKg(v, unit) })}
                         />
                         <NumberField
                           label="Rest s"
