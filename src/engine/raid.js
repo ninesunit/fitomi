@@ -199,6 +199,32 @@ export function streakDamage(streak) {
   return { amount: Math.round(60 * Math.min(30, Math.max(0, streak))), source: 'streak' };
 }
 
+/**
+ * Undo one contribution. Used when the action that produced it is reversed —
+ * a quest un-ticked, say — so damage cannot be farmed by toggling.
+ *
+ * `defeated` is recomputed rather than left set: a boss that drops back below
+ * its HP has not been cleared, and leaving the flag on would let a toggle
+ * bank a kill.
+ */
+export function revokeDamage(raid, { amount, source, at }) {
+  if (!raid || !amount) return raid;
+  const log = [...(raid.log || [])];
+  // Remove the single matching entry, not every hit that looks like it.
+  const index = log.findIndex((h) => h.source === source && h.amount === amount && h.at === at);
+  if (index !== -1) log.splice(index, 1);
+
+  const damage = Math.max(0, (raid.damage || 0) - amount);
+  const defeated = damage >= (raid.hp || Infinity);
+  return {
+    ...raid,
+    damage,
+    log,
+    defeated,
+    defeatedAt: defeated ? raid.defeatedAt || Date.now() : null,
+  };
+}
+
 /** Fold a raid state and a list of hits into the new state. */
 export function applyDamage(raid, hits) {
   const log = [...(raid.log || [])];

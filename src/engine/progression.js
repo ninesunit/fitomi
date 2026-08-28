@@ -20,6 +20,7 @@ import {
   bossReward,
 } from './raid';
 import { dayKey, weekKey } from '../lib/date';
+import { capAward, recordDailyXp } from './integrity';
 import { STAT_IDS } from './constants';
 
 // ---------------------------------------------------------------------------
@@ -67,8 +68,15 @@ export function progressWorkout({ profile, workout, lookup, now = Date.now() }) 
   );
 
   // --- 4. Level up ---------------------------------------------------------
+  // The score is capped against the per-session and per-day ceilings before it
+  // is banked. A session cannot pay out more than a very long, very heavy one
+  // plausibly would, and a day cannot pay out more than two of those plus a
+  // full quest board.
+  const cap = capAward(profile, today, score.xp);
+  const awardedXp = cap.granted;
+
   const before = levelFromXp(profile.totalXp || 0);
-  const totalXp = (profile.totalXp || 0) + score.xp;
+  const totalXp = (profile.totalXp || 0) + awardedXp;
   const after = levelFromXp(totalXp);
 
   const stats = { ...profile.stats };
@@ -145,8 +153,14 @@ export function progressWorkout({ profile, workout, lookup, now = Date.now() }) 
   if (raid.defeated && !wasDefeated) {
     bossKills += 1;
     const reward = bossReward(boss, after.level);
-    bossXp = reward.xp;
-    events.push({ type: 'bossDefeated', boss, reward, raid });
+    // The kill bounty draws from the same daily allowance the session already
+    // spent from, so a boss cannot be used to route around the ceiling.
+    bossXp = capAward(
+      { ...profile, xpLedger: recordDailyXp(profile, today, awardedXp) },
+      today,
+      reward.xp,
+    ).granted;
+    events.push({ type: 'bossDefeated', boss, reward: { ...reward, xp: bossXp }, raid });
   }
 
   // --- 6. Totals ----------------------------------------------------------
@@ -209,7 +223,7 @@ export function progressWorkout({ profile, workout, lookup, now = Date.now() }) 
     volumeKg: score.volumeKg,
     sets: score.sets,
     reps: score.reps,
-    xp: score.xp + bossXp,
+    xp: awardedXp + bossXp,
     durationSec: workout.durationSec || 0,
     prCount: prs.length,
     muscleVolume: score.muscleVolume,
@@ -219,6 +233,7 @@ export function progressWorkout({ profile, workout, lookup, now = Date.now() }) 
 
   const nextProfile = {
     ...profile,
+    xpLedger: recordDailyXp(profile, today, awardedXp + bossXp),
     totalXp: finalXp,
     level: finalLevel.level,
     stats,
@@ -256,14 +271,26 @@ function trailingMuscleVolume(recentWorkouts = [], sessionVolume = {}) {
 }
 
 /** Award XP outside a workout — quest clears and boss kills use this. */
+/**
+ * Award XP.
+ *
+ * Returns a `receipt` alongside the new profile: the exact deltas this award
+ * applied, including any stat points and carry a level-up consumed. Anything
+ * that can be un-done — a quest un-ticked, a workout deleted — must keep its
+ * receipt and hand it to `revokeXp`, because the inverse of an award is not
+ * "subtract the XP": crossing a level boundary hands out stat points, and
+ * those are permanent unless they are given back precisely.
+ */
 export function grantXp(profile, amount, reason) {
   const before = levelFromXp(profile.totalXp || 0);
   const totalXp = (profile.totalXp || 0) + amount;
   const after = levelFromXp(totalXp);
   const events = [];
   const stats = { ...profile.stats };
-  let statCarry = { ...(profile.statCarry || {}) };
+  const carryBefore = { ...(profile.statCarry || {}) };
+  let statCarry = { ...carryBefore };
   let gainedPoints = 0;
+  const totalAward = {};
 
   if (after.level > before.level) {
     const distribution = statDistribution(
@@ -277,7 +304,10 @@ export function grantXp(profile, amount, reason) {
       gainedPoints += points;
       const { award, carry } = allocatePointsWithCarry(points, distribution, statCarry);
       statCarry = carry;
-      for (const id of STAT_IDS) stats[id] = (stats[id] || 0) + award[id];
+      for (const id of STAT_IDS) {
+        stats[id] = (stats[id] || 0) + award[id];
+        totalAward[id] = (totalAward[id] || 0) + award[id];
+      }
       events.push({ type: 'levelUp', level: lvl, points, award, rank: rankForLevel(lvl), rankUp: rankForLevel(lvl).id !== rankForLevel(lvl - 1).id });
     }
   }
@@ -294,5 +324,34 @@ export function grantXp(profile, amount, reason) {
       statPoints: (profile.statPoints || 0) + gainedPoints,
     },
     events,
+    receipt: { amount, award: totalAward, points: gainedPoints, carryBefore },
   };
 }
+
+/**
+ * The exact inverse of a `grantXp` receipt.
+ *
+ * Cycling an award must net to zero. Subtracting only the XP would leave the
+ * stat points behind, so un-ticking and re-ticking a quest that happens to
+ * cross a level boundary would farm attributes indefinitely.
+ */
+export function revokeXp(profile, receipt) {
+  if (!receipt?.amount) return profile;
+
+  const totalXp = Math.max(0, (profile.totalXp || 0) - receipt.amount);
+  const stats = { ...profile.stats };
+  for (const id of STAT_IDS) {
+    const back = receipt.award?.[id] || 0;
+    if (back) stats[id] = Math.max(0, (stats[id] || 0) - back);
+  }
+
+  return {
+    ...profile,
+    totalXp,
+    level: levelFromXp(totalXp).level,
+    stats,
+    statCarry: receipt.carryBefore ? { ...receipt.carryBefore } : profile.statCarry,
+    statPoints: Math.max(0, (profile.statPoints || 0) - (receipt.points || 0)),
+  };
+}
+

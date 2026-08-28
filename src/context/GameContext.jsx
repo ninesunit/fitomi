@@ -6,13 +6,14 @@ import { clearAnswers, loadAnswers, seedProfileFromAssessment } from '../lib/onb
 import { assess, programToRoutines } from '../engine/assessment';
 import { createProfile, hydrateProfile } from '../lib/profile';
 import { getExercise } from '../data/exercises';
-import { progressWorkout, grantXp } from '../engine/progression';
+import { progressWorkout, grantXp, revokeXp } from '../engine/progression';
+import { capAward, recordDailyXp } from '../engine/integrity';
 import { levelFromXp } from '../engine/leveling';
 import { rankForLevel, nextRank, rankProgress } from '../engine/ranks';
 import { computeStreak, streakDeadline, nextShadow, themeById } from '../engine/shadows';
 import { estimateSoreness, systemicReadiness } from '../engine/soreness';
 import { generateQuests, generateWeeklyQuests } from '../engine/quests';
-import { bossForWeek, createRaid, applyDamage, QUEST_DAMAGE } from '../engine/raid';
+import { bossForWeek, createRaid, applyDamage, revokeDamage, QUEST_DAMAGE } from '../engine/raid';
 import { dayKey, weekKey } from '../lib/date';
 
 export const GameContext = createContext(null);
@@ -302,25 +303,43 @@ export function GameProvider({ children }) {
     (quest) => {
       if (!profile) return;
       const today = dayKey();
-      const alreadyDone = profile.questState?.day === today && (profile.questState.completed || []).includes(quest.id);
-      if (alreadyDone) return;
+      const state = profile.questState?.day === today ? profile.questState : null;
+      if ((state?.completed || []).includes(quest.id)) return;
 
       update((current) => {
-        const granted = grantXp(current, quest.xp, `Quest: ${quest.title}`);
+        // Quest XP comes out of the same daily allowance as training, so the
+        // board cannot be used to route around the ceiling either.
+        const allowed = capAward(current, today, quest.xp, quest.xp).granted;
+        if (allowed <= 0) return current;
+        const granted = grantXp(current, allowed, `Quest: ${quest.title}`);
         const week = weekKey();
         const raidState =
           current.raid && current.raid.week === week ? current.raid : createRaid(current.level || 1, week);
+        const at = Date.now();
         const raid = applyDamage(raidState, [
-          { amount: QUEST_DAMAGE, source: 'quest', label: quest.title, at: Date.now() },
+          { amount: QUEST_DAMAGE, source: 'quest', label: quest.title, at },
         ]);
 
-        const completed =
-          current.questState?.day === today ? [...(current.questState.completed || []), quest.id] : [quest.id];
+        const sameDay = current.questState?.day === today;
+        const completed = sameDay ? [...(current.questState.completed || []), quest.id] : [quest.id];
+        // The receipt is what makes un-ticking exact. Without it the reverse of
+        // an award is a guess, and a quest toggled across a level boundary
+        // hands out stat points every time it is re-ticked.
+        const receipts = {
+          ...(sameDay ? current.questState?.receipts : null),
+          [quest.id]: { ...granted.receipt, damage: QUEST_DAMAGE, at, week },
+        };
 
         return {
           ...granted.profile,
+          xpLedger: recordDailyXp(current, today, allowed),
           raid,
-          questState: { day: today, completed, generated: current.questState?.generated || today },
+          questState: {
+            day: today,
+            completed,
+            receipts,
+            generated: (sameDay && current.questState?.generated) || today,
+          },
         };
       });
 
@@ -334,11 +353,31 @@ export function GameProvider({ children }) {
       const today = dayKey();
       update((current) => {
         if (current.questState?.day !== today) return current;
+        if (!(current.questState.completed || []).includes(quest.id)) return current;
+
+        const receipt = current.questState.receipts?.[quest.id];
+        // Older profiles pre-date receipts; fall back to the quest's face value
+        // so at minimum the XP is returned.
+        const reversed = revokeXp(current, receipt || { amount: quest.xp, award: {}, points: 0 });
+        // Returning the XP returns the allowance it consumed.
+        const refundedLedger = recordDailyXp(current, today, -(receipt?.amount ?? quest.xp));
+
+        const raid =
+          receipt && current.raid?.week === receipt.week
+            ? revokeDamage(current.raid, { amount: receipt.damage, source: 'quest', at: receipt.at })
+            : current.raid;
+
+        const receipts = { ...(current.questState.receipts || {}) };
+        delete receipts[quest.id];
+
         return {
-          ...current,
+          ...reversed,
+          xpLedger: refundedLedger,
+          raid,
           questState: {
             ...current.questState,
-            completed: (current.questState.completed || []).filter((id) => id !== quest.id),
+            completed: current.questState.completed.filter((id) => id !== quest.id),
+            receipts,
           },
         };
       });

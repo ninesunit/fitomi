@@ -59,13 +59,15 @@ export async function loadProfile(user) {
 export async function saveProfile(uid, profile) {
   const trimmed = trimProfile(profile);
   const { uid: _ignored, ...rest } = trimmed;
-  await setDoc(userRef(uid), { ...rest, uid, updatedAt: Date.now() }, { merge: true });
+  // Server time, not the client's: a device with a wrong (or deliberately
+  // wrong) clock must not be able to stamp when its progress happened.
+  await setDoc(userRef(uid), { ...rest, uid, updatedAt: serverTimestamp() }, { merge: true });
   return trimmed;
 }
 
 /** Patch a few profile fields without rewriting the whole document. */
 export async function patchProfile(uid, patch) {
-  await updateDoc(userRef(uid), { ...patch, updatedAt: Date.now() });
+  await updateDoc(userRef(uid), { ...patch, updatedAt: serverTimestamp() });
 }
 
 /**

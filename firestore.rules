@@ -28,15 +28,82 @@ service cloud.firestore {
       return request.resource.data.size() < 400;
     }
 
+    // ---- XP integrity -----------------------------------------------------
+    //
+    // There is no server, so these rules cannot recompute a workout and check
+    // the XP it should have paid. What they can do is bound every number a
+    // client may write, which turns "set totalXp to a billion" into "grind
+    // many writes over many days" — and makes the ceiling identical whether
+    // the write comes through the app or through a console.
+    //
+    // The numbers mirror engine/integrity.js. A hard advanced session scores
+    // about 3,000 and the theoretical maximum is about 13,200.
+
+    function num(field, fallback) {
+      return field in request.resource.data && request.resource.data[field] is number
+        ? request.resource.data[field]
+        : fallback;
+    }
+
+    function priorNum(field, fallback) {
+      return resource != null && field in resource.data && resource.data[field] is number
+        ? resource.data[field]
+        : fallback;
+    }
+
+    // A single write may move XP by at most one whole day's allowance, in
+    // either direction. Negative deltas are allowed because un-ticking a quest
+    // legitimately returns XP.
+    //
+    // It is set to the daily ceiling rather than the per-session one because
+    // profile saves are debounced: a hunter who trains and then clears the
+    // quest board before the save fires legitimately lands a day's worth of XP
+    // in one write, and rejecting that would lose their session.
+    //
+    // This bounds the size of a jump, not the rate of them. Rate limiting is
+    // not attempted: any threshold loose enough to admit a real workout landing
+    // seconds after the previous save is too loose to inconvenience a script.
+    function xpDeltaOk() {
+      return num('totalXp', 0) - priorNum('totalXp', 0) <= 20000
+          && priorNum('totalXp', 0) - num('totalXp', 0) <= 20000;
+    }
+
+    // Absolute ceilings, so no single write can land an absurd value even if
+    // the delta somehow passed.
+    function xpBoundsOk() {
+      return num('totalXp', 0) >= 0
+          && num('totalXp', 0) <= 500000000
+          && num('level', 1) >= 1
+          && num('level', 1) <= 500;
+    }
+
+    // Level must be earnable from the XP on the same document. The cheapest
+    // level in the curve costs 250 XP and every later one costs more, so
+    // 250 * (level - 1) is a floor that no honest profile can fall below and
+    // no forged level can satisfy.
+    function levelMatchesXp() {
+      return num('totalXp', 0) >= (num('level', 1) - 1) * 250;
+    }
+
+    function statsOk() {
+      return !('stats' in request.resource.data)
+          || (request.resource.data.stats is map && request.resource.data.stats.size() <= 16);
+    }
+
     // The profile document: progression, stats, streak, shadows, records,
     // the active raid and the quest board.
     match /users/{uid} {
       allow read: if isOwner(uid);
       allow delete: if isOwner(uid);
-      // A profile may only ever be stamped with its owner's uid.
+      // A profile may only ever be stamped with its owner's uid, and its
+      // progression numbers must stay inside the bounds above.
       allow create, update: if isOwner(uid)
                             && sizeOk()
-                            && (!('uid' in request.resource.data) || request.resource.data.uid == uid);
+                            && (!('uid' in request.resource.data) || request.resource.data.uid == uid)
+                            && xpBoundsOk()
+                            && levelMatchesXp()
+                            && statsOk()
+                            && (resource == null || xpDeltaOk());
     }
 
     // Finished sessions. Must carry the owner's uid and a real timestamp, so a
@@ -44,10 +111,23 @@ service cloud.firestore {
     // without the field the history query orders by.
     match /users/{uid}/workouts/{workoutId} {
       allow read: if isOwner(uid);
+      // Volume and XP are bounded to what the scorer can plausibly produce,
+      // and a session cannot be stamped into the future or the deep past —
+      // back-dating is how a leaderboard week gets stuffed.
       allow create: if isOwner(uid)
                     && sizeOk()
                     && request.resource.data.uid == uid
-                    && request.resource.data.finishedAt is number;
+                    && request.resource.data.finishedAt is number
+                    && request.resource.data.finishedAt <= request.time.toMillis() + 300000
+                    && request.resource.data.finishedAt >= request.time.toMillis() - 604800000
+                    && (!('xp' in request.resource.data)
+                        || (request.resource.data.xp is number
+                            && request.resource.data.xp >= 0
+                            && request.resource.data.xp <= 12000))
+                    && (!('volumeKg' in request.resource.data)
+                        || (request.resource.data.volumeKg is number
+                            && request.resource.data.volumeKg >= 0
+                            && request.resource.data.volumeKg <= 500000));
       allow update: if isOwner(uid)
                     && sizeOk()
                     && request.resource.data.uid == uid;
