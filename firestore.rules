@@ -143,6 +143,118 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
+    // ---- SOCIAL ------------------------------------------------------------
+    //
+    // These are the only documents one hunter can read about another, so the
+    // shape of them is the privacy boundary: a public card carries a name, a
+    // rank, this week's tonnage and a short list of achievements, and nothing
+    // else. Session contents, bodyweight and notes never leave /users/{uid}.
+    //
+    // Every number on a card is bounded the same way the private profile is,
+    // because a leaderboard is exactly where an inflated number would be worth
+    // having.
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function cardNumbersOk() {
+      return num('level', 1) >= 1 && num('level', 1) <= 500
+          && num('totalXp', 0) >= 0 && num('totalXp', 0) <= 500000000
+          && num('totalXp', 0) >= (num('level', 1) - 1) * 250
+          && num('streak', 0) >= 0 && num('streak', 0) <= 3650
+          && num('weeklyVolumeKg', 0) >= 0 && num('weeklyVolumeKg', 0) <= 2000000
+          && num('weeklySessions', 0) >= 0 && num('weeklySessions', 0) <= 100
+          && num('workouts', 0) >= 0 && num('workouts', 0) <= 100000
+          && num('prCount', 0) >= 0 && num('prCount', 0) <= 500000;
+    }
+
+    function eventsOk() {
+      return !('recentEvents' in request.resource.data)
+          || (request.resource.data.recentEvents is list
+              && request.resource.data.recentEvents.size() <= 8);
+    }
+
+    // The public card. Readable by any signed-in hunter, writable only by its
+    // owner — searching for a friend requires reading strangers' cards, which
+    // is the whole point of the collection.
+    match /publicProfiles/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid)
+                            && sizeOk()
+                            && (!('uid' in request.resource.data) || request.resource.data.uid == uid)
+                            && cardNumbersOk()
+                            && eventsOk();
+      allow delete: if isOwner(uid);
+    }
+
+    // Handle reservations. Create-once: a handle may be claimed by whoever
+    // takes it first and re-asserted only by that same hunter, which is what
+    // makes the uniqueness transaction in social.js meaningful.
+    match /handles/{handle} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn()
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Friendships. Each side keeps its own list; a hunter may write into
+    // another's list only to complete a friendship that was requested, which
+    // is why acceptance writes both sides in one batch.
+    match /users/{uid}/friends/{friendUid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid) || isOwner(friendUid);
+      allow delete: if isOwner(uid) || isOwner(friendUid);
+      allow update: if false;
+    }
+
+    // Friend requests land in the target's inbox. The requester may create
+    // exactly one document, keyed by their own uid, so nobody can flood an
+    // inbox or forge a request from someone else.
+    match /users/{uid}/friendRequests/{fromUid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(fromUid)
+                    && request.resource.data.from == fromUid
+                    && sizeOk();
+      allow delete: if isOwner(uid) || isOwner(fromUid);
+      allow update: if false;
+    }
+
+    // Guilds. The roster is a map on one document so a whole guild is a single
+    // read; the rule below is what keeps that safe, by allowing a member to
+    // touch only their own row.
+    function onlyOwnMemberRow() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['members', 'memberUids'])
+          && request.resource.data.members.diff(resource.data.members).affectedKeys()
+               .hasOnly([request.auth.uid]);
+    }
+
+    match /guilds/{guildId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+                    && request.resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.memberUids.size() == 1
+                    && sizeOk();
+      // Either the owner administering the guild, or a member updating only
+      // their own row (joining, leaving, refreshing their tonnage).
+      allow update: if signedIn()
+                    && sizeOk()
+                    && (resource.data.ownerUid == request.auth.uid || onlyOwnMemberRow());
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+    }
+
+    // Parties are ephemeral and join-by-code. Anyone signed in who knows the
+    // code may join, which is the point; only the host can tear one down.
+    match /parties/{code} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.hostUid == request.auth.uid && sizeOk();
+      allow update: if signedIn() && sizeOk();
+      allow delete: if signedIn() && resource.data.hostUid == request.auth.uid;
+    }
+
     // Everything else is denied.
     match /{document=**} {
       allow read, write: if false;

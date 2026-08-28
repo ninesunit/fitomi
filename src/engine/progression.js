@@ -34,7 +34,7 @@ import { STAT_IDS } from './constants';
 // without Firebase, React or a browser anywhere near it.
 // ---------------------------------------------------------------------------
 
-export function progressWorkout({ profile, workout, lookup, now = Date.now() }) {
+export function progressWorkout({ profile, workout, lookup, now = Date.now(), multiplier = 1 }) {
   const events = [];
   const entries = workout.entries || [];
 
@@ -72,7 +72,11 @@ export function progressWorkout({ profile, workout, lookup, now = Date.now() }) 
   // is banked. A session cannot pay out more than a very long, very heavy one
   // plausibly would, and a day cannot pay out more than two of those plus a
   // full quest board.
-  const cap = capAward(profile, today, score.xp);
+  // Training with a party pays a small bonus. It is bounded at 12% by
+  // social.js and still drawn from the same daily allowance, so it is a nudge
+  // to train with friends rather than a route around the ceiling.
+  const boosted = Math.round(score.xp * Math.max(1, Math.min(1.12, Number(multiplier) || 1)));
+  const cap = capAward(profile, today, boosted);
   const awardedXp = cap.granted;
 
   const before = levelFromXp(profile.totalXp || 0);
@@ -231,8 +235,22 @@ export function progressWorkout({ profile, workout, lookup, now = Date.now() }) 
     exerciseIds: entries.map((e) => e.exerciseId),
   };
 
+  // Running weekly totals, for the leaderboards and a guild's pooled tonnage.
+  // Kept on the profile rather than recomputed from history so a board read is
+  // one document per hunter, not one per session.
+  const weekly =
+    profile.weekly?.week === week
+      ? {
+          week,
+          volumeKg: (profile.weekly.volumeKg || 0) + score.volumeKg,
+          sessions: (profile.weekly.sessions || 0) + 1,
+          xp: (profile.weekly.xp || 0) + awardedXp + bossXp,
+        }
+      : { week, volumeKg: score.volumeKg, sessions: 1, xp: awardedXp + bossXp };
+
   const nextProfile = {
     ...profile,
+    weekly,
     xpLedger: recordDailyXp(profile, today, awardedXp + bossXp),
     totalXp: finalXp,
     level: finalLevel.level,

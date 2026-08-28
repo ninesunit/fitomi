@@ -13,6 +13,7 @@ import { Sheet } from '../components/ui/Sheet';
 import { SetRow } from '../components/workout/SetRow';
 import { ExercisePicker } from '../components/workout/ExercisePicker';
 import { PlateVisual } from '../components/tools/PlateVisual';
+import { PartyBar } from '../components/workout/PartyBar';
 import { ExerciseAnimation } from '../components/ExerciseAnimation';
 import { getExercise } from '../data/exercises';
 import { fetchRoutines } from '../lib/firestore';
@@ -200,6 +201,8 @@ export default function WorkoutPage() {
 
       {/* ---- exercises ---- */}
       <AnimatePresence initial={false}>
+        <PartyBar />
+
         {session.entries.map((entry, entryIndex) => {
           const exercise = getExercise(entry.exerciseId);
           if (!exercise) return null;

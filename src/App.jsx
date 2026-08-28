@@ -1,11 +1,12 @@
 import { Suspense, lazy, useEffect, useSyncExternalStore } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SystemProvider } from './context/SystemContext';
 import { GameProvider, useGame } from './context/GameContext';
 import { WorkoutProvider } from './context/WorkoutContext';
 import { AppShell } from './components/AppShell';
 import { SystemModal } from './components/SystemModal';
+import { SocialProvider } from './context/SocialContext';
 import { RouteTransition } from './components/RouteTransition';
 import { Toasts } from './components/ui/Toasts';
 import { InstallPrompt } from './components/InstallPrompt';
@@ -30,6 +31,7 @@ const HistoryPage = lazy(() => import('./pages/HistoryPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const NotomiPage = lazy(() => import('./pages/NotomiPage'));
 const RoutinesPage = lazy(() => import('./pages/RoutinesPage'));
+const SocialPage = lazy(() => import('./pages/SocialPage'));
 
 /** Applies the active shadow's theme by rewriting the root CSS variables. */
 function ThemeBridge({ children }) {
@@ -43,12 +45,6 @@ function ThemeBridge({ children }) {
   }, [theme]);
 
   return children;
-}
-
-function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => window.scrollTo(0, 0), [pathname]);
-  return null;
 }
 
 function PageFallback() {
@@ -74,6 +70,7 @@ function Protected() {
   if (profileLoading && !profile) return <BootScreen message="Loading hunter data" />;
 
   return (
+    <SocialProvider>
     <WorkoutProvider>
       <ThemeBridge>
         <AppShell>
@@ -92,6 +89,7 @@ function Protected() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/notomi" element={<NotomiPage />} />
               <Route path="/routines" element={<RoutinesPage />} />
+              <Route path="/social" element={<SocialPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             </RouteTransition>
@@ -100,6 +98,7 @@ function Protected() {
         <SystemModal />
       </ThemeBridge>
     </WorkoutProvider>
+    </SocialProvider>
   );
 }
 
@@ -140,7 +139,6 @@ export default function App() {
     <AuthProvider>
       <SystemProvider>
         <GameProvider>
-          <ScrollToTop />
           <Gate />
           <Toasts />
           <InstallPrompt />

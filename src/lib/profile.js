@@ -67,6 +67,11 @@ export function createProfile({ uid, email, displayName, photoURL } = {}) {
     // --- today's quest board state ---
     questState: { day: null, completed: [], generated: null },
     weeklyQuestState: { week: null, completed: [] },
+    // Rolling weekly totals that feed the leaderboards and guild pools.
+    weekly: { week: null, volumeKg: 0, sessions: 0, xp: 0 },
+    // The searchable public identity, claimed once.
+    handle: null,
+    guildId: null,
 
     // --- preferences ---
     settings: {
@@ -124,6 +129,7 @@ export function hydrateProfile(raw, fallback = {}) {
     notomi: { ...base.notomi, ...(raw.notomi || {}) },
     questState: { ...base.questState, ...(raw.questState || {}) },
     weeklyQuestState: { ...base.weeklyQuestState, ...(raw.weeklyQuestState || {}) },
+    weekly: { ...base.weekly, ...(raw.weekly || {}) },
     records: raw.records || {},
     recentWorkouts: raw.recentWorkouts || [],
     trainingDays: raw.trainingDays || [],

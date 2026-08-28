@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity, BookOpen, Calculator, ClipboardList, CloudOff, Dumbbell, Flame, History,
-  LayoutGrid, ListChecks, LogOut, Menu, Settings, Skull, Timer, User, X,
+  LayoutGrid, ListChecks, LogOut, Menu, Settings, Skull, Timer, User, Users, X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
@@ -18,10 +18,11 @@ const TABS = [
   { to: '/quests', label: 'Quests', icon: ListChecks },
   { to: '/workout', label: 'Train', icon: Dumbbell, primary: true },
   { to: '/raid', label: 'Raid', icon: Skull },
-  { to: '/library', label: 'Codex', icon: BookOpen },
+  { to: '/social', label: 'Guild', icon: Users },
 ];
 
 const MORE = [
+  { to: '/library', label: 'Exercise Codex', icon: BookOpen },
   { to: '/routines', label: 'Routines', icon: ClipboardList },
   { to: '/profile', label: 'Hunter Profile', icon: User },
   { to: '/history', label: 'Training Log', icon: History },

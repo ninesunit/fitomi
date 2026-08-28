@@ -254,10 +254,15 @@ export function GameProvider({ children }) {
 
   /** Commit a finished session. This is the only place a workout ever writes. */
   const finishWorkout = useCallback(
-    async (workout) => {
+    async (workout, options = {}) => {
       if (!user || !profile) return null;
 
-      const result = progressWorkout({ profile, workout, lookup: getExercise });
+      const result = progressWorkout({
+        profile,
+        workout,
+        lookup: getExercise,
+        multiplier: options.multiplier || 1,
+      });
       const record = {
         name: workout.name || 'Session',
         startedAt: workout.startedAt || Date.now(),

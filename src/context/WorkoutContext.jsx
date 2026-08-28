@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from './GameContext';
+import { useSocial } from './SocialContext';
 import { useSystem } from './SystemContext';
 import { getExercise } from '../data/exercises';
 import { estimate1RM } from '../engine/oneRepMax';
@@ -57,6 +58,8 @@ const emptySet = (index, previous) => ({
 
 export function WorkoutProvider({ children }) {
   const { profile, finishWorkout } = useGame();
+  // SocialProvider wraps this one, so the live party is readable here.
+  const { multiplier, partySize } = useSocial();
   const { toast } = useSystem();
 
   const [session, setSession] = useState(null);
@@ -454,18 +457,23 @@ export function WorkoutProvider({ children }) {
       return null;
     }
 
-    const result = await finishWorkout({
-      name: session.name,
-      startedAt: session.startedAt,
-      durationSec: Math.floor((Date.now() - session.startedAt) / 1000),
-      notes: session.notes,
-      entries,
-    });
+    const result = await finishWorkout(
+      {
+        name: session.name,
+        startedAt: session.startedAt,
+        durationSec: Math.floor((Date.now() - session.startedAt) / 1000),
+        notes: session.notes,
+        entries,
+        partySize: partySize || undefined,
+      },
+      // Training alongside other hunters pays a small bonus.
+      { multiplier },
+    );
 
     setSession(null);
     setRest(null);
     return result;
-  }, [session, finishWorkout, toast]);
+  }, [session, finishWorkout, toast, multiplier, partySize]);
 
   // --- live session stats --------------------------------------------------
   const stats = useMemo(() => {
