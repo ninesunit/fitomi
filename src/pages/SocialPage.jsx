@@ -173,12 +173,11 @@ function FeedTab() {
 // ---------------------------------------------------------------------------
 
 function HuntersTab() {
-  const { uid, card, friends, friendCards, requests, refreshFriends, addFriend, acceptRequest, declineRequest, unfriend, claimHandle } = useSocial();
+  const { uid, friends, friendCards, requests, refreshFriends, addFriend, acceptRequest, declineRequest, unfriend } = useSocial();
   const { toast } = useSystem();
   const [term, setTerm] = useState('');
   const [results, setResults] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [handleDraft, setHandleDraft] = useState('');
 
   useEffect(() => { refreshFriends(); }, [refreshFriends]);
 
@@ -200,38 +199,6 @@ function HuntersTab() {
 
   return (
     <>
-      {/* A hunter without a handle cannot be found, so ask for one first. */}
-      {!card?.handle && (
-        <SystemWindow title="Claim Your Handle" subtitle="Required to be findable">
-          <p className="mb-3 text-xs leading-relaxed text-[rgb(var(--sys-dim))]">
-            Other hunters search by handle. Three to twenty letters, numbers or underscores.
-          </p>
-          <div className="flex gap-2">
-            <input
-              className="sys-input flex-1"
-              value={handleDraft}
-              placeholder="shadowmonarch"
-              maxLength={20}
-              onChange={(e) => setHandleDraft(social.normaliseHandle(e.target.value))}
-            />
-            <SystemButton
-              variant="primary"
-              disabled={!social.isValidHandle(handleDraft)}
-              onClick={async () => {
-                try {
-                  await claimHandle(handleDraft);
-                  toast('Handle claimed.', { tone: 'success' });
-                } catch (error) {
-                  toast(error.message || 'Could not claim that handle.', { tone: 'error' });
-                }
-              }}
-            >
-              Claim
-            </SystemButton>
-          </div>
-        </SystemWindow>
-      )}
-
       {requests.length > 0 && (
         <SystemWindow title="Requests" subtitle={`${requests.length} waiting`} tone="gold">
           <div className="space-y-2">

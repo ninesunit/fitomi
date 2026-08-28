@@ -51,17 +51,33 @@ export const partyRef = (id) => doc(db, 'parties', id);
 const friendsRef = (uid) => collection(db, 'users', uid, 'friends');
 const requestsRef = (uid) => collection(db, 'users', uid, 'friendRequests');
 
-/** Handles are the searchable identity: lowercase, 3-20 chars, no spaces. */
-export function normaliseHandle(raw) {
-  return String(raw || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9_]/g, '')
-    .slice(0, 20);
+// ---------------------------------------------------------------------------
+// Names
+//
+// A hunter's name *is* their identity: the one they type during the awakening
+// is what appears on every leaderboard, and it is unique. Capitalisation is
+// theirs to keep — "ShadowMonarch" displays as they wrote it — while
+// uniqueness is decided on the lowercase form, so nobody can register a name
+// that is indistinguishable from someone else's at a glance.
+// ---------------------------------------------------------------------------
+
+/** Strip a typed name down to the characters a name may contain. */
+export function cleanName(raw) {
+  return String(raw || '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 20);
 }
 
-export function isValidHandle(handle) {
-  return /^[a-z0-9_]{3,20}$/.test(handle);
+/** The unique key a display name reserves. */
+export function nameKey(raw) {
+  return cleanName(raw).toLowerCase();
 }
+
+export function isValidName(raw) {
+  return /^[A-Za-z0-9_]{3,20}$/.test(String(raw || ''));
+}
+
+/** Kept for the search path, which works on the stored lowercase key. */
+export const normaliseHandle = nameKey;
+export const isValidHandle = (h) => /^[a-z0-9_]{3,20}$/.test(h);
 
 /** The maximum number of achievements carried on a public card. */
 const MAX_EVENTS = 8;
@@ -145,26 +161,64 @@ export async function fetchCards(uids) {
 // ---------------------------------------------------------------------------
 
 /**
- * Claim a handle, atomically. The transaction is what makes it unique: two
- * hunters racing for the same name cannot both win, because the reservation
- * document may only be created when it does not already exist.
+ * Is a name free?
+ *
+ * Deliberately a single-document read rather than a query: the awakening asks
+ * this before anyone has signed in, and the rules allow an unauthenticated
+ * `get` on one named document while still refusing to list the collection —
+ * so a name can be checked but the roster cannot be harvested.
  */
-export async function claimHandle(uid, rawHandle) {
-  const handle = normaliseHandle(rawHandle);
-  if (!isValidHandle(handle)) throw new Error('Handles are 3–20 letters, numbers or underscores.');
+export async function isNameAvailable(rawName, forUid = null) {
+  const key = nameKey(rawName);
+  if (!isValidHandle(key)) return false;
+  try {
+    // Raced against a timeout, not merely try/caught. With the offline cache
+    // enabled a read against an unreachable backend does not reject — it waits
+    // — and an unresolved promise here would leave the awakening's name step
+    // permanently unable to continue.
+    const snap = await Promise.race([
+      getDoc(handleRef(key)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000)),
+    ]);
+    return !snap.exists() || snap.data().uid === forUid;
+  } catch {
+    // Assume free. The claim itself is transactional and is the real
+    // authority; blocking sign-up on a flaky connection would be worse.
+    return true;
+  }
+}
+
+/**
+ * Claim a name, atomically, releasing any previous one.
+ *
+ * The transaction is what makes it unique: two hunters racing for the same
+ * name cannot both win, because the reservation is read and written inside it.
+ */
+export async function claimName(uid, rawName, { previous = null } = {}) {
+  const display = cleanName(rawName);
+  if (!isValidName(display)) {
+    throw new Error('Names are 3–20 letters, numbers or underscores.');
+  }
+  const key = nameKey(display);
+  const previousKey = previous ? nameKey(previous) : null;
 
   await runTransaction(db, async (tx) => {
-    const ref = handleRef(handle);
+    const ref = handleRef(key);
     const existing = await tx.get(ref);
     if (existing.exists() && existing.data().uid !== uid) {
-      throw new Error('That handle is taken.');
+      throw new Error('That name is taken.');
     }
     tx.set(ref, { uid, at: serverTimestamp() });
-    tx.set(publicRef(uid), { handle }, { merge: true });
+    // Free the old reservation so it can be taken by someone else.
+    if (previousKey && previousKey !== key) tx.delete(handleRef(previousKey));
+    tx.set(publicRef(uid), { handle: key, displayName: display }, { merge: true });
   });
 
-  return handle;
+  return { displayName: display, handle: key };
 }
+
+/** Back-compat alias for the old call site. */
+export const claimHandle = (uid, raw) => claimName(uid, raw);
 
 /** Exact-handle lookup. One read, then one to fetch the card. */
 export async function findByHandle(rawHandle) {

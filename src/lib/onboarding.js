@@ -14,6 +14,8 @@ const KEY = 'fitomi:awakening';
 
 export const EMPTY_ANSWERS = {
   name: '',
+  // Set by the name field once the System confirms the name is unclaimed.
+  nameOk: false,
   age: '',
   gender: '',
   height: '',

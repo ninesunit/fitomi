@@ -26,7 +26,7 @@ export function useSocial() {
 
 export function SocialProvider({ children }) {
   const { user } = useAuth();
-  const { profile } = useGame();
+  const { profile, updateProfile } = useGame();
   const { toast } = useSystem();
 
   const [card, setCard] = useState(null);
@@ -171,12 +171,35 @@ export function SocialProvider({ children }) {
     return () => { cancelled = true; };
   }, [uid]);
 
-  const claimHandle = useCallback(async (raw) => {
+  /**
+   * Reserve a name, releasing whichever one this hunter held before.
+   * Also mirrors it onto the private profile, which is what the rest of the
+   * app reads for a display name.
+   */
+  const claimName = useCallback(async (raw) => {
     if (!uid) return null;
-    const handle = await social.claimHandle(uid, raw);
-    setCard((c) => ({ ...(c || {}), handle }));
-    return handle;
-  }, [uid]);
+    const claimed = await social.claimName(uid, raw, { previous: profile?.handle });
+    updateProfile({ displayName: claimed.displayName, handle: claimed.handle });
+    setCard((c) => ({ ...(c || {}), ...claimed }));
+    return claimed;
+  }, [uid, profile?.handle, updateProfile]);
+
+  /**
+   * A hunter who signed up before names were unique — or whose claim failed on
+   * a flaky connection — arrives with a display name and no reservation. Take
+   * it now if it is free; if it is not, the profile screen asks them to pick.
+   */
+  const claimedOnce = useRef(false);
+  useEffect(() => {
+    if (!uid || !profile || claimedOnce.current) return;
+    if (profile.handle) { claimedOnce.current = true; return; }
+    const candidate = social.cleanName(profile.displayName || '');
+    if (!social.isValidName(candidate)) return;
+    claimedOnce.current = true;
+    social.claimName(uid, candidate)
+      .then((claimed) => updateProfile({ displayName: claimed.displayName, handle: claimed.handle }))
+      .catch(() => { /* taken — the profile screen will prompt for another */ });
+  }, [uid, profile, updateProfile]);
 
   const addFriend = useCallback(async (targetUid) => {
     if (!uid) return;
@@ -256,7 +279,7 @@ export function SocialProvider({ children }) {
     refreshFriends,
     refreshGuild,
     publish,
-    claimHandle,
+    claimName,
     addFriend,
     acceptRequest,
     declineRequest,
@@ -268,7 +291,7 @@ export function SocialProvider({ children }) {
     setGuild,
   }), [
     uid, card, friends, friendCards, requests, guild, party, partySize, multiplier, loading,
-    refreshFriends, refreshGuild, publish, claimHandle, addFriend, acceptRequest,
+    refreshFriends, refreshGuild, publish, claimName, addFriend, acceptRequest,
     declineRequest, unfriend, startParty, joinPartyByCode, refreshParty, exitParty,
   ]);
 

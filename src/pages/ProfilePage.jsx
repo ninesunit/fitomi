@@ -3,11 +3,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Award, Check, Ghost, Palette, Save, Sparkles, TrendingUp, User } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
+import { useSocial } from '../context/SocialContext';
 import { useSystem } from '../context/SystemContext';
 import { MotionPanel, PanelHeader } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
 import { TextField, SelectField, Segmented } from '../components/ui/Field';
 import { HunterPortrait } from '../components/avatar/HunterPortrait';
+import { NameField } from '../components/onboarding/NameField';
+import { BodyTypePicker } from '../components/onboarding/BodyTypePicker';
 import { StatRadar } from '../components/dashboard/StatRadar';
 import { XpBar, Meter } from '../components/ui/Bars';
 import { STATS, fromKg, toKg } from '../engine/constants';
@@ -55,13 +58,20 @@ function TabBar({ value, onChange }) {
 
 export default function ProfilePage() {
   const { profile, xp, rank, nextRank, rankProgress, streak, setTheme, updateProfile } = useGame();
-  const { updateDisplayName } = useAuth();
+  const { user, updateDisplayName } = useAuth();
+  const { claimName } = useSocial();
   const { toast } = useSystem();
 
   const [draft, setDraft] = useState({
     displayName: profile.displayName,
+    // Mirrors the availability result from NameField. Starts true because the
+    // name already on the profile is one this hunter holds.
+    nameOk: true,
     bodyweight: profile.bodyweight,
     height: profile.height || '',
+    age: profile.age || '',
+    gender: profile.gender || '',
+    bodyType: profile.bodyType || 'average',
     goal: profile.goal,
     experience: profile.experience,
     unit: profile.unit,
@@ -86,24 +96,40 @@ export default function ProfilePage() {
     });
   }, [profile]);
 
+  const nameChanged = draft.displayName !== profile.displayName;
+
   async function save() {
     setSaving(true);
-    const patch = {
-      displayName: draft.displayName.trim() || 'Unnamed Hunter',
-      bodyweight: Number(draft.bodyweight) || profile.bodyweight,
-      height: draft.height ? Number(draft.height) : null,
-      goal: draft.goal,
-      experience: draft.experience,
-      unit: draft.unit,
-    };
-    updateProfile(patch);
     try {
-      await updateDisplayName(patch.displayName);
-    } catch {
-      /* the Firestore copy is what the app reads anyway */
+      // The name is reserved before anything else is written: if it has just
+      // been taken, nothing should be saved under a name that is not ours.
+      if (nameChanged) {
+        await claimName(draft.displayName);
+      }
+
+      const patch = {
+        bodyweight: Number(draft.bodyweight) || profile.bodyweight,
+        height: draft.height ? Number(draft.height) : null,
+        age: draft.age ? Number(draft.age) : null,
+        gender: draft.gender || null,
+        bodyType: draft.bodyType,
+        goal: draft.goal,
+        experience: draft.experience,
+        unit: draft.unit,
+      };
+      updateProfile(patch);
+
+      try {
+        await updateDisplayName(draft.displayName);
+      } catch {
+        /* the Firestore copy is what the app reads anyway */
+      }
+      toast('Profile updated.', { tone: 'success' });
+    } catch (error) {
+      toast(error.message || 'Could not save that.', { tone: 'error' });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    toast('Profile updated.', { tone: 'success' });
   }
 
   return (
@@ -298,11 +324,13 @@ export default function ProfilePage() {
         <PanelHeader label="Hunter data" title="Edit profile" icon={User} />
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <TextField
-            label="Hunter name"
-            value={draft.displayName}
-            onChange={(e) => setDraft({ ...draft, displayName: e.target.value })}
-          />
+          <div className="sm:col-span-2">
+            <NameField
+              value={draft.displayName}
+              forUid={user?.uid}
+              onChange={({ name, nameOk }) => setDraft((d) => ({ ...d, displayName: name, nameOk }))}
+            />
+          </div>
 
           <div>
             <span className="hud-label mb-1.5 block">Units</span>
@@ -358,9 +386,45 @@ export default function ProfilePage() {
             <option value="intermediate">1–3 years</option>
             <option value="advanced">3+ years</option>
           </SelectField>
+
+          <TextField
+            label="Age"
+            type="number"
+            value={draft.age}
+            onChange={(e) => setDraft({ ...draft, age: e.target.value })}
+            placeholder="Optional"
+          />
+
+          <SelectField
+            label="Sex"
+            value={draft.gender}
+            onChange={(e) => setDraft({ ...draft, gender: e.target.value })}
+          >
+            <option value="">Prefer not to say</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </SelectField>
         </div>
 
-        <Button variant="primary" icon={Save} className="mt-4" onClick={save} loading={saving}>
+        {/* The build drives the avatar, and until now the only place to set it
+            was the assessment, which cannot be retaken. */}
+        <div className="mt-4">
+          <span className="hud-label mb-1.5 block">Physical build</span>
+          <BodyTypePicker
+            value={draft.bodyType}
+            sex={draft.gender}
+            onChange={(v) => setDraft((d) => ({ ...d, bodyType: v }))}
+          />
+        </div>
+
+        <Button
+          variant="primary"
+          icon={Save}
+          className="mt-4"
+          onClick={save}
+          loading={saving}
+          disabled={!draft.nameOk}
+        >
           Save changes
         </Button>
       </MotionPanel>

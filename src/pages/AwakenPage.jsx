@@ -16,6 +16,7 @@ import {
 import { inferBodyType } from '../engine/physique';
 import { GearPicker } from '../components/onboarding/GearPicker';
 import { BodyTypePicker } from '../components/onboarding/BodyTypePicker';
+import { NameField } from '../components/onboarding/NameField';
 import { BodyFocusPicker } from '../components/onboarding/BodyFocusPicker';
 import { HunterAvatar } from '../components/avatar/HunterAvatar';
 import { play } from '../lib/sound';
@@ -33,20 +34,11 @@ const STEPS = [
   {
     id: 'name',
     title: 'Identify Yourself',
-    prompt: 'The System requires a designation.',
-    valid: (a) => a.name.trim().length >= 2,
-    render: (a, set) => (
-      <FieldRow label="Hunter name">
-        <input
-          className="sys-input"
-          value={a.name}
-          autoFocus
-          maxLength={24}
-          placeholder="Enter your name"
-          onChange={(e) => set({ name: e.target.value })}
-        />
-      </FieldRow>
-    ),
+    prompt: 'The System requires a designation. It must be yours alone.',
+    // Availability is resolved by the field itself and recorded on the
+    // answers, so the step cannot be passed with a name someone already holds.
+    valid: (a) => a.nameOk === true,
+    render: (a, set) => <NameField value={a.name} onChange={set} autoFocus />,
   },
   {
     id: 'age',

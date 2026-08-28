@@ -192,7 +192,12 @@ service cloud.firestore {
     // takes it first and re-asserted only by that same hunter, which is what
     // makes the uniqueness transaction in social.js meaningful.
     match /handles/{handle} {
-      allow read: if signedIn();
+      // `get` is open so the awakening can tell someone their chosen name is
+      // taken *before* they have an account — there is no sign-in yet at that
+      // point in the flow. `list` still requires auth, so a single name can be
+      // checked but the roster cannot be enumerated.
+      allow get: if true;
+      allow list: if signedIn();
       allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
       allow update: if signedIn()
                     && resource.data.uid == request.auth.uid
