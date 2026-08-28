@@ -32,7 +32,7 @@ export function RestTimerBar() {
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 70, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-      className="fixed inset-x-0 bottom-[62px] z-40 px-3 lg:bottom-4 lg:left-auto lg:right-4 lg:w-96 lg:px-0"
+      className="rest-timer-surface fixed inset-x-0 z-40 px-3 lg:left-auto lg:right-4 lg:w-96 lg:px-0"
     >
       <div
         className="sys-window relative overflow-hidden px-3 py-2.5"

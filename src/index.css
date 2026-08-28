@@ -19,10 +19,10 @@
     /* The System's own light. Shadow themes rewrite these two and the entire
        interface re-skins, because every border, glow and rule derives from
        them rather than hard-coding a colour. */
-    --sys: 122 222 255;        /* the cyan rule + glow */
-    --sys-2: 96 165 250;       /* secondary, for gradients */
-    --sys-deep: 6 20 42;       /* window fill, top */
-    --sys-deep-2: 3 11 26;     /* window fill, bottom */
+    --sys: 62 198 255;         /* electric blue rule + glow */
+    --sys-2: 139 92 246;       /* neon violet energy */
+    --sys-deep: 8 15 35;       /* deep slate window fill */
+    --sys-deep-2: 3 8 22;      /* void window base */
     --sys-ink: 223 243 255;    /* primary text */
     --sys-dim: 138 176 204;    /* secondary text */
     --sys-danger: 255 77 94;   /* penalty / warning */
@@ -498,4 +498,33 @@
   .accent-bg { background-color: rgb(var(--sys)); }
   .accent-border { border-color: rgb(var(--sys) / 0.5); }
   .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem); }
+
+  .rest-timer-surface { bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+
+  @media (min-width: 1024px) {
+    .rest-timer-surface { bottom: 1rem; }
+  }
+
+  .hunter-atmosphere {
+    background:
+      radial-gradient(620px circle at 78% 12%, rgb(var(--sys-2) / 0.12), transparent 68%),
+      radial-gradient(520px circle at 18% 82%, rgb(var(--sys) / 0.09), transparent 72%),
+      linear-gradient(118deg, transparent 0 48%, rgb(var(--sys-2) / 0.025) 49%, transparent 50%);
+    mix-blend-mode: screen;
+  }
+
+  .exercise-lottie {
+    background:
+      radial-gradient(circle at 50% 64%, rgb(var(--sys-2) / 0.16), transparent 44%),
+      linear-gradient(180deg, rgb(var(--sys-deep) / 0.2), rgb(var(--sys-deep-2) / 0.88));
+  }
+
+  .exercise-lottie-grid {
+    opacity: 0.36;
+    background-image:
+      linear-gradient(rgb(var(--sys) / 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--sys-2) / 0.1) 1px, transparent 1px);
+    background-size: 18px 18px;
+    mask-image: radial-gradient(circle at center, black 20%, transparent 74%);
+  }
 }

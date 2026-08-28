@@ -13,6 +13,7 @@ import { notify } from '../lib/notify';
 export const WorkoutContext = createContext(null);
 
 const ACTIVE_KEY = 'fitomi:active-workout';
+const REST_KEY = 'fitomi:rest-timer';
 
 // ---------------------------------------------------------------------------
 // The active workout session.
@@ -83,8 +84,20 @@ export function WorkoutProvider({ children }) {
           localStorage.removeItem(ACTIVE_KEY);
         }
       }
+
+      const savedRest = localStorage.getItem(REST_KEY);
+      if (savedRest) {
+        const parsedRest = JSON.parse(savedRest);
+        const recentlyFinished = parsedRest?.endsAt > Date.now() - 10 * 60000;
+        if (recentlyFinished && parsedRest.total >= 5 && parsedRest.total <= 3600) {
+          setRest(parsedRest);
+        } else {
+          localStorage.removeItem(REST_KEY);
+        }
+      }
     } catch {
       localStorage.removeItem(ACTIVE_KEY);
+      localStorage.removeItem(REST_KEY);
     }
   }, []);
 
@@ -101,6 +114,17 @@ export function WorkoutProvider({ children }) {
     }
   }, [session]);
 
+  // The timer is global route state and also survives a refresh or installed
+  // PWA restart. Only one tiny local write occurs when it starts or changes.
+  useEffect(() => {
+    try {
+      if (rest) localStorage.setItem(REST_KEY, JSON.stringify(rest));
+      else localStorage.removeItem(REST_KEY);
+    } catch {
+      /* ignore quota errors */
+    }
+  }, [rest]);
+
   // --- session clock -------------------------------------------------------
   useEffect(() => {
     if (!session) {
@@ -112,6 +136,26 @@ export function WorkoutProvider({ children }) {
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [session]);
+
+  const notifyRestComplete = useCallback(
+    (exerciseName) => {
+      if (profile?.settings?.vibrationEnabled && navigator.vibrate) {
+        navigator.vibrate([120, 60, 120]);
+      }
+      if (profile?.settings?.soundEnabled) play('restDone');
+
+      // The phone is usually in a pocket between sets, so the sound alone
+      // reaches nobody. Only fire when the app is actually in the background —
+      // a notification for a screen you are already looking at is noise.
+      if (document.visibilityState === 'hidden' && profile?.settings?.restNotifications !== false) {
+        notify('Rest complete', {
+          body: exerciseName ? `Next set: ${exerciseName}` : 'Back to work.',
+          tag: 'fitomi-rest',
+        });
+      }
+    },
+    [profile],
+  );
 
   // --- rest timer ----------------------------------------------------------
   useEffect(() => {
@@ -135,27 +179,7 @@ export function WorkoutProvider({ children }) {
     tick();
     const interval = setInterval(tick, 250);
     return () => clearInterval(interval);
-  }, [rest]);
-
-  const notifyRestComplete = useCallback(
-    (exerciseName) => {
-      if (profile?.settings?.vibrationEnabled && navigator.vibrate) {
-        navigator.vibrate([120, 60, 120]);
-      }
-      if (profile?.settings?.soundEnabled) play('restDone');
-
-      // The phone is usually in a pocket between sets, so the sound alone
-      // reaches nobody. Only fire when the app is actually in the background —
-      // a notification for a screen you are already looking at is noise.
-      if (document.visibilityState === 'hidden' && profile?.settings?.restNotifications !== false) {
-        notify('Rest complete', {
-          body: exerciseName ? `Next set: ${exerciseName}` : 'Back to work.',
-          tag: 'fitomi-rest',
-        });
-      }
-    },
-    [profile],
-  );
+  }, [rest, notifyRestComplete]);
 
   // --- session lifecycle ---------------------------------------------------
   const start = useCallback((options = {}) => {
@@ -369,6 +393,11 @@ export function WorkoutProvider({ children }) {
     });
   }, []);
 
+  const startRest = useCallback((seconds, exerciseId = null) => {
+    const total = Math.max(5, Number(seconds) || 60);
+    setRest({ total, endsAt: Date.now() + total * 1000, exerciseId });
+  }, []);
+
   /** Tick a set complete and, per settings, kick off the rest timer. */
   const completeSet = useCallback(
     (exerciseId, setId) => {
@@ -415,13 +444,8 @@ export function WorkoutProvider({ children }) {
         startRest(seconds, exerciseId);
       }
     },
-    [profile],
+    [profile, startRest],
   );
-
-  const startRest = useCallback((seconds, exerciseId = null) => {
-    const total = Math.max(5, Number(seconds) || 60);
-    setRest({ total, endsAt: Date.now() + total * 1000, exerciseId });
-  }, []);
 
   const adjustRest = useCallback((delta) => {
     setRest((current) => {

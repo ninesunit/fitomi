@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Copy, LogOut, UserPlus, Users, Zap } from 'lucide-react';
 import { useSocial } from '../../context/SocialContext';
 import { useSystem } from '../../context/SystemContext';
-import { SystemWindow, SystemPanel } from '../system/SystemWindow';
+import { SystemWindow } from '../system/SystemWindow';
 import { SystemButton } from '../system/SystemButton';
 import { RANKS } from '../../engine/ranks';
 import { play } from '../../lib/sound';

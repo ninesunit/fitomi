@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Check, Crown, Flame, Ghost, Radio, Search, Shield, Swords, Trophy, UserPlus, Users, X,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { useSocial } from '../context/SocialContext';
 import { useSystem } from '../context/SystemContext';
 import { SystemWindow, SystemPanel } from '../components/system/SystemWindow';
 import { SystemButton } from '../components/system/SystemButton';
 import { HunterAvatar } from '../components/avatar/HunterAvatar';
+import { PartyBar } from '../components/workout/PartyBar';
 import { RANKS, rankForLevel } from '../engine/ranks';
 import * as social from '../lib/social';
 import { relativeTime } from '../lib/date';
@@ -25,14 +25,14 @@ import { play } from '../lib/sound';
 // ---------------------------------------------------------------------------
 
 const TABS = [
-  { id: 'feed', label: 'Feed', icon: Radio },
+  { id: 'breaks', label: 'Gate Breaks', icon: Swords },
   { id: 'hunters', label: 'Hunters', icon: Users },
   { id: 'ranking', label: 'Ranking', icon: Trophy },
   { id: 'guild', label: 'Guild', icon: Shield },
 ];
 
 export default function SocialPage() {
-  const [tab, setTab] = useState('feed');
+  const [tab, setTab] = useState('breaks');
   const { requests } = useSocial();
 
   return (
@@ -79,13 +79,22 @@ export default function SocialPage() {
           transition={{ duration: 0.18 }}
           className="space-y-3"
         >
-          {tab === 'feed' && <FeedTab />}
+          {tab === 'breaks' && <GateBreaksTab />}
           {tab === 'hunters' && <HuntersTab />}
           {tab === 'ranking' && <RankingTab />}
           {tab === 'guild' && <GuildTab />}
         </motion.div>
       </AnimatePresence>
     </div>
+  );
+}
+
+function GateBreaksTab() {
+  return (
+    <>
+      <PartyBar />
+      <FeedTab />
+    </>
   );
 }
 

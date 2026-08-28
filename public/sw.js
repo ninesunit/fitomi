@@ -73,8 +73,14 @@ self.addEventListener('fetch', (event) => {
   // Leave Firebase, Google and font traffic entirely alone.
   if (url.origin !== self.location.origin) return;
 
-  // Hashed build output: cache-first, forever.
-  if (url.pathname.startsWith('/assets/')) {
+  // Hashed build output and immutable lightweight media: cache-first. Exercise
+  // Lottie data and OGG cues are reused across the Codex and must not consume
+  // the Spark bandwidth allowance more than once per installed build.
+  if (
+    url.pathname.startsWith('/assets/') ||
+    url.pathname.startsWith('/audio/') ||
+    url.pathname.startsWith('/lottie/')
+  ) {
     event.respondWith(
       caches.match(request).then(
         (hit) =>

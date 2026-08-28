@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { ArrowRight, RotateCcw } from 'lucide-react';
 import { SystemWindow, SystemPanel } from '../system/SystemWindow';
 import { SystemButton } from '../system/SystemButton';
-import { SystemMeter } from '../system/SystemMeter';
 import { STATS } from '../../engine/constants';
 import { splitName } from '../../engine/assessment';
 import { getExercise } from '../../data/exercises';

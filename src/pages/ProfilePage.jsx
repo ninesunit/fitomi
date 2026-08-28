@@ -9,10 +9,11 @@ import { MotionPanel, PanelHeader } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
 import { TextField, SelectField, Segmented } from '../components/ui/Field';
 import { HunterPortrait } from '../components/avatar/HunterPortrait';
+import { CharacterCustomizer } from '../components/avatar/CharacterCustomizer';
 import { NameField } from '../components/onboarding/NameField';
 import { BodyTypePicker } from '../components/onboarding/BodyTypePicker';
 import { StatRadar } from '../components/dashboard/StatRadar';
-import { XpBar, Meter } from '../components/ui/Bars';
+import { XpBar } from '../components/ui/Bars';
 import { STATS, fromKg, toKg } from '../engine/constants';
 import { RANKS } from '../engine/ranks';
 import { SHADOWS, REQUIREMENT_LABELS, DEFAULT_THEME } from '../engine/shadows';
@@ -322,6 +323,16 @@ export default function ProfilePage() {
       {/* ---- editable profile ---- */}
       <MotionPanel delay={0.2} className="p-5">
         <PanelHeader label="Hunter data" title="Edit profile" icon={User} />
+
+        <div className="mt-4">
+          <CharacterCustomizer
+            value={draft.gender}
+            onChange={(gender) => setDraft({ ...draft, gender })}
+            stats={profile.stats}
+            bodyType={profile.bodyType}
+            color={rank.color}
+          />
+        </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">

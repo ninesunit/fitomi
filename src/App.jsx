@@ -40,6 +40,8 @@ function ThemeBridge({ children }) {
   useEffect(() => {
     if (!theme) return;
     const root = document.documentElement;
+    root.style.setProperty('--sys', theme.accent);
+    root.style.setProperty('--sys-2', theme.accent2);
     root.style.setProperty('--accent', theme.accent);
     root.style.setProperty('--accent-2', theme.accent2);
   }, [theme]);
@@ -104,6 +106,7 @@ function Protected() {
 
 function Gate() {
   const { user, loading, unconfigured } = useAuth();
+  const awakened = useSyncExternalStore(subscribeAwakening, getAwakeningSnapshot, () => false);
   if (loading) return <BootScreen message="Establishing link" />;
   if (unconfigured) return <SetupRequired />;
 
@@ -113,8 +116,6 @@ function Gate() {
   // Subscribed rather than read inline: this lives in localStorage, and a plain
   // read would be captured on first render and never update, so finishing the
   // assessment would bounce off /auth back to the start of the questionnaire.
-  const awakened = useSyncExternalStore(subscribeAwakening, getAwakeningSnapshot, () => false);
-
   return (
     <Routes>
       <Route

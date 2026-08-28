@@ -1,18 +1,10 @@
 // ---------------------------------------------------------------------------
 // THE SYSTEM'S VOICE
 //
-// Every cue here is synthesised at runtime with the Web Audio API rather than
-// loaded from an audio file. Two reasons, both load-bearing:
-//
-//  - Bandwidth. Hosting allows 360 MB/day. A dozen short mp3s at ~30 KB each
-//    is ~360 KB downloaded by every first-time visitor, which is larger than
-//    the entire application bundle.
-//  - Provenance. Ripping the show's actual cues would be lifting someone
-//    else's audio. These are original tones written to evoke the same thing:
-//    glassy sine partials, fast attacks, long exponential tails, and a short
-//    synthetic reverb so nothing sounds dry.
-//
-// The whole module is a few kilobytes and works offline.
+// High-value cues use original compressed OGG assets through reusable HTML5
+// Audio instances. The entire set is under 30 KB and files are constructed
+// lazily, so ordinary navigation downloads nothing. Web Audio synthesis stays
+// as the fallback for unsupported playback and secondary cues.
 // ---------------------------------------------------------------------------
 
 const SETTINGS_KEY = 'fitomi:sound';
@@ -24,6 +16,23 @@ let unlocked = false;
 
 let enabled = true;
 let volume = 0.6;
+
+const FILE_CUES = {
+  tap: '/audio/tap.ogg',
+  select: '/audio/success.ogg',
+  confirm: '/audio/success.ogg',
+  success: '/audio/success.ogg',
+  questComplete: '/audio/success.ogg',
+  record: '/audio/success.ogg',
+  reveal: '/audio/success.ogg',
+  levelUp: '/audio/level-up.ogg',
+  damage: '/audio/damage.ogg',
+  error: '/audio/error.ogg',
+  restDone: '/audio/rest-done.ogg',
+  setComplete: '/audio/tap.ogg',
+};
+
+const audioPools = new Map();
 
 try {
   const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
@@ -41,11 +50,44 @@ export function setSoundSettings(patch) {
   if (typeof patch.enabled === 'boolean') enabled = patch.enabled;
   if (typeof patch.volume === 'number') volume = Math.max(0, Math.min(1, patch.volume));
   if (master) master.gain.value = enabled ? volume : 0;
+  audioPools.forEach((pool) => pool.forEach((audio) => { audio.volume = enabled ? volume : 0; }));
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ enabled, volume }));
   } catch {
     /* ignore */
   }
+}
+
+function audioPool(source) {
+  if (typeof Audio === 'undefined') return null;
+  if (!audioPools.has(source)) {
+    const pool = Array.from({ length: 2 }, () => {
+      const audio = new Audio(source);
+      audio.preload = 'auto';
+      audio.volume = enabled ? volume : 0;
+      return audio;
+    });
+    audioPools.set(source, pool);
+  }
+  return audioPools.get(source);
+}
+
+/** Plays a cached file cue. Returns false when HTML5 Audio is unavailable. */
+function playFile(cue) {
+  const source = FILE_CUES[cue];
+  if (!source) return false;
+  const pool = audioPool(source);
+  if (!pool) return false;
+  const audio = pool.find((item) => item.paused || item.ended) || pool[0];
+  audio.volume = volume;
+  audio.currentTime = 0;
+  const attempt = audio.play();
+  if (attempt?.catch) {
+    attempt.catch(() => {
+      try { CUES[cue]?.(); } catch { /* audio is non-critical */ }
+    });
+  }
+  return true;
 }
 
 /**
@@ -215,6 +257,10 @@ export const CUES = {
     tone({ freq: N(18), type: 'triangle', at: 0.1, duration: 0.32, gain: 0.2, wet: 0.6 });
   },
 
+  success() {
+    CUES.confirm();
+  },
+
   /** Quest cleared — brief and satisfying, heard many times a day. */
   questComplete() {
     tone({ freq: N(16), type: 'sine', duration: 0.14, gain: 0.18, wet: 0.4 });
@@ -297,6 +343,7 @@ export const CUES = {
 export function play(cue) {
   if (!enabled) return;
   try {
+    if (playFile(cue)) return;
     CUES[cue]?.();
   } catch {
     /* a device that will not make noise should not break the app */

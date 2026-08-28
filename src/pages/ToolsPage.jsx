@@ -13,31 +13,34 @@ import { LBS_PER_KG, fromKg, toKg } from '../engine/constants';
 import { formatClock } from '../lib/date';
 
 const TABS = [
-  { id: 'plates', label: 'Plates', icon: Calculator },
-  { id: 'onerm', label: '1RM & RPE', icon: Gauge },
-  { id: 'timer', label: 'Rest timer', icon: Timer },
-  { id: 'convert', label: 'Converter', icon: Scale },
+  { id: 'timer', label: 'Rest Timer', detail: 'Global countdown', icon: Timer },
+  { id: 'plates', label: 'Plate Calculator', detail: 'Load the bar', icon: Calculator },
+  { id: 'onerm', label: '1 Rep Max', detail: 'Estimate strength', icon: Gauge },
+  { id: 'convert', label: 'Unit Converter', detail: 'Kilograms and pounds', icon: Scale },
 ];
 
 export default function ToolsPage() {
-  const [tab, setTab] = useState('plates');
+  const [tab, setTab] = useState('timer');
 
   return (
     <div className="space-y-4">
       <MotionPanel accent notch className="p-4">
-        <PanelHeader label="Utilities" title="Hunter toolkit" icon={Calculator} />
-        <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
+        <PanelHeader label="Utilities hub" title="Immediate tools" icon={Calculator} />
+        <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
- className={`inline-flex shrink-0 items-center gap-2  border px-3.5 py-1.5 text-xs font-semibold transition ${
-                tab === t.id ? 'border-transparent text-void-950' : 'border-[rgb(var(--sys)/0.25)] text-[rgb(var(--sys-dim))] hover:bg-white/5'
+ className={`group relative min-h-[92px] overflow-hidden border p-3 text-left transition ${
+                tab === t.id ? 'border-[rgb(var(--sys)/0.75)] bg-[rgb(var(--sys)/0.14)]' : 'border-[rgb(var(--sys)/0.2)] bg-[rgb(var(--sys-deep-2)/0.5)] hover:border-[rgb(var(--sys)/0.45)]'
               }`}
-              style={tab === t.id ? { backgroundColor: 'rgb(var(--sys))' } : undefined}
             >
-              <t.icon size={14} />
-              {t.label}
+              <span className="mb-3 flex h-8 w-8 items-center justify-center border border-[rgb(var(--sys)/0.3)] text-[rgb(var(--sys))] transition-transform group-hover:-translate-y-0.5">
+                <t.icon size={16} />
+              </span>
+              <span className="block font-display text-sm font-semibold uppercase tracking-wider text-[rgb(var(--sys-ink))]">{t.label}</span>
+              <span className="sys-label mt-1 block text-[8px] normal-case tracking-normal">{t.detail}</span>
+              {tab === t.id && <span className="absolute inset-x-0 top-0 h-[2px] bg-[rgb(var(--sys))] shadow-[0_0_12px_rgb(var(--sys))]" />}
             </button>
           ))}
         </div>

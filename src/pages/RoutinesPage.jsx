@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ClipboardList, Copy, Pencil, Play, Plus, Sparkles } from 'lucide-react';
+import { ClipboardList, Copy, Pencil, Play, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { useWorkout } from '../context/WorkoutContext';
@@ -93,7 +93,7 @@ export default function RoutinesPage() {
   }
 
   function duplicate(routine) {
-    const { id, ...rest } = routine;
+    const { id: _id, ...rest } = routine;
     setEditing({ ...rest, id: null, name: `${routine.name} (copy)`, source: 'custom' });
   }
 

@@ -48,7 +48,7 @@ const drillTarget = (drill) =>
  * @param now       evaluation instant
  * @param userId    seeds the deterministic picks
  */
-export function generateQuests({ history = [], profile = {}, streak = {}, records = {}, now = Date.now(), userId = 'anon' }) {
+export function generateQuests({ history = [], streak = {}, records = {}, now = Date.now(), userId = 'anon' }) {
   const today = dayKey(new Date(now));
   const seed = `${userId}:${today}`;
   const rng = seededRandom(seed);
@@ -333,7 +333,7 @@ function findPrOpportunity(records, soreness, now) {
  * Weekly quests — longer arcs that survive a single day, generated from the
  * same deterministic seed but keyed to the week.
  */
-export function generateWeeklyQuests({ history = [], streak = {}, week, userId = 'anon' }) {
+export function generateWeeklyQuests({ history = [], week, userId = 'anon' }) {
   const recent = history.filter((w) => Date.now() - (w.finishedAt || 0) <= 28 * DAY_MS);
   const avgSessions = recent.length ? Math.round(recent.length / 4) : 3;
   const avgVolume = recent.length ? recent.reduce((s, w) => s + (w.volumeKg || 0), 0) / recent.length : 4000;

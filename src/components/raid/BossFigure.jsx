@@ -13,8 +13,8 @@ import { clsx } from '../../lib/clsx';
 
 export function BossFigure({ boss, damage = 0, hp = 1, className, defeated = false }) {
   const uid = useId().replace(/:/g, '');
-  const shapes = useMemo(() => buildBoss(boss), [boss?.id]);
-  const cracks = useMemo(() => fractures(boss), [boss?.id]);
+  const shapes = useMemo(() => buildBoss(boss), [boss]);
+  const cracks = useMemo(() => fractures(boss), [boss]);
 
   const wounded = Math.max(0, Math.min(1, damage / (hp || 1)));
   // Cracks are all on the body by ~85% damage, so the last stretch of the

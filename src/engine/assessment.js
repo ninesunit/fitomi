@@ -1,6 +1,6 @@
 import { STAT_IDS, EMPTY_STATS, toKg } from './constants';
 import { EXERCISES, getExercise } from '../data/exercises';
-import { canPerform, gearFor, presetGear } from '../data/gear';
+import { canPerform, presetGear } from '../data/gear';
 import { seededRandom } from '../lib/date';
 
 // ---------------------------------------------------------------------------
@@ -468,11 +468,11 @@ export function assess(answers) {
     sessionsPerWeek,
     setsPerWeek,
     // A plain-language read the result screen prints line by line.
-    findings: buildFindings({ answers, stats, body, goal, experience, named, program }),
+    findings: buildFindings({ body, goal, experience, named, program }),
   };
 }
 
-function buildFindings({ answers, body, goal, experience, named, program }) {
+function buildFindings({ body, goal, experience, named, program }) {
   const out = [];
 
   out.push({

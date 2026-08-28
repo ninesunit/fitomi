@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { clsx } from '../../lib/clsx';
 import { play } from '../../lib/sound';
 import { SystemButton } from './SystemButton';
 

@@ -57,7 +57,7 @@ export function SocialProvider({ children }) {
       setFriends(list);
       setRequests(pending);
       setFriendCards(list.length ? await social.fetchCards(list.map((f) => f.uid)) : []);
-    } catch (error) {
+    } catch {
       toast('Could not load your hunters.', { tone: 'error' });
     } finally {
       setLoading(false);
@@ -94,7 +94,7 @@ export function SocialProvider({ children }) {
       setCard({ ...next, uid });
       const guildId = profile.guildId;
       if (guildId) await social.syncGuildMember(uid, guildId, next);
-    } catch (error) {
+    } catch {
       // A failed publish must never break training — the card catches up on
       // the next session.
       publishedRef.current = null;

@@ -5,7 +5,7 @@ import { AlertTriangle, ChevronRight, Lightbulb, Search, SlidersHorizontal, X } 
 import { Panel, PanelHeader } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
 import { Sheet } from '../components/ui/Sheet';
-import { ExerciseAnimation } from '../components/ExerciseAnimation';
+import { LottieExerciseGuide, exerciseAnimationUrl } from '../components/library/LottieExerciseGuide';
 import { ExerciseHistory } from '../components/library/ExerciseHistory';
 import { CATEGORIES, EXERCISES, filterExercises, getExercise } from '../data/exercises';
 import { EQUIPMENT, EQUIPMENT_LIST, MUSCLES, PATTERNS } from '../engine/constants';
@@ -35,9 +35,8 @@ export default function LibraryPage() {
   const [equipment, setEquipment] = useState('all');
   const [difficulty, setDifficulty] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
-  // Every card runs its own animated SVG rig. Rendering all 235 at once is a
-  // 44,000px scroll and 235 simultaneous animations on a phone, so the list
-  // grows a page at a time.
+  // Lottie data is fetched only when its card approaches the viewport. The
+  // list still grows a page at a time to keep DOM and animation work bounded.
   const [limit, setLimit] = useState(PAGE);
 
   const deferredQuery = useDeferredValue(query);
@@ -146,7 +145,7 @@ export default function LibraryPage() {
                 className="tap panel flex items-center gap-3 p-3 text-left hover:bg-[rgb(var(--sys)/0.05)]"
               >
                 <div className="h-14 w-14 shrink-0 border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
-                  <ExerciseAnimation exercise={exercise} speed={3.2} />
+                  <ExerciseGuide exercise={exercise} compact />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-semibold text-[rgb(var(--sys-ink))]">{exercise.name}</h3>
@@ -240,7 +239,7 @@ function CategoryGrid({ onPick }) {
             style={{ background: `radial-gradient(120% 80% at 50% 100%, ${tile.accent}1f, transparent 70%)` }}
           />
           <div className="relative h-[96px] w-full">
-            <ExerciseAnimation exercise={tile.hero} speed={3.4} showGround={false} />
+            <ExerciseGuide exercise={tile.hero} compact />
           </div>
           <div className="relative border-t px-3 py-2" style={{ borderColor: `${tile.accent}33` }}>
             <div className="text-sm font-semibold leading-tight text-[rgb(var(--sys-ink))]">{tile.name}</div>
@@ -298,7 +297,7 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
         <div className="space-y-5">
           <div className="flex flex-col gap-4 sm:flex-row">
             <div className="mx-auto h-44 w-44 shrink-0  border border-[rgb(var(--sys)/0.18)] bg-[rgb(var(--sys-deep-2)/0.6)]">
-              <ExerciseAnimation exercise={exercise} speed={2.6} />
+              <ExerciseGuide exercise={exercise} />
             </div>
 
             <div className="min-w-0 flex-1 space-y-3">
@@ -427,6 +426,19 @@ function ExerciseDetail({ exercise, onClose, onAdd, record, unit }) {
         </div>
       )}
     </Sheet>
+  );
+}
+
+function ExerciseGuide({ exercise, compact = false }) {
+  return (
+    <LottieExerciseGuide
+      animationUrl={exerciseAnimationUrl(exercise)}
+      name={exercise.name}
+      primaryMuscles={exercise.primary.map((id) => MUSCLES[id]?.name || id)}
+      secondaryMuscles={exercise.secondary.map((id) => MUSCLES[id]?.name || id)}
+      instructions={exercise.steps}
+      compact={compact}
+    />
   );
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeftRight, Calculator, CheckCircle2, ClipboardList, Info, Link2, MoreVertical, Play, Plus, StickyNote, Timer, Trash2, Unlink, X } from 'lucide-react';
@@ -212,10 +212,8 @@ export default function WorkoutPage() {
           // A superset is a run of adjacent entries sharing an id. The first
           // of the run carries the label; the rest are drawn as continuations.
           const above = session.entries[entryIndex - 1];
-          const below = session.entries[entryIndex + 1];
           const inSuperset = Boolean(entry.supersetId);
           const joinedAbove = inSuperset && above?.supersetId === entry.supersetId;
-          const joinedBelow = inSuperset && below?.supersetId === entry.supersetId;
           const groupIndex = inSuperset
             ? [...new Set(session.entries.filter((e) => e.supersetId).map((e) => e.supersetId))]
                 .indexOf(entry.supersetId)

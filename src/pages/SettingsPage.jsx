@@ -1,12 +1,10 @@
-import { useState } from 'react';
-import { AlertTriangle, Bell, Database, LogOut, Settings as SettingsIcon, Shield, Timer, Volume2 } from 'lucide-react';
+import { Bell, Database, LogOut, Settings as SettingsIcon, Shield, Timer, Volume2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { useSystem } from '../context/SystemContext';
 import { MotionPanel, PanelHeader } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
 import { Toggle, Segmented } from '../components/ui/Field';
-import { Sheet } from '../components/ui/Sheet';
 import { fromKg, toKg } from '../engine/constants';
 import { getSoundSettings, setSoundSettings, play } from '../lib/sound';
 import { notificationPermission, requestNotificationPermission, notificationsSupported } from '../lib/notify';
@@ -17,8 +15,6 @@ export default function SettingsPage() {
   const { user, signOut } = useAuth();
   const { profile, updateSettings, updateProfile, saving, flush } = useGame();
   const { toast } = useSystem();
-  const [exportOpen, setExportOpen] = useState(false);
-
   const settings = profile.settings;
 
   function exportData() {
@@ -79,7 +75,7 @@ export default function SettingsPage() {
             checked={settings.soundEnabled}
             onChange={(v) => updateSettings({ soundEnabled: v })}
             label="Chime when rest ends"
-            hint="Synthesised in the browser — no audio file is downloaded."
+            hint="Uses a lightweight compressed OGG cue cached after first playback."
           />
           <Toggle
             checked={settings.vibrationEnabled}
@@ -232,8 +228,8 @@ function RestNotificationToggle({ settings, updateSettings }) {
 }
 
 /**
- * The System's cues are synthesised at runtime, so this controls a live
- * AudioContext rather than a set of files — every change is audible at once.
+ * High-value cues use compressed OGG files with Web Audio synthesis as a
+ * fallback, so every volume change remains audible at once.
  */
 function SoundSettings() {
   const [sound, setSound] = useLocalState(getSoundSettings);
@@ -253,7 +249,7 @@ function SoundSettings() {
           checked={sound.enabled}
           onChange={(v) => update({ enabled: v })}
           label="System sound effects"
-          hint="Level-ups, records, quest clears and the rest timer. Synthesised in the browser — nothing is downloaded."
+          hint="Level-ups, records, quest clears and the rest timer. Original OGG cues total under 30 KB and cache after first use."
         />
       </div>
 

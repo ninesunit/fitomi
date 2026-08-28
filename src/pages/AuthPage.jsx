@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { AtSign, KeyRound, Lock, Mail, ShieldCheck, User } from 'lucide-react';
+import { AtSign, Lock, ShieldCheck, User } from 'lucide-react';
 import { authMessage, useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { TextField } from '../components/ui/Field';

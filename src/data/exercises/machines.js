@@ -1,4 +1,4 @@
-import { x, timed } from './schema';
+import { x } from './schema';
 
 // Named machine variants found across Hammer Strength, Cybex, Life Fitness,
 // Technogym, Nautilus and Precor lines — filed generically so the entry matches

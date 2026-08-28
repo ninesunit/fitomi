@@ -1,4 +1,4 @@
-import { x, timed, dist } from './schema';
+import { x, dist } from './schema';
 
 export default [
   x('barbell-power-clean', 'Power Clean', 'barbell', 'olympic', ['traps', 'glutes', 'hamstrings'], ['quads', 'back', 'shoulders', 'calves'], 'hinge', 's', 'advanced',

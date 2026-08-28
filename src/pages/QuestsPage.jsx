@@ -10,7 +10,7 @@ import { soreMuscles, neglectedMuscles } from '../engine/soreness';
 import { MuscleMap, SorenessLegend } from '../components/dashboard/MuscleMap';
 
 export default function QuestsPage() {
-  const { quests, completeQuest, uncompleteQuest, soreness, readiness, streak, profile } = useGame();
+  const { quests, completeQuest, uncompleteQuest, soreness, readiness, streak } = useGame();
 
   const done = quests.daily.filter((q) => quests.completed.includes(q.id));
   const open = quests.daily.filter((q) => !quests.completed.includes(q.id));

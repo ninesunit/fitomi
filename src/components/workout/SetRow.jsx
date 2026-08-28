@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Layers, Trash2 } from 'lucide-react';
-import { clsx } from '../../lib/clsx';
 import { RPE_DESCRIPTIONS, estimate1RM } from '../../engine/oneRepMax';
 import { fromKg, toKg } from '../../engine/constants';
 import { play } from '../../lib/sound';

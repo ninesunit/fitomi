@@ -2,7 +2,6 @@ import { useDeferredValue, useMemo, useState } from 'react';
 import { ArrowLeftRight, Check, Search, SlidersHorizontal } from 'lucide-react';
 import { Sheet } from '../ui/Sheet';
 import { Button } from '../ui/Button';
-import { Segmented } from '../ui/Field';
 import { ExerciseAnimation } from '../ExerciseAnimation';
 import { CATEGORIES, filterExercises, getExercise } from '../../data/exercises';
 import { EQUIPMENT_LIST } from '../../engine/constants';
