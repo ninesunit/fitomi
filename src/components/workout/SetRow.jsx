@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Trash2 } from 'lucide-react';
+import { Check, Layers, Trash2 } from 'lucide-react';
 import { clsx } from '../../lib/clsx';
 import { RPE_DESCRIPTIONS, estimate1RM } from '../../engine/oneRepMax';
 import { fromKg, toKg } from '../../engine/constants';
@@ -21,7 +21,7 @@ const TYPE_CYCLE = ['working', 'warmup', 'drop', 'failure'];
  * zooms the viewport on focus, and the complete button on the right where the
  * hand already is.
  */
-export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange, onComplete, onRemove }) {
+export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange, onComplete, onRemove, onPlates }) {
   const [rpeOpen, setRpeOpen] = useState(false);
   const type = SET_TYPES[set.type] || SET_TYPES.working;
 
@@ -81,10 +81,6 @@ export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange
           {type.label || index + 1}
         </button>
 
-        <span className="hidden w-14 shrink-0 truncate text-center font-mono text-[10px] text-[rgb(var(--sys-dim))] xs:block">
-          {previous || '—'}
-        </span>
-
         {isTimed ? (
           <NumField value={set.duration} onChange={(v) => onChange({ duration: v })} placeholder="sec" label="Time" />
         ) : isDistance ? (
@@ -133,9 +129,30 @@ export function SetRow({ set, index, exercise, unit, previous, showRpe, onChange
         </button>
       </div>
 
-      {e1rm > 0 && (
-        <div className="mt-1 pl-11 font-mono text-[10px] text-[rgb(var(--sys-dim))] opacity-70">
-          e1RM ≈ {fromKg(e1rm, unit).toFixed(1)} {unit}
+      {(previous || e1rm > 0 || (onPlates && Number(set.weight) > 0)) && (
+        <div className="mt-1 flex flex-wrap items-center gap-x-2.5 pl-11 font-mono text-[10px] text-[rgb(var(--sys-dim))]">
+          {previous && (
+            // "What did I do last time" is the number a lifter actually wants
+            // mid-set, and tapping it fills the row — the same reach-for-last
+            // -session shortcut a paper log gives you for free.
+            <button
+              onClick={() => { play('tap'); onChange(previous.values); }}
+              className="underline-offset-2 hover:underline"
+              style={{ color: 'rgb(var(--sys-gold))' }}
+            >
+              Prev {previous.label}
+            </button>
+          )}
+          {e1rm > 0 && <span className="opacity-70">e1RM ≈ {fromKg(e1rm, unit).toFixed(1)} {unit}</span>}
+          {onPlates && Number(set.weight) > 0 && (
+            <button
+              onClick={() => { play('tap'); onPlates(Number(set.weight)); }}
+              className="ml-auto flex items-center gap-1 underline-offset-2 hover:underline"
+            >
+              <Layers size={10} />
+              Plates
+            </button>
+          )}
         </div>
       )}
 

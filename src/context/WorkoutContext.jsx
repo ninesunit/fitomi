@@ -23,6 +23,26 @@ const ACTIVE_KEY = 'fitomi:active-workout';
 // once when they hit Finish.
 // ---------------------------------------------------------------------------
 
+/**
+ * Superset ids must be unique within a session. A timestamp is not enough:
+ * two groups created in the same millisecond collide, and everything that
+ * groups by id — the rest gating, the visual run — would then treat two
+ * separate supersets as one.
+ */
+let supersetSeq = 0;
+const nextSupersetId = () => `ss-${Date.now().toString(36)}-${(supersetSeq += 1)}`;
+
+/** A superset of one is just an exercise. */
+function collapseSingletons(entries) {
+  const counts = new Map();
+  for (const entry of entries) {
+    if (entry.supersetId) counts.set(entry.supersetId, (counts.get(entry.supersetId) || 0) + 1);
+  }
+  return entries.map((entry) =>
+    entry.supersetId && counts.get(entry.supersetId) < 2 ? { ...entry, supersetId: null } : entry,
+  );
+}
+
 const emptySet = (index, previous) => ({
   id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
   reps: previous?.reps ?? '',
@@ -244,6 +264,56 @@ export function WorkoutProvider({ children }) {
     );
   }, []);
 
+  /**
+   * Supersets.
+   *
+   * A superset is a run of adjacent entries sharing a `supersetId`: you
+   * alternate through them without resting and rest once at the end of the
+   * round. Grouping is always "join the exercise above", so a group can only
+   * ever be built contiguously; leaving from the middle of one splits it in
+   * two rather than leaving a group whose members are no longer adjacent,
+   * which is the invariant the rest gating depends on.
+   */
+  const toggleSuperset = useCallback((exerciseId) => {
+    setSession((current) => {
+      if (!current) return current;
+      const index = current.entries.findIndex((e) => e.exerciseId === exerciseId);
+      if (index <= 0) return current;
+
+      const entries = [...current.entries];
+      const self = entries[index];
+      const above = entries[index - 1];
+
+      if (self.supersetId && self.supersetId === above.supersetId) {
+        // Leaving from the middle of a run splits it: the entries below are no
+        // longer adjacent to the ones above, so they cannot keep sharing an id
+        // — they become a group of their own.
+        const id = self.supersetId;
+        entries[index] = { ...self, supersetId: null };
+        const tailId = nextSupersetId();
+        for (let i = index + 1; i < entries.length && entries[i].supersetId === id; i += 1) {
+          entries[i] = { ...entries[i], supersetId: tailId };
+        }
+        return { ...current, entries: collapseSingletons(entries) };
+      }
+
+      // Joining upward merges two runs rather than re-labelling one entry:
+      // if this exercise already leads a group below it, that group is
+      // adjacent to the one being joined, so all of it comes along. Without
+      // this the members below keep the old id and become an orphaned group.
+      const id = above.supersetId || self.supersetId || nextSupersetId();
+      const previousId = self.supersetId;
+      entries[index - 1] = { ...above, supersetId: id };
+      entries[index] = { ...self, supersetId: id };
+      if (previousId && previousId !== id) {
+        for (let i = index + 1; i < entries.length && entries[i].supersetId === previousId; i += 1) {
+          entries[i] = { ...entries[i], supersetId: id };
+        }
+      }
+      return { ...current, entries };
+    });
+  }, []);
+
   const reorderExercise = useCallback((from, to) => {
     setSession((current) => {
       if (!current) return current;
@@ -301,9 +371,20 @@ export function WorkoutProvider({ children }) {
     (exerciseId, setId) => {
       const exercise = getExercise(exerciseId);
       let didComplete = false;
+      // Resolved inside the updater rather than from the closure: this
+      // callback is memoised on `profile`, so reading `session` here would
+      // read whatever it was when the callback was last rebuilt.
+      let midSuperset = false;
 
       setSession((current) => {
         if (!current) return current;
+
+        const target = current.entries.find((e) => e.exerciseId === exerciseId);
+        if (target?.supersetId) {
+          const group = current.entries.filter((e) => e.supersetId === target.supersetId);
+          midSuperset = group[group.length - 1].exerciseId !== exerciseId;
+        }
+
         return {
           ...current,
           entries: current.entries.map((entry) => {
@@ -320,7 +401,9 @@ export function WorkoutProvider({ children }) {
         };
       });
 
-      if (didComplete && profile?.settings?.autoStartRest) {
+      // Resting between the legs of a superset defeats the point of one, so
+      // the timer only starts after the last exercise in the group.
+      if (didComplete && !midSuperset && profile?.settings?.autoStartRest) {
         // Compounds get the longer rest — that is what the two settings are for.
         const seconds =
           exercise?.mechanics === 'compound' && exercise?.tier !== 'c'
@@ -422,6 +505,7 @@ export function WorkoutProvider({ children }) {
       addExercises,
       replaceExercise,
       removeExercise,
+      toggleSuperset,
       reorderExercise,
       addSet,
       removeSet,
@@ -438,7 +522,7 @@ export function WorkoutProvider({ children }) {
     }),
     [
       session, elapsed, stats, rest, restRemaining, start, discard, finish,
-      addExercise, addExercises, replaceExercise, removeExercise, reorderExercise, addSet, removeSet,
+      addExercise, addExercises, replaceExercise, removeExercise, toggleSuperset, reorderExercise, addSet, removeSet,
       updateSet, completeSet, startRest, adjustRest, skipRest, setName, setNotes, setEntryNotes, profile,
     ],
   );

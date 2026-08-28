@@ -14,13 +14,14 @@ const COLLAR_R = 228;
  * "2x20 + 1x5 + 1x2.5" is much slower to parse mid-session than a picture of
  * the sleeve.
  */
-export function PlateVisual({ embedded = false }) {
+export function PlateVisual({ embedded = false, initialTarget }) {
   const { profile, updateSettings } = useGame();
   const unit = profile?.unit || 'kg';
 
   const bars = BARS[unit];
   const [barId, setBarId] = useState(bars[0].id);
-  const [target, setTarget] = useState(unit === 'kg' ? 100 : 225);
+  // Opened from a set row, the calculator starts on that set's weight.
+  const [target, setTarget] = useState(initialTarget || (unit === 'kg' ? 100 : 225));
 
   const bar = bars.find((b) => b.id === barId) || bars[0];
   const available = profile?.settings?.availablePlates?.[unit] || PLATE_SETS[unit].map((p) => p.weight);
